@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 fn main() {
-    let filename = "./data/D1A2";
+    let filename = "./data/day1";
     let mut f = File::open(filename)
         .expect("error opening the file");
     let mut contents = String::new();
