@@ -1,4 +1,6 @@
 pub mod day1 {
+    use std::collections::HashSet;
+
     #[derive(Debug)]
     enum Direction {
         North,
@@ -43,14 +45,6 @@ pub mod day1 {
         Left,
     }
 
-    type Move = (Rotation, i32);
-
-    type Point = (i32, i32);
-
-    fn distance((x, y): Point) -> u32 {
-        (x.abs() + y.abs()) as u32
-    }
-
     #[derive(Debug)]
     struct Position {
         direction: Direction,
@@ -61,20 +55,22 @@ pub mod day1 {
         fn new() -> Position {
             Position {
                 direction: Direction::North,
-                location: (0, 0),
+                location: Point::new(),
             }
         }
 
         fn travel(&self, k: i32) -> Point {
             use day1::Direction::*;
-            let (x, y) = self.location;
+            let Point{x, y} = self.location;
 
-            match self.direction {
+            let (x, y) = match self.direction {
                 North => (x, y + k),
                 South => (x, y - k),
                 East => (x + k, y),
                 West => (x - k, y),
-            }
+            };
+
+            Point{x, y}
         }
 
         fn turn(&mut self, rot: Rotation) {
@@ -84,12 +80,67 @@ pub mod day1 {
         fn exec(mut self, (rotation, distance): Move) -> Position {
             self.turn(rotation);
             let location = self.travel(distance);
+            let direction = self.direction;
             Position {
-                direction: self.direction,
+                direction,
                 location,
             }
         }
     }
+
+    #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+    struct Point {
+        x: i32,
+        y: i32
+    }
+
+    impl Point {
+        fn new() -> Point {
+            Point {
+                x: 0,
+                y: 0,
+            }
+        }
+
+        fn distance(&self, p: Point) -> u32 {
+            ((self.x - p.x).abs() + (self.y - p.y).abs()) as u32
+        }
+
+        fn distance_from_start(&self) -> u32 {
+            self.distance(Point::new())
+        }
+
+        fn to_line(self, end: Point) -> Line {
+            Line{current: self, end}
+        }
+    }
+
+    struct Line {
+        current: Point,
+        end: Point,
+    }
+
+    impl<'a> Iterator for Line {
+        type Item = Point;
+
+        fn next(&mut self) -> Option<Point> {
+            if self.current.x < self.end.x {
+                self.current.x += 1;
+            } else if self.current.x > self.end.x {
+                self.current.x -= 1;
+            } else if self.current.y < self.end.y {
+                self.current.y += 1;
+            } else if self.current.y > self.end.y {
+                self.current.y -= 1;
+            } else {
+                return None
+            }
+
+            Some(self.current)
+        }
+    }
+
+    type Move = (Rotation, i32);
 
     fn parse_instructions(input: &str) -> Vec<Move> {
         fn parse<'a, T>(mut chars: T) -> Move
@@ -116,7 +167,28 @@ pub mod day1 {
             position = position.exec(mv);
         }
 
-        distance(position.location)
+        position.location.distance_from_start()
+    }
+
+    pub fn find_cycle(input: &str) -> u32 {
+        let instructions = parse_instructions(input);
+
+        let mut current = Position::new();
+        let mut visited = HashSet::new();
+
+        for mv in instructions {
+            let prev = current.location.clone();
+            current = current.exec(mv);
+            let line = prev.to_line(current.location);
+
+            for p in line {
+                if !visited.insert(p) {
+                    return p.distance_from_start();
+                }
+            }
+        }
+        
+        panic!("invalid input");
     }
 }
 
@@ -136,5 +208,15 @@ mod tests {
     #[test]
     fn test_find_hq3() {
         assert_eq!(find_hq("R5, L5, R5, R3"), 12);
+    }
+
+    #[test]
+    fn test_find_cycle1() {
+        assert_eq!(find_cycle("R8, R4, R4, R8"), 4);
+    }
+
+    #[test]
+    fn test_find_cycle2() {
+        assert_eq!(find_cycle("R4, R4, R1, L0, L1, R0, R4, R8"), 8);
     }
 }
