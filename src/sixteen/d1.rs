@@ -1,4 +1,3 @@
-
 use std::collections::HashSet;
 
 #[derive(Debug)]
@@ -195,7 +194,7 @@ pub fn find_cycle(input: &str) -> u32 {
 #[cfg(test)]
 mod tests {
     use sixteen::d1::*;
-    
+
     #[test]
     fn test_find_hq1() {
         assert_eq!(find_hq("R2, L3"), 5);
