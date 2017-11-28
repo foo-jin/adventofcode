@@ -60,7 +60,7 @@ impl Position {
 
     fn travel(&self, k: i32) -> Point {
         use sixteen::d1::Direction::*;
-        let Point{x, y} = self.location;
+        let Point { x, y } = self.location;
 
         let (x, y) = match self.direction {
             North => (x, y + k),
@@ -69,7 +69,7 @@ impl Position {
             West => (x - k, y),
         };
 
-        Point{x, y}
+        Point { x, y }
     }
 
     fn turn(&mut self, rot: Rotation) {
@@ -90,15 +90,12 @@ impl Position {
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 struct Point {
     x: i32,
-    y: i32
+    y: i32,
 }
 
 impl Point {
     fn new() -> Point {
-        Point {
-            x: 0,
-            y: 0,
-        }
+        Point { x: 0, y: 0 }
     }
 
     fn distance(&self, p: Point) -> u32 {
@@ -110,7 +107,7 @@ impl Point {
     }
 
     fn to_line(self, end: Point) -> Line {
-        Line{current: self, end}
+        Line { current: self, end }
     }
 }
 
@@ -123,16 +120,19 @@ impl<'a> Iterator for Line {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
-        if self.current.x < self.end.x {
+        let Point{x: x1, y: y1} = self.current;
+        let Point{x: x2, y: y2} = self.end;
+
+        if x1 < x2 {
             self.current.x += 1;
-        } else if self.current.x > self.end.x {
+        } else if x1 > x2 {
             self.current.x -= 1;
-        } else if self.current.y < self.end.y {
+        } else if y1 < y2 {
             self.current.y += 1;
-        } else if self.current.y > self.end.y {
+        } else if y1 > y2 {
             self.current.y -= 1;
         } else {
-            return None
+            return None;
         }
 
         Some(self.current)
@@ -186,7 +186,7 @@ pub fn find_cycle(input: &str) -> u32 {
             }
         }
     }
-    
+
     panic!("invalid input");
 }
 
