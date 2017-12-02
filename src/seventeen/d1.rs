@@ -28,8 +28,6 @@ pub fn reverse_captcha_half(input: &str) -> u32 {
     result
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use seventeen::d1::*;
