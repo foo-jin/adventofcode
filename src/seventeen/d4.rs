@@ -1,4 +1,3 @@
-use ::permutohedron;
 use std::collections::HashSet;
 
 pub fn check_password(input: &str) -> u32 {
@@ -28,8 +27,9 @@ pub fn check_anagram(input: &str) -> u32 {
         let mut duplicates = true;
 
         for s in l.split_whitespace() {
-            //seen.insert(s.chars().collect::<HashSet<char>>());
-            duplicates = duplicates && seen.insert(s)
+            let mut chars = s.chars().collect::<Vec<char>>();
+            chars.sort();
+            duplicates = duplicates && seen.insert(chars);
         }
 
         if duplicates {

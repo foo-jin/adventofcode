@@ -4,4 +4,3 @@ version = "0.1.0"
 authors = ["Frank <frank.049@hotmail.com>"]
 
 [dependencies]
-permutohedron = "0.2.4"

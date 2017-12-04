@@ -12,6 +12,6 @@ fn main() {
     f.read_to_string(&mut contents)
         .expect("error reading the file");
 
-    let result = d4::check_password(&contents);
-    println!("Result: {}", result);
+    let result = d4::check_anagram(&contents);
+    println!("Result: {}", result)
 }
