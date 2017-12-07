@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-
 pub fn redistribute(input: &str) -> u32 {
     let mut input: Vec<u32> = input
         .split_whitespace()
