@@ -116,10 +116,10 @@ impl<'a> Iterator for Spiral {
 
     fn next(&mut self) -> Option<Point> {
         let Spiral {
-            pos,
+            pos: _,
             count,
             dist,
-            turns,
+            turns: _,
         } = *self;
 
         if count == 0 {

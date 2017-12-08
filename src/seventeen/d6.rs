@@ -16,7 +16,7 @@ pub fn redistribute(input: &str) -> u32 {
             .iter_mut()
             .enumerate()
             .rev()
-            .max_by_key(|&(k, &mut v)| v)
+            .max_by_key(|&(_, &mut v)| v)
             .unwrap();
         
         input[key] = 0;

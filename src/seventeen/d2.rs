@@ -57,13 +57,13 @@ mod tests {
 
     #[test]
     fn test_checksum() {
-        const input: &str = "5 1 9 5\n7 5 3\n2 4 6 8";
-        assert_eq!(checksum(input), 18);
+        const IN: &str = "5 1 9 5\n7 5 3\n2 4 6 8";
+        assert_eq!(checksum(IN), 18);
     }
 
     #[test]
     fn test_divsum() {
-        const input: &str = "5 9 2 8\n9 4 7 3\n3 8 6 5";
-        assert_eq!(divsum(input), 9);
+        const IN: &str = "5 9 2 8\n9 4 7 3\n3 8 6 5";
+        assert_eq!(divsum(IN), 9);
     }
 }

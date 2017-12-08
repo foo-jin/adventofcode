@@ -55,7 +55,7 @@ fn fix_imbalance(
                         .iter()
                         .map(|v| weight(tree, v))
                         .enumerate()
-                        .find(|&(j, v)| j != i)
+                        .find(|&(j, _)| j != i)
                     {
                         offset = v as i32 - val as i32;
                         result = fix_imbalance(tree, &children[i], offset);
@@ -86,7 +86,7 @@ pub fn rec_circus(input: &str) -> &str {
     let mut seen = HashMap::new();
     let mut root = "";
 
-    for (name, num, children) in input {
+    for (name, _, children) in input {
         if let Some(ch) = children {
             for s in ch {
                 root = name;
@@ -141,15 +141,15 @@ pub fn balance(input: &str) -> u32 {
 #[cfg(test)]
 mod tests {
     use seventeen::d7::*;
-    const input: &str = "pbga (66)\nxhth (57)\nebii (61)\nhavc (66)\nktlj (57)\nfwft (72) -> ktlj, cntj, xhth\nqoyq (66)\npadx (45) -> pbga, havc, qoyq\ntknk (41) -> ugml, padx, fwft\njptl (61)\nugml (68) -> gyxo, ebii, jptl\ngyxo (61)\ncntj (57)";
+    const IN: &str = "pbga (66)\nxhth (57)\nebii (61)\nhavc (66)\nktlj (57)\nfwft (72) -> ktlj, cntj, xhth\nqoyq (66)\npadx (45) -> pbga, havc, qoyq\ntknk (41) -> ugml, padx, fwft\njptl (61)\nugml (68) -> gyxo, ebii, jptl\ngyxo (61)\ncntj (57)";
 
     #[test]
     fn test_rec_circus() {
-        assert_eq!(rec_circus(input), "tknk");
+        assert_eq!(rec_circus(IN), "tknk");
     }
 
     #[test]
     fn test_balance() {
-        assert_eq!(balance(input), 60);
+        assert_eq!(balance(IN), 60);
     }
 }
