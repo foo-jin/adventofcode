@@ -18,6 +18,7 @@ pub fn largest_register(input: &str) -> i32 {
         let valc: i32 = tokens.next().unwrap().parse().unwrap();
 
         let clone_env = env.clone();
+
         let &regval = clone_env.get(reg).unwrap_or(&0);
         env.insert(reg, regval);
 

@@ -113,7 +113,8 @@ pub fn balance(input: &str) -> u32 {
             .collect::<String>()
             .parse()
             .unwrap();
-        let children: Vec<String> = it.filter(|&s| s != "->").map(|s| s.chars().filter(|&c| c != ',').collect::<String>())
+        let children: Vec<String> = it.filter(|&s| s != "->")
+            .map(|s| s.chars().filter(|&c| c != ',').collect::<String>())
             .collect();
         (key, w, children)
     });

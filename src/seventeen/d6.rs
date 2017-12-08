@@ -18,7 +18,7 @@ pub fn redistribute(input: &str) -> u32 {
             .rev()
             .max_by_key(|&(_, &mut v)| v)
             .unwrap();
-        
+
         input[key] = 0;
         key += 1;
         while *el > 0 {

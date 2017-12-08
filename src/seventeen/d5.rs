@@ -1,9 +1,6 @@
 
 pub fn escape_maze(input: &str) -> u32 {
-    let mut lines: Vec<i32> = input
-        .lines()
-        .map(|s| s.parse::<i32>().unwrap())
-        .collect();
+    let mut lines: Vec<i32> = input.lines().map(|s| s.parse::<i32>().unwrap()).collect();
 
     let n = lines.len();
     let mut i = 0;
