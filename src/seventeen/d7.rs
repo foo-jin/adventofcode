@@ -118,8 +118,6 @@ pub fn balance(input: &str) -> u32 {
         (key, w, children)
     });
 
-    println!("input parsed");
-
     let mut tree = HashMap::new();
     let mut parents = HashMap::new();
     let mut root = "";
