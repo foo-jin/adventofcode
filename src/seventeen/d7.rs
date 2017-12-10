@@ -1,10 +1,11 @@
+use std::str;
 use std::collections::HashMap;
 
-fn weight(tree: &HashMap<&str, (u32, Vec<String>)>, root: &str) -> u32 {
+fn tree_weight(tree: &HashMap<&str, (u32, Vec<String>)>, root: &str) -> u32 {
     let &(w, ref children) = tree.get(root).unwrap();
     let mut result = w;
     for c in children {
-        result += weight(tree, c);
+        result += tree_weight(tree, c);
     }
 
     result
@@ -18,17 +19,19 @@ fn fix_imbalance(
     let &(w, ref children) = tree.get(root).unwrap();
     let mut result = None;
     if offset == 0 {
-        for (i, val) in children.iter().map(|v| weight(tree, v)).enumerate() {
+        for (i, val) in children.iter().map(|v| tree_weight(tree, v)).enumerate() {
             if children
                 .iter()
                 .enumerate()
                 .filter(|&(j, _)| j != i)
-                .map(|(_, v)| weight(tree, v))
+                .map(|(_, v)| tree_weight(tree, v))
                 .all(|v| val != v)
             {
-                if let Some((_, v)) = children.iter().map(|v| weight(tree, v)).enumerate().find(
-                    |&(j, _)| j != i,
-                )
+                if let Some((_, v)) = children
+                    .iter()
+                    .map(|v| tree_weight(tree, v))
+                    .enumerate()
+                    .find(|&(j, _)| j != i)
                 {
                     offset = v as i32 - val as i32;
                     result = fix_imbalance(tree, &children[i], offset);
@@ -38,22 +41,22 @@ fn fix_imbalance(
         }
         result
     } else {
-        let mut it = children.iter().map(|v| weight(tree, v));
+        let mut it = children.iter().map(|v| tree_weight(tree, v));
         let first = it.next().unwrap();
         if it.all(|v| v == first) {
             Some((w as i32 + offset) as u32)
         } else {
-            for (i, val) in children.iter().map(|v| weight(tree, v)).enumerate() {
+            for (i, val) in children.iter().map(|v| tree_weight(tree, v)).enumerate() {
                 if children
                     .iter()
                     .enumerate()
                     .filter(|&(j, _)| j != i)
-                    .map(|(_, v)| weight(tree, v))
+                    .map(|(_, v)| tree_weight(tree, v))
                     .all(|v| val != v)
                 {
                     if let Some((_, v)) = children
                         .iter()
-                        .map(|v| weight(tree, v))
+                        .map(|v| tree_weight(tree, v))
                         .enumerate()
                         .find(|&(j, _)| j != i)
                     {
@@ -141,7 +144,7 @@ pub fn balance(input: &str) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use seventeen::d7::*;
+    use super::*;
     const IN: &str = "pbga (66)\nxhth (57)\nebii (61)\nhavc (66)\nktlj (57)\nfwft (72) -> ktlj, cntj, xhth\nqoyq (66)\npadx (45) -> pbga, havc, qoyq\ntknk (41) -> ugml, padx, fwft\njptl (61)\nugml (68) -> gyxo, ebii, jptl\ngyxo (61)\ncntj (57)";
 
     #[test]

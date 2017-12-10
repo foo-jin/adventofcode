@@ -1,6 +1,6 @@
 
 pub fn count_groups(input: &str) -> u32 {
-    // let mut nesting = 0;
+    let mut nesting = 0;
     let mut count = 0;
     let mut chars = input.chars();
 
@@ -16,14 +16,13 @@ pub fn count_groups(input: &str) -> u32 {
                         '>' => break,
                         _ => count += 1,
                     }
-                    //println!("ignoring: {}", c);
                 }
             }
             '{' => {
-                //nesting += 1;
-                //count += nesting;
+                nesting += 1;
+                count += nesting;
                 },
-            '}' => (),//nesting -= 1,
+            '}' => nesting -= 1,
             ',' => (),
             c => {
                 println!("unexpected input:{}", c);
