@@ -1,11 +1,11 @@
 extern crate adventofcode;
 
-use adventofcode::seventeen::d10;
+use adventofcode::seventeen::*;
 use std::fs::File;
 use std::io::prelude::*;
 
 fn main() {
-    let filename = "./data/2017/d10-input";
+    let filename = "./data/input";
     let mut f = File::open(filename).expect("error opening the file");
 
     let mut contents = String::new();
@@ -13,6 +13,6 @@ fn main() {
         "error reading the file",
     );
 
-    let result = d10::knothash(&contents);
+    let result = d11::hexfind(&contents);
     println!("Result: {}", result)
 }
