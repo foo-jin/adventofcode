@@ -54,54 +54,66 @@ impl Point {
         Point{x, y}
     }
 
-    fn dist(&self, dest: Point, dist: u32) -> u32 {
+    fn dist(&self, dest: Point) -> u32 {
         use super::d11::Direction::*;
 
-        let cur = *self;
-        if cur == dest {
-            dist
-        } else {
+        let mut cur = *self;
+        let mut dist = 0;
+
+        while cur != dest {
             let Point{x: x1, y: y1} = cur;
             let Point{x: x2, y: y2} = dest;
-
-            if x1 < x2 {
-                if y1 < y2 {
-                    u32::min(
-                        cur.neighbour(NE).dist(dest, dist+1),
-                        cur.neighbour(N).dist(dest, dist+1))
-                } else if y1 == y2 {
-                    u32::min(
-                        cur.neighbour(NE).dist(dest, dist+1),
-                        cur.neighbour(SE).dist(dest, dist+1))
+            
+            cur = 
+                if x1 < x2 {
+                    if y1 < y2 {
+                        dist += 1;
+                        cur.neighbour(NE)
+                    } else if y1 == y2 {
+                        dist += (x2 - x1).abs();
+                        break
+                    } else {
+                        dist += 1;
+                        cur.neighbour(SE)
+                    }
+                } else if x1 == x2 {
+                    dist += (y1 - y2).abs() / 2;
+                    break;
                 } else {
-                    cur.neighbour(SE).dist(dest, dist+1)
+                    if y1 < y2 {
+                        dist += 1;
+                        cur.neighbour(NW)
+                    } else if y1 == y2 {
+                        dist += (x2 - x1).abs();
+                        break
+                    } else {
+                        dist += 1;
+                        cur.neighbour(SW)
+                    }
                 }
-            } else if x1 == x2 {
-                dist + (y1 - y2).abs() as u32
-            } else {
-                if y1 < y2 {
-                    u32::min(
-                        cur.neighbour(NW).dist(dest, dist+1),
-                        cur.neighbour(N).dist(dest, dist+1))
-                } else if y1 == y2 {
-                    u32::min(
-                        cur.neighbour(NW).dist(dest, dist+1),
-                        cur.neighbour(SW).dist(dest, dist+1))
-                } else {
-                    cur.neighbour(SW).dist(dest, dist+1)
-                }
-            }
         }
+        dist as u32
     }
 
     fn to_origin(&self) -> u32 {
-        self.dist(Point::new(), 0)
+        self.dist(Point::new())
     }
 }
 
 pub fn hexfind(input: &str) -> u32 {
-    let end = input.trim().split(',').map(Direction::new).fold(Point::new(), |p, d| p.neighbour(d));
-    end.to_origin()
+    let mut dist = 0;
+    let end = input.trim().split(',').map(Direction::new).fold(Point::new(), |p, d| {
+        let new = p.neighbour(d);
+        let nd = new.to_origin();
+        if nd > dist {
+            println!("new: {}", nd);
+            dist = nd;
+        }
+        //dist = u32::max(dist, p.to_origin());
+        new
+    });
+    //end.to_origin()
+    dist
 }
 
 #[cfg(test)]
@@ -115,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_hexfind2() {
-        assert_eq!(hexfind("ne,ne,sw,sw"), 0);
+        assert_eq!(hexfind("ne,ne,sw,sw"), 2);
     }
 
     #[test]
