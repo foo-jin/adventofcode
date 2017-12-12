@@ -13,6 +13,6 @@ fn main() {
         "error reading the file",
     );
 
-    let result = d12::pipegraph(&contents);
+    let result = d12::pipegraph(&contents).unwrap();
     println!("Result: {}", result)
 }
