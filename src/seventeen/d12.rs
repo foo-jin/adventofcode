@@ -1,25 +1,26 @@
- 
- use std::collections::{HashSet, HashMap};
+use std::collections::{HashSet, HashMap};
 
 pub fn pipegraph(input: &str) -> u32 {
     let mut graph = HashMap::new();
     let mut len = 0;
+
     for l in input.trim().lines() {
         len += 1;
-        let mut it = l.split_whitespace();
-        let key: u32 = it.next().unwrap().parse().unwrap();
-        let _ = it.next();
+        let mut it = l.split("<->");
+        let key: u32 = it.next().expect("left").parse().unwrap();
+        let left: u64 = it.next().expect("left side").trim().parse().unwrap();
+        let right: Vec<u32> = it.next()
+            .expect("right")
+            .trim()
+            .split(", ")
+            .map(|s| s.parse().unwrap())
+            .collect();
 
-        let mut neigh = Vec::new();
-        for s in it {
-            let k: u32 = s.chars().filter(|&c| c != ',').collect::<String>().parse().unwrap();
-            neigh.push(k);
-        }
-        graph.insert(key, neigh);
+        graph.insert(key, right);
     }
 
     let mut components = Vec::new();
-    for i in 0 .. len {
+    for i in 0..len {
         if let None = graph.get(&i) {
             continue;
         }
@@ -30,7 +31,7 @@ pub fn pipegraph(input: &str) -> u32 {
         while !stack.is_empty() {
             let cur = stack.pop().unwrap();
             if connected.contains(&cur) {
-                continue
+                continue;
             } else {
                 connected.insert(cur);
                 if let Some(ks) = graph.get(&cur) {
@@ -38,16 +39,16 @@ pub fn pipegraph(input: &str) -> u32 {
                         stack.push(k);
                     }
                 }
-                
+
             }
             graph.remove(&cur);
         }
         components.push(connected);
-    }    
+    }
     components.len() as u32
 }
 
- #[cfg(test)]
+#[cfg(test)]
 mod tests {
     use super::*;
 
