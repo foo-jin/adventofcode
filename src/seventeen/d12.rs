@@ -7,8 +7,7 @@ pub fn pipegraph(input: &str) -> u32 {
     for l in input.trim().lines() {
         len += 1;
         let mut it = l.split("<->");
-        let key: u32 = it.next().expect("left").parse().unwrap();
-        let left: u64 = it.next().expect("left side").trim().parse().unwrap();
+        let key: u32 = it.next().expect("left").trim().parse().unwrap();
         let right: Vec<u32> = it.next()
             .expect("right")
             .trim()
@@ -25,19 +24,16 @@ pub fn pipegraph(input: &str) -> u32 {
             continue;
         }
 
-        let mut stack = Vec::new();
-        stack.push(i);
+        let mut stack = vec![i];
         let mut connected = HashSet::new();
-        while !stack.is_empty() {
-            let cur = stack.pop().unwrap();
+
+        while let Some(cur) = stack.pop() {
             if connected.contains(&cur) {
                 continue;
             } else {
                 connected.insert(cur);
                 if let Some(ks) = graph.get(&cur) {
-                    for &k in ks {
-                        stack.push(k);
-                    }
+                    stack.extend(ks);
                 }
 
             }

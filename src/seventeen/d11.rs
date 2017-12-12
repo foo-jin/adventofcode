@@ -98,14 +98,13 @@ impl Point {
 
 pub fn hexfind(input: &str) -> u32 {
     let mut dist = 0;
-    let end = input.trim().split(',').map(Direction::new).fold(
+    input.trim().split(',').map(Direction::new).fold(
         Point::new(),
         |p, d| {
             let new = p.neighbour(d);
             dist = u32::max(dist, new.to_origin());
             new
-        },
-    );
+    });
     //end.to_origin()
     dist
 }
