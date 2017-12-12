@@ -13,6 +13,6 @@ fn main() {
         "error reading the file",
     );
 
-    let result = d11::hexfind(&contents);
+    let result = d12::pipegraph(&contents);
     println!("Result: {}", result)
 }
