@@ -4,56 +4,35 @@ use failure::Error;
 struct Layer {
     depth: u32,
     range: u32,
-    dir: i8,
-    sc: u32,
 }
 
 impl Layer {
     fn new(depth: u32, range: u32) -> Layer {
-        Layer {
-            depth,
-            range,
-            dir: 1,
-            sc: 1,
-        }
-    }
-
-    fn move_sc(&mut self) {
-        let sc = self.sc;
-        let range = self.range;
-        if sc == range {
-            self.dir = -1;
-        } else if sc == 1 {
-            self.dir = 1;
-        }
-        self.sc = (sc as i32 + self.dir as i32) as u32;
-    }
-
-    fn update(&mut self, n: u32) {
-        for _ in 0..n {
-            self.move_sc();
-        }
+        Layer { depth, range }
     }
 }
 
 pub fn firewall(input: &str) -> Result<u32, Error> {
-    let layers: Vec<_> = input
+    let layers: Vec<Layer> = input
         .trim()
         .lines()
         .map(|s| {
             let mut it = s.split(": ");
-            let depth = it.next().unwrap().parse().unwrap();
-            let range = it.next().unwrap().parse().unwrap();
-            Layer::new(depth, range)
+            let depth = it.next().unwrap().parse()?;
+            let range = it.next().unwrap().parse()?;
+            Ok(Layer::new(depth, range))
         })
-        .collect();
+        .collect::<Result<_, Error>>()?;
 
 
-    let wait = (0..).filter(|delay| {
-        !layers.iter().any(|layer| {
-            (delay + layer.depth) % (2 * (layer.range - 1)) == 0
+    let wait = (0..)
+        .filter(|delay| {
+            !layers.iter().any(|layer| {
+                (delay + layer.depth) % (2 * (layer.range - 1)) == 0
+            })
         })
-    }).next().unwrap();
+        .next()
+        .unwrap();
     Ok(wait)
 }
 

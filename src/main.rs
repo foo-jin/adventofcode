@@ -13,6 +13,6 @@ fn main() {
         "error reading the file",
     );
 
-    let result = d13::firewall(&contents).unwrap();
+    let result = d14::regions(&contents).unwrap();
     println!("Result: {}", result)
 }

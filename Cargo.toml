@@ -6,3 +6,4 @@ authors = ["Frank <frank.049@hotmail.com>"]
 [dependencies]
 nom = "3.2.1"
 failure = "0.1.1"
+bit-vec = "0.4.4"
