@@ -37,25 +37,29 @@ fn reverse<T>(d: &mut [T], pos: usize, length: usize) {
 }
 
 pub fn knothash(input: &str) -> Vec<u8> {
-    let line = input.trim();
-
-    let lengths: Vec<usize> = line.as_bytes()
+    let lengths: Vec<usize> = input
+        .trim()
+        .as_bytes()
         .iter()
         .chain(&[17, 31, 73, 47, 23])
         .map(|l| *l as usize)
         .collect();
 
-    let mut sparse: Vec<u8> = (0..=255).collect();
+    let sparse = {
+        let mut sparse: Vec<u8> = (0..=255).collect();
 
-    let mut pos = 0;
-    let mut skip = 0..;
+        let mut pos = 0;
+        let mut skip = 0..;
 
-    for _ in 0..64 {
-        for (l, skip) in lengths.iter().zip(&mut skip) {
-            reverse(&mut sparse, pos, *l);
-            pos = (pos + skip + *l) % sparse.len();
+        for _ in 0..64 {
+            for (l, skip) in lengths.iter().zip(&mut skip) {
+                reverse(&mut sparse, pos, *l);
+                pos = (pos + skip + *l) % sparse.len();
+            }
         }
-    }
+
+        sparse
+    };
 
     let out: Vec<u8> = sparse
         .chunks(16)
