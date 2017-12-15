@@ -13,6 +13,6 @@ fn main() {
         "error reading the file",
     );
 
-    let result = d14::regions(&contents).unwrap();
+    let result = d15::genmatch(&contents).unwrap();
     println!("Result: {}", result)
 }
