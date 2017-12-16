@@ -47,7 +47,7 @@ fn shift(offset: i32, order: &[char]) -> String {
     result
 }
 
-pub fn dance(input: &str, reps: usize) -> Result<String, Error> {
+pub fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
     use super::d16::Dancemove::*;
 
     let routine: Vec<Dancemove> = input
@@ -59,11 +59,11 @@ pub fn dance(input: &str, reps: usize) -> Result<String, Error> {
     let mut order = vec![
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'
     ];
-    let n = order.len() as i32;
+    order.truncate(n);
+    let n = n as i32;
     let mut offset = 0;
 
-    let mut seen = vec![];
-    seen.push(shift(offset, &order));
+    let mut seen = vec![shift(offset, &order)];
     let mut result = String::new();
 
     for i in 0..reps {
@@ -109,14 +109,20 @@ pub fn dance(input: &str, reps: usize) -> Result<String, Error> {
 mod tests {
     use super::*;
 
-    fn check_dance(input: &str, expected: &str) {
-        let result = dance(input, 2).unwrap();
+    fn check_dance(input: &str, rep: usize, expected: &str) {
+        let result = dance(input, rep, expected.len()).unwrap();
         assert_eq!(result.as_str(), expected);
     }
 
     #[test]
-    fn test_dance() {
+    fn test_dance1() {
         let input = "s1,x3/4,pe/b";
-        check_dance(input, "ceadb");
+        check_dance(input, 2, "ceadb");
+    }
+    
+    #[test]
+    fn test_dance2() {
+        let input = include_str!("../../data/input");
+        check_dance(input, 1000000000, "gnflbkojhicpmead")
     }
 }

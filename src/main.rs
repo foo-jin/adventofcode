@@ -13,6 +13,6 @@ fn main() {
         "error reading the file",
     );
 
-    let result = d16::dance(&contents, 1000000000).unwrap();
+    let result = d16::dance(&contents, 16, 1000000000).unwrap();
     println!("Result: {}", result)
 }
