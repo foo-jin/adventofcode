@@ -30,9 +30,12 @@ pub fn regions(input: &str) -> Result<u32, Error> {
     for y in 0..128 {
         let bytes = knothash(&format!("{}-{}", input, y));
         let bits = BitVec::from_bytes(&bytes);
-        grid.extend(bits.into_iter().enumerate().filter(|v| v.1).map(
-            |v| (v.0 as i32, y as i32),
-        ));
+        grid.extend(
+            bits.into_iter()
+                .enumerate()
+                .filter(|v| v.1)
+                .map(|v| (v.0 as i32, y as i32)),
+        );
     }
 
     let mut regions = 0;
@@ -43,10 +46,10 @@ pub fn regions(input: &str) -> Result<u32, Error> {
         regions += 1;
         queue.push_back(k);
         while let Some((x, y)) = queue.pop_front() {
-            queue.extend(grid.take(&(x-1, y)));
-            queue.extend(grid.take(&(x, y-1)));
-            queue.extend(grid.take(&(x+1, y)));
-            queue.extend(grid.take(&(x, y+1)));
+            queue.extend(grid.take(&(x - 1, y)));
+            queue.extend(grid.take(&(x, y - 1)));
+            queue.extend(grid.take(&(x + 1, y)));
+            queue.extend(grid.take(&(x, y + 1)));
         }
     }
 

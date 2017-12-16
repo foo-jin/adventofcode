@@ -10,7 +10,7 @@ pub fn genmatch(input: &str) -> Result<u32, Error> {
     let mut b: u64 = line.next().unwrap().parse()?;
     let mut matches = 0;
 
-    for _ in 0 .. 5000000 {
+    for _ in 0..5000000 {
         a = (a * A) % DIV;
         while a % 4 != 0 {
             a = (a * A) % DIV;
