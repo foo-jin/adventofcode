@@ -47,7 +47,7 @@ fn shift(offset: i32, order: &[char]) -> String {
     result
 }
 
-pub fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
+fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
     use super::d16::Dancemove::*;
 
     let routine: Vec<Dancemove> = input
@@ -105,6 +105,10 @@ pub fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
     Ok(result)
 }
 
+pub fn run(input: &str) -> Result<String, Error> {
+    dance(input, 1000000000, 16)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -122,7 +126,7 @@ mod tests {
     
     #[test]
     fn test_dance2() {
-        let input = include_str!("../../data/input");
+        let input = include_str!("../../data/d16-test");
         check_dance(input, 1000000000, "gnflbkojhicpmead")
     }
 }
