@@ -1,21 +1,31 @@
 use failure::Error;
 
-pub fn run(input: &str) -> Result<u32, Error> {
-    Ok(0)
+fn spinlock(steps: usize, limit: usize) -> Result<usize, Error> {
+    let mut i = 0;
+    let mut result = 0;
+
+    for k in 1..=limit {
+        let n = k;
+        i = ((i + steps) % n) + 1;
+
+        if i == 1 {
+            result = k;
+        }
+    }
+    Ok(result)
+}
+
+pub fn run(input: &str) -> Result<usize, Error> {
+    let steps: usize = input.parse()?;
+    spinlock(steps, 50_000_000)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn check_dance(input: &str, rep: usize, expected: &str) {
-        let result = dance(input, rep, expected.len()).unwrap();
-        assert_eq!(result.as_str(), expected);
-    }
-
     #[test]
-    fn test_dance1() {
-        let input = "s1,x3/4,pe/b";
-        check_dance(input, 2, "ceadb");
+    fn test_spinlock1() {
+        assert_eq!(spinlock(3, 9).unwrap(), 9);
     }
 }
