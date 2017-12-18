@@ -1,83 +1,146 @@
 use failure::Error;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
+
+enum Status<'a> {
+    Run,
+    Block(&'a str),
+    Term,
+}
 
 fn exec(input: &str) -> Result<i64, Error> {
-    let mut it = input.lines().enumerate();
-    let mut freq = 0;
-    let mut mem: HashMap<&str, i64> = HashMap::new();
+    use super::d18::Status::*;
 
-    while let Some((i, line)) =  it.next() {
-        let mut line = line.split_whitespace();
-        let instruction = line.next().unwrap();
-        match instruction {
-            "snd" => {
-                let reg = line.next().unwrap();
-                freq = if let Some(val) = mem.get(&reg) {
-                    *val
+    let mut it = vec![input.lines().enumerate(), input.lines().enumerate()];
+    let mut mem: Vec<HashMap<&str, i64>> = vec![HashMap::new(), HashMap::new()];
+    let mut qs = vec![VecDeque::new(), VecDeque::new()];
+    let mut status = vec![Run, Run];
+    let mut count = vec![0, 0];
+    let mut id = 0;
+
+    for i in 0..2 {
+        mem[i].insert("p", i as i64);
+    }
+
+    loop {
+        //println!("id: {}, q0: {}, q1: {}", id, qs[0].len(), qs[1].len());
+        match status[id] {
+            Block(reg) => {
+                if let Some(val) = qs[id].pop_front() {
+                    mem[id].insert(reg, val);
+                    status[id] = Run
                 } else {
-                    0
+                    id = (id + 1) % 2
+                }
+            },
+            Term => id = (id + 1) % 2,
+            Run => ()
+        }
+
+        match (&status[0], &status[1]) {
+            (&Block(_), &Block(_)) => {
+                println!("bb");
+                break
+            },
+            (&Term, &Term) => {
+                println!("tt");
+                break
+            },
+            (&Term, &Block(_)) => {
+                println!("tb");
+                break
+            },
+            (&Block(_), &Term) => {
+                println!("bt");
+                break
+            },
+            _ => {
+                let (i, line) = match it[id].next() {
+                    Some((i, line)) => (i, line),
+                    None => {
+                        status[id] = Term;
+                        id = (id + 1) % 2;
+                        continue
+                    }
                 };
-            },
-            "set" => {
-                let r1 = line.next().unwrap();
-                let r2 = line.next().unwrap();
-                let val = r2.parse().unwrap_or(*mem.get(&r2).unwrap_or(&0));
-                mem.insert(r1, val);
-            },
-            "add" => {
-                let r1 = line.next().unwrap();
-                let r2 = line.next().unwrap();
-                let &v1 = mem.get(&r1).unwrap_or(&0);
-                let v2 = r2.parse().unwrap_or(*mem.get(&r2).unwrap_or(&0));
-                mem.insert(r1, v1 + v2);
-            },
-            "mul" => {
-                let r1 = line.next().unwrap();
-                let r2 = line.next().unwrap();
-                let &v1 = mem.get(&r1).unwrap_or(&0);
-                let v2 = r2.parse().unwrap_or(*mem.get(&r2).unwrap_or(&0));
-                mem.insert(r1, v1 * v2);
-            },
-            "mod" => {
-                let r1 = line.next().unwrap();
-                let r2 = line.next().unwrap();
-                let &v1 = mem.get(&r1).unwrap_or(&0);
-                let v2 = r2.parse().unwrap_or(*mem.get(&r2).unwrap_or(&0));
-                let result = v1 % v2;
-                mem.insert(r1, result);
-            },
-            "rcv" => {
-                let reg = line.next().unwrap();
-                if let Some(val) = mem.get(&reg) {
-                    if *val != 0 {
-                        break;
-                    }
+
+                let mut line = line.split_whitespace();
+                let instruction = line.next().unwrap();
+                if id == 1 {
+                    println!("{}", instruction);
                 }
-            },
-            "jgz" => {
-                let r1 = line.next().unwrap();
-                let r2 = line.next().unwrap();
-                let &v1 = mem.get(&r1).unwrap_or(&0);
-                let v2 = r2.parse().unwrap_or(*mem.get(&r2).unwrap_or(&0));
-                if v1 > 0 {
-                    if v2 > 1 {
-                        for _ in 0..v2 {
-                            it.next();
+                match instruction {
+                    "snd" => {
+                        let reg = line.next().unwrap();
+                        let val = *mem[id].get(&reg).unwrap_or(&0);
+                        qs[(id + 1) % 2].push_back(val);
+                        count[id] += 1;
+                        if id == 1 {
+                            println!("1 sending");
                         }
-                    } else {
-                        it = input.lines().enumerate();
-                        let offset = (i as i64 + v2) as usize;
-                        for _ in 0 .. offset {
-                            it.next();
+                    },
+                    "set" => {
+                        let r1 = line.next().unwrap();
+                        let r2 = line.next().unwrap();
+                        let val = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
+                        mem[id].insert(r1, val);
+                    },
+                    "add" => {
+                        let r1 = line.next().unwrap();
+                        let r2 = line.next().unwrap();
+                        let &v1 = mem[id].get(&r1).unwrap_or(&0);
+                        let v2 = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
+                        mem[id].insert(r1, v1 + v2);
+                    },
+                    "mul" => {
+                        let r1 = line.next().unwrap();
+                        let r2 = line.next().unwrap();
+                        let &v1 = mem[id].get(&r1).unwrap_or(&0);
+                        let v2 = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
+                        mem[id].insert(r1, v1 * v2);
+                    },
+                    "mod" => {
+                        let r1 = line.next().unwrap();
+                        let r2 = line.next().unwrap();
+                        let &v1 = mem[id].get(&r1).unwrap_or(&0);
+                        let v2 = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
+                        let result = v1 % v2;
+                        mem[id].insert(r1, result);
+                    },
+                    "rcv" => {
+                        let reg = line.next().unwrap();
+                        if let Some(val) = qs[id].pop_front() {
+                            mem[id].insert(reg, val);
+                        } else {
+                            status[id] = Block(reg);
+                            id = (id + 1) % 2;
                         }
-                    }
+                    },
+                    "jgz" => {
+                        let r1 = line.next().unwrap();
+                        let r2 = line.next().unwrap();
+                        let &v1 = mem[id].get(&r1).unwrap_or(&0);
+                        let v2 = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
+                        if v1 > 0 {
+                            if v2 > 1 {
+                                for _ in 0..v2 {
+                                    it[id].next();
+                                }
+                            } else {
+                                it[id] = input.lines().enumerate();
+                                let offset = (i as i64 + v2) as usize;
+                                for _ in 0 .. offset {
+                                    it[id].next();
+                                }
+                            }
+                        }
+                    },
+                    _ => panic!("invalid input")
                 }
-            },
-            _ => panic!("invalid input")
+            }
         }
     }
 
-    Ok(freq)
+    Ok(count[1])
 }
 
 pub fn run(input: &str) -> Result<i64, Error> {
@@ -90,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_exec() {
-        let input = "set a 1\nadd a 2\nmul a a\nmod a 5\nsnd a\nset a 0\nrcv a\njgz a -1\nset a 1\njgz a -2";
-        assert_eq!(exec(input).unwrap(), 4);
+        let input = "snd 1\nsnd 2\nsnd p\nrcv a\nrcv b\nrcv c\nrcv d";
+        assert_eq!(exec(input).unwrap(), 3);
     }
 }
