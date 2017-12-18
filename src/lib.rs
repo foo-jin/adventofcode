@@ -1,5 +1,6 @@
 #![feature(i128_type)]
 #![feature(inclusive_range_syntax)]
+#![feature(match_default_bindings)]
 
 #[macro_use]
 extern crate nom;

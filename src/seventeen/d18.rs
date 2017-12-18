@@ -1,146 +1,286 @@
 use failure::Error;
-use std::collections::{HashMap, VecDeque};
+use std::sync::mpsc::{Receiver, Sender, channel};
+use self::Action::*;
 
-enum Status<'a> {
-    Run,
-    Block(&'a str),
-    Term,
+type Memory = Vec<i64>;
+
+#[derive(Debug, Clone)]
+enum RegVal {
+    Reg(u8),
+    Val(i64),
 }
 
-fn exec(input: &str) -> Result<i64, Error> {
-    use super::d18::Status::*;
+impl RegVal {
+    pub fn value(&self, mem: &Memory) -> i64 {
+        use self::RegVal::*;
+        
+        match *self {
+            Reg(reg) => mem[reg as usize],
+            Val(v) => v,
+        }
+    }
+}
 
-    let mut it = vec![input.lines().enumerate(), input.lines().enumerate()];
-    let mut mem: Vec<HashMap<&str, i64>> = vec![HashMap::new(), HashMap::new()];
-    let mut qs = vec![VecDeque::new(), VecDeque::new()];
-    let mut status = vec![Run, Run];
-    let mut count = vec![0, 0];
-    let mut id = 0;
+#[derive(Debug, Clone)]
+enum Instr {
+    Set(u8, RegVal),
+    Mul(u8, RegVal),
+    Add(u8, RegVal),
+    Mod(u8, RegVal),
+    Jgz(RegVal, RegVal),
+    Snd(RegVal),
+    Rcv(u8)
+}
 
-    for i in 0..2 {
-        mem[i].insert("p", i as i64);
+enum Action {
+    Nothing,
+    Halt,
+    Store(i64),
+}
+
+pub trait Fragment {
+    fn init(&mut self) -> Option<i64> {
+        None
     }
 
-    loop {
-        //println!("id: {}, q0: {}, q1: {}", id, qs[0].len(), qs[1].len());
-        match status[id] {
-            Block(reg) => {
-                if let Some(val) = qs[id].pop_front() {
-                    mem[id].insert(reg, val);
-                    status[id] = Run
-                } else {
-                    id = (id + 1) % 2
+    fn snd(&mut self, val: i64);
+
+    fn rcv(&mut self, val: i64) -> Action;
+}
+
+pub struct Program<F> {
+    mem: Memory,
+    instr: Vec<Instr>,
+    ip: usize,
+    fragment: F,
+}
+
+impl<F> Program<F>
+where
+    F: Fragment,
+{
+    pub fn reg(input: &str) -> u8 {
+        input.chars().next().expect("empty string") as u8
+    }
+
+    pub fn parse_regval(input: &str) -> RegVal {
+        if let Ok(v) = input.parse::<i64>() {
+            RegVal::Val(v)
+        } else {
+            let c = input.chars().next().expect("empty string");
+            RegVal::Reg(c as u8)
+        }
+    }
+
+    pub fn parse(input: &str) -> Vec<Instr> {
+        let mut out = Vec::new();
+
+        for line in input.lines() {
+            let it = line.split_whitespace();
+
+            match it.next().expect("no instruction") {
+                "set" => {
+                    let reg = reg(it.next().expect("no register"));
+                    let arg = parse_regval(it.next().expect("no argument"));
+                    out.push(Instr::Set(reg, arg));
                 }
-            },
-            Term => id = (id + 1) % 2,
-            Run => ()
+                "mul" => {
+                    let reg = reg(it.next().expect("no register"));
+                    let arg = parse_regval(it.next().expect("no argument"));
+                    out.push(Instr::Mul(reg, arg));
+                }
+                "add" => {
+                    let reg = reg(it.next().expect("no register"));
+                    let arg = parse_regval(it.next().expect("no argument"));
+                    out.push(Instr::Add(reg, arg));
+                }
+                "mod" => {
+                    let reg = reg(it.next().expect("no register"));
+                    let arg = parse_regval(it.next().expect("no argument"));
+                    out.push(Instr::Mod(reg, arg));
+                }
+                "jgz" => {
+                    let cond = parse_regval(it.next().expect("no register"));
+                    let arg = parse_regval(it.next().expect("no argument"));
+                    out.push(Instr::Jgz(cond, arg));
+                }
+                "snd" => {
+                    let arg = parse_regval(it.next().expect("no argument"));
+                    out.push(Instr::Snd(arg));
+                }
+                "rcv" => {
+                    let reg = reg(it.next().expect("no argument"));
+                    out.push(Instr::Rcv(reg));
+                }
+                inst => panic!("unkown instruction: {}", inst),
+            }
         }
 
-        match (&status[0], &status[1]) {
-            (&Block(_), &Block(_)) => {
-                println!("bb");
-                break
-            },
-            (&Term, &Term) => {
-                println!("tt");
-                break
-            },
-            (&Term, &Block(_)) => {
-                println!("tb");
-                break
-            },
-            (&Block(_), &Term) => {
-                println!("bt");
-                break
-            },
-            _ => {
-                let (i, line) = match it[id].next() {
-                    Some((i, line)) => (i, line),
-                    None => {
-                        status[id] = Term;
-                        id = (id + 1) % 2;
-                        continue
-                    }
-                };
+        out
+    }
 
-                let mut line = line.split_whitespace();
-                let instruction = line.next().unwrap();
-                if id == 1 {
-                    println!("{}", instruction);
-                }
-                match instruction {
-                    "snd" => {
-                        let reg = line.next().unwrap();
-                        let val = *mem[id].get(&reg).unwrap_or(&0);
-                        qs[(id + 1) % 2].push_back(val);
-                        count[id] += 1;
-                        if id == 1 {
-                            println!("1 sending");
-                        }
-                    },
-                    "set" => {
-                        let r1 = line.next().unwrap();
-                        let r2 = line.next().unwrap();
-                        let val = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
-                        mem[id].insert(r1, val);
-                    },
-                    "add" => {
-                        let r1 = line.next().unwrap();
-                        let r2 = line.next().unwrap();
-                        let &v1 = mem[id].get(&r1).unwrap_or(&0);
-                        let v2 = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
-                        mem[id].insert(r1, v1 + v2);
-                    },
-                    "mul" => {
-                        let r1 = line.next().unwrap();
-                        let r2 = line.next().unwrap();
-                        let &v1 = mem[id].get(&r1).unwrap_or(&0);
-                        let v2 = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
-                        mem[id].insert(r1, v1 * v2);
-                    },
-                    "mod" => {
-                        let r1 = line.next().unwrap();
-                        let r2 = line.next().unwrap();
-                        let &v1 = mem[id].get(&r1).unwrap_or(&0);
-                        let v2 = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
-                        let result = v1 % v2;
-                        mem[id].insert(r1, result);
-                    },
-                    "rcv" => {
-                        let reg = line.next().unwrap();
-                        if let Some(val) = qs[id].pop_front() {
-                            mem[id].insert(reg, val);
+    fn from_instr(instr: Vec<Instr>, fragment: F) -> Program<F> {
+        let mut program = Program {
+            mem: vec![0; 256],
+            instr: instr,
+            ip: 0,
+            fragment: fragment,
+        };
+
+        if let Some(id) = program.fragment.init() {
+            program.mem['p' as u8 as usize] = id;
+        }
+
+        program
+    }
+
+    pub fn run(&mut self) {
+        use self::Instr::*;
+
+        loop {
+            let it = self.instr.get(self.ip).expect("ip overflow");
+
+            match *it {
+                Set(ref reg, ref arg) => {
+                    self.mem[*reg as usize] = arg.value(&self.mem);
+                },
+                Mul(ref reg, ref arg) => {
+                    self.mem[*reg as usize] *= arg.value(&self.mem);
+                },
+                Add(ref reg, ref arg) => {
+                    self.mem[*reg as usize] += arg.value(&self.mem);
+                },
+                Mod(ref reg, ref arg) => {
+                    self.mem[*reg as usize] %= arg.value(&self.mem);
+                },
+                Jgz(ref cond, ref offset) => {
+                    let cond = cond.value(&self.mem);
+                    if cond > 0 {
+                        let o = offset.value(&self.mem);
+
+                        if o < 0 {
+                            self.ip = self.ip.checked_sub(-o as usize).expect("underflow");
                         } else {
-                            status[id] = Block(reg);
-                            id = (id + 1) % 2;
+                            self.ip = self.ip.checked_sub(o as usize).expect("overflow");
                         }
-                    },
-                    "jgz" => {
-                        let r1 = line.next().unwrap();
-                        let r2 = line.next().unwrap();
-                        let &v1 = mem[id].get(&r1).unwrap_or(&0);
-                        let v2 = r2.parse().unwrap_or(*mem[id].get(&r2).unwrap_or(&0));
-                        if v1 > 0 {
-                            if v2 > 1 {
-                                for _ in 0..v2 {
-                                    it[id].next();
-                                }
-                            } else {
-                                it[id] = input.lines().enumerate();
-                                let offset = (i as i64 + v2) as usize;
-                                for _ in 0 .. offset {
-                                    it[id].next();
-                                }
-                            }
-                        }
-                    },
-                    _ => panic!("invalid input")
+
+                        continue;
+                    }
+                },
+                Snd(ref arg) => {
+                    let val = arg.value(&self.mem);
+                    self.fragment.snd(val);
+                }
+                Rcv(ref reg) => {
+                    let val = self.mem[*reg as usize];
+
+                    match self.fragment.rcv(val) {
+                        Halt => return,
+                        Store(val) => self.mem[*reg as usize] = val,
+                        Nothing => ()
+                    }
                 }
             }
         }
     }
+}
 
-    Ok(count[1])
+struct Pat1 {
+    sent: i64,
+}
+
+impl Fragment for Part1 {
+    fn snd(&mut self, val: i64) {
+        self.sent = val;
+    }
+
+    fn rcv(&mut self, val: i64) -> Action {
+        if val != 0 && self.sent > 0 {
+            Halt
+        } else {
+            Nothing
+        }
+    }
+}
+
+fn part1(input: &str) -> i64 {
+    let instr = parse(input);
+
+    let mut program = Program::from_instr(inst, Part1 {sent: 0});
+    program.run();
+
+    program.fragment.sent
+}
+
+#[derive(Debug)]
+struct Part2 {
+    id: i64,
+    send: u64,
+    recv: u64,
+    sender: Sender<i64>,
+    receive: Receiver<i64>,
+}
+
+impl Part2 {
+    fn new(id: i64, sender: Sender<u64>, receiver: Receiver<u64>) -> Part2 {
+        Part2 {
+            id,
+            send: 0,
+            recv: 0,
+            sender,
+            receiver
+        }
+    }
+}
+
+impl Fragment for Part2 {
+    fn init(&mut self) -> Option<i64> {
+        Some(self.id)
+    }
+
+    fn snd(&mut self, val: i64) {
+        self.send += 1;
+        self.sender.send(val).expect("no receiver");
+    }
+
+    fn rcv(&mut self, _: i64) -> Action {
+        use std::synd::mpsc::TryRecvError;
+
+        match self.receiver.try_recv() {
+            Ok(val) => {
+                self.recv += 1;
+                Store(val)
+            }
+            Err(TryRecvError::Empty) => Halt,
+            Err(e) => panic("unexpected error: {}", e),
+        }
+    }
+}
+
+fn part2(input: &str) -> u64 {
+    let inst = parse (input);
+    let (tx0, rx0) = channel();
+    let (tx1, rx1) = channel();
+
+    let mut p0 = Program::from_instr(inst.clone(), Part2::new(0, tx0, rx1));
+    let mut p1 = Program::from_instr(inst.clone(), Part2::new(1, tx1, rx0));
+
+    let mut attempts = 0;
+
+    loop {
+        p0.run();
+        p1.run();
+
+        if p0.fragment.send == p1.fragment.recv && p1.fragment.send == p0.fragment.recv {
+            if attempts > 3 {
+                return p1.fragment.send;
+            }
+
+            attempts += 1;
+        } else {
+            attempts = 0;
+        }
+    }
 }
 
 pub fn run(input: &str) -> Result<i64, Error> {
