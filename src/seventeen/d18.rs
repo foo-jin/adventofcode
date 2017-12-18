@@ -1,4 +1,3 @@
-use failure::Error;
 use std::sync::mpsc::{Receiver, Sender, channel};
 use self::Action::*;
 
@@ -38,7 +37,7 @@ enum Action {
     Store(i64),
 }
 
-pub trait Fragment {
+trait Fragment {
     fn init(&mut self) -> Option<i64> {
         None
     }
@@ -48,7 +47,7 @@ pub trait Fragment {
     fn rcv(&mut self, val: i64) -> Action;
 }
 
-pub struct Program<F> {
+struct Program<F> {
     mem: Memory,
     instr: Vec<Instr>,
     ip: usize,
@@ -59,66 +58,6 @@ impl<F> Program<F>
 where
     F: Fragment,
 {
-    pub fn reg(input: &str) -> u8 {
-        input.chars().next().expect("empty string") as u8
-    }
-
-    pub fn parse_regval(input: &str) -> RegVal {
-        if let Ok(v) = input.parse::<i64>() {
-            RegVal::Val(v)
-        } else {
-            let c = input.chars().next().expect("empty string");
-            RegVal::Reg(c as u8)
-        }
-    }
-
-    pub fn parse(input: &str) -> Vec<Instr> {
-        let mut out = Vec::new();
-
-        for line in input.lines() {
-            let it = line.split_whitespace();
-
-            match it.next().expect("no instruction") {
-                "set" => {
-                    let reg = reg(it.next().expect("no register"));
-                    let arg = parse_regval(it.next().expect("no argument"));
-                    out.push(Instr::Set(reg, arg));
-                }
-                "mul" => {
-                    let reg = reg(it.next().expect("no register"));
-                    let arg = parse_regval(it.next().expect("no argument"));
-                    out.push(Instr::Mul(reg, arg));
-                }
-                "add" => {
-                    let reg = reg(it.next().expect("no register"));
-                    let arg = parse_regval(it.next().expect("no argument"));
-                    out.push(Instr::Add(reg, arg));
-                }
-                "mod" => {
-                    let reg = reg(it.next().expect("no register"));
-                    let arg = parse_regval(it.next().expect("no argument"));
-                    out.push(Instr::Mod(reg, arg));
-                }
-                "jgz" => {
-                    let cond = parse_regval(it.next().expect("no register"));
-                    let arg = parse_regval(it.next().expect("no argument"));
-                    out.push(Instr::Jgz(cond, arg));
-                }
-                "snd" => {
-                    let arg = parse_regval(it.next().expect("no argument"));
-                    out.push(Instr::Snd(arg));
-                }
-                "rcv" => {
-                    let reg = reg(it.next().expect("no argument"));
-                    out.push(Instr::Rcv(reg));
-                }
-                inst => panic!("unkown instruction: {}", inst),
-            }
-        }
-
-        out
-    }
-
     fn from_instr(instr: Vec<Instr>, fragment: F) -> Program<F> {
         let mut program = Program {
             mem: vec![0; 256],
@@ -185,7 +124,67 @@ where
     }
 }
 
-struct Pat1 {
+fn reg(input: &str) -> u8 {
+    input.chars().next().expect("empty string") as u8
+}
+
+fn parse_regval(input: &str) -> RegVal {
+    if let Ok(v) = input.parse::<i64>() {
+        RegVal::Val(v)
+    } else {
+        let c = input.chars().next().expect("empty string");
+        RegVal::Reg(c as u8)
+    }
+}
+
+fn parse(input: &str) -> Vec<Instr> {
+    let mut out = Vec::new();
+
+    for line in input.lines() {
+        let mut it = line.split_whitespace();
+
+        match it.next().expect("no instruction") {
+            "set" => {
+                let reg = reg(it.next().expect("no register"));
+                let arg = parse_regval(it.next().expect("no argument"));
+                out.push(Instr::Set(reg, arg));
+            }
+            "mul" => {
+                let reg = reg(it.next().expect("no register"));
+                let arg = parse_regval(it.next().expect("no argument"));
+                out.push(Instr::Mul(reg, arg));
+            }
+            "add" => {
+                let reg = reg(it.next().expect("no register"));
+                let arg = parse_regval(it.next().expect("no argument"));
+                out.push(Instr::Add(reg, arg));
+            }
+            "mod" => {
+                let reg = reg(it.next().expect("no register"));
+                let arg = parse_regval(it.next().expect("no argument"));
+                out.push(Instr::Mod(reg, arg));
+            }
+            "jgz" => {
+                let cond = parse_regval(it.next().expect("no register"));
+                let arg = parse_regval(it.next().expect("no argument"));
+                out.push(Instr::Jgz(cond, arg));
+            }
+            "snd" => {
+                let arg = parse_regval(it.next().expect("no argument"));
+                out.push(Instr::Snd(arg));
+            }
+            "rcv" => {
+                let reg = reg(it.next().expect("no argument"));
+                out.push(Instr::Rcv(reg));
+            }
+            inst => panic!("unkown instruction: {}", inst),
+        }
+    }
+
+    out
+}
+
+struct Part1 {
     sent: i64,
 }
 
@@ -206,7 +205,7 @@ impl Fragment for Part1 {
 fn part1(input: &str) -> i64 {
     let instr = parse(input);
 
-    let mut program = Program::from_instr(inst, Part1 {sent: 0});
+    let mut program = Program::from_instr(instr, Part1 {sent: 0});
     program.run();
 
     program.fragment.sent
@@ -218,11 +217,11 @@ struct Part2 {
     send: u64,
     recv: u64,
     sender: Sender<i64>,
-    receive: Receiver<i64>,
+    receiver: Receiver<i64>,
 }
 
 impl Part2 {
-    fn new(id: i64, sender: Sender<u64>, receiver: Receiver<u64>) -> Part2 {
+    fn new(id: i64, sender: Sender<i64>, receiver: Receiver<i64>) -> Part2 {
         Part2 {
             id,
             send: 0,
@@ -240,25 +239,27 @@ impl Fragment for Part2 {
 
     fn snd(&mut self, val: i64) {
         self.send += 1;
+        println!("({}) send: {}", self.id, self.send);
         self.sender.send(val).expect("no receiver");
     }
 
     fn rcv(&mut self, _: i64) -> Action {
-        use std::synd::mpsc::TryRecvError;
+        use std::sync::mpsc::TryRecvError;
 
         match self.receiver.try_recv() {
             Ok(val) => {
                 self.recv += 1;
+                println!("({}) receive: {}", self.id, self.recv);
                 Store(val)
             }
             Err(TryRecvError::Empty) => Halt,
-            Err(e) => panic("unexpected error: {}", e),
+            Err(e) => panic!("unexpected error: {}", e),
         }
     }
 }
 
 fn part2(input: &str) -> u64 {
-    let inst = parse (input);
+    let inst = parse(input);
     let (tx0, rx0) = channel();
     let (tx1, rx1) = channel();
 
@@ -268,9 +269,10 @@ fn part2(input: &str) -> u64 {
     let mut attempts = 0;
 
     loop {
+        println!("run");
         p0.run();
         p1.run();
-
+        println!("ran");
         if p0.fragment.send == p1.fragment.recv && p1.fragment.send == p0.fragment.recv {
             if attempts > 3 {
                 return p1.fragment.send;
@@ -283,8 +285,8 @@ fn part2(input: &str) -> u64 {
     }
 }
 
-pub fn run(input: &str) -> Result<i64, Error> {
-    exec(input)
+pub fn run(input: &str) -> u64 {
+    part2(input)
 }
 
 #[cfg(test)]
@@ -294,6 +296,6 @@ mod tests {
     #[test]
     fn test_exec() {
         let input = "snd 1\nsnd 2\nsnd p\nrcv a\nrcv b\nrcv c\nrcv d";
-        assert_eq!(exec(input).unwrap(), 3);
+        assert_eq!(part2(input), 3);
     }
 }
