@@ -266,8 +266,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_exec() {
+    fn test_exec1() {
         let input = "snd 1\nsnd 2\nsnd p\nrcv a\nrcv b\nrcv c\nrcv d";
         assert_eq!(part2(input), 3);
+    }
+
+    #[test]
+    fn test_exec2() {
+        let input = include_str!("../../data/d18-test");
+        assert_eq!(part2(input), 7112)
     }
 }
