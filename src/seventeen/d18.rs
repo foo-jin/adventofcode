@@ -1,8 +1,16 @@
 use std::sync::mpsc::{channel, Receiver, Sender};
-use failure::Error;
 use self::Action::*;
 
 type Memory = Vec<i64>;
+
+#[derive(Debug, Clone)]
+struct Reg(u8);
+
+impl Reg {
+    fn from_str(input: &str) -> Reg {
+        Reg(input.chars().next().expect("empty string") as u8)
+    }
+}
 
 #[derive(Debug, Clone)]
 enum RegVal {
@@ -11,7 +19,16 @@ enum RegVal {
 }
 
 impl RegVal {
-    pub fn value(&self, mem: &Memory) -> i64 {
+    fn from_str(input: &str) -> RegVal {
+        if let Ok(v) = input.parse::<i64>() {
+            RegVal::Val(v)
+        } else {
+            let c = input.chars().next().expect("empty string");
+            RegVal::Reg(c as u8)
+        }
+    }
+
+    fn eval(&self, mem: &Memory) -> i64 {
         use self::RegVal::*;
 
         match *self {
@@ -23,26 +40,13 @@ impl RegVal {
 
 #[derive(Debug, Clone)]
 enum Inst {
-    Set(u8, RegVal),
-    Mul(u8, RegVal),
-    Add(u8, RegVal),
-    Mod(u8, RegVal),
+    Set(Reg, RegVal),
+    Mul(Reg, RegVal),
+    Add(Reg, RegVal),
+    Mod(Reg, RegVal),
     Jgz(RegVal, RegVal),
     Snd(RegVal),
-    Rcv(u8),
-}
-
-fn reg(input: &str) -> u8 {
-    input.chars().next().expect("empty string") as u8
-}
-
-fn parse_regval(input: &str) -> RegVal {
-    if let Ok(v) = input.parse::<i64>() {
-        RegVal::Val(v)
-    } else {
-        let c = input.chars().next().expect("empty string");
-        RegVal::Reg(c as u8)
-    }
+    Rcv(Reg),
 }
 
 fn parse(input: &str) -> Vec<Inst> {
@@ -50,42 +54,40 @@ fn parse(input: &str) -> Vec<Inst> {
 
     for line in input.lines() {
         let mut it = line.split_whitespace();
-
-        match it.next().expect("no instruction") {
-            "set" => {
-                let reg = reg(it.next().expect("no register"));
-                let arg = parse_regval(it.next().expect("no argument"));
-                out.push(Inst::Set(reg, arg));
-            }
-            "mul" => {
-                let reg = reg(it.next().expect("no register"));
-                let arg = parse_regval(it.next().expect("no argument"));
-                out.push(Inst::Mul(reg, arg));
-            }
-            "add" => {
-                let reg = reg(it.next().expect("no register"));
-                let arg = parse_regval(it.next().expect("no argument"));
-                out.push(Inst::Add(reg, arg));
-            }
-            "mod" => {
-                let reg = reg(it.next().expect("no register"));
-                let arg = parse_regval(it.next().expect("no argument"));
-                out.push(Inst::Mod(reg, arg));
-            }
+        let inst = it.next().expect("no instruction");
+        match inst {
             "jgz" => {
-                let cond = parse_regval(it.next().expect("no register"));
-                let arg = parse_regval(it.next().expect("no argument"));
+                let cond = RegVal::from_str(it.next().expect("no register"));
+                let arg = RegVal::from_str(it.next().expect("no argument"));
                 out.push(Inst::Jgz(cond, arg));
             }
             "snd" => {
-                let arg = parse_regval(it.next().expect("no argument"));
+                let arg = RegVal::from_str(it.next().expect("no argument"));
                 out.push(Inst::Snd(arg));
             }
             "rcv" => {
-                let reg = reg(it.next().expect("no argument"));
+                let reg = Reg::from_str(it.next().expect("no argument"));
                 out.push(Inst::Rcv(reg));
             }
-            inst => panic!("unkown instruction: {}", inst),
+            inst => {
+                let reg = Reg::from_str(it.next().expect("no register"));
+                let arg = RegVal::from_str(it.next().expect("no argument"));
+                match inst {
+                    "set" => {
+                        out.push(Inst::Set(reg, arg));
+                    }
+                    "mul" => {
+                        out.push(Inst::Mul(reg, arg));
+                    }
+                    "add" => {
+                        out.push(Inst::Add(reg, arg));
+                    }
+                    "mod" => {
+                        out.push(Inst::Mod(reg, arg));
+                    }
+                    _ => panic!("unkown instruction: {}", inst),
+                }
+            }
         }
     }
 
@@ -151,22 +153,22 @@ where
         let it = self.inst.get(self.ip).expect("ip overflow");
 
         match *it {
-            Set(ref reg, ref arg) => {
-                self.mem[*reg as usize] = arg.value(&self.mem);
+            Set(Reg(reg), ref arg) => {
+                self.mem[reg as usize] = arg.eval(&self.mem);
             }
-            Mul(ref reg, ref arg) => {
-                self.mem[*reg as usize] *= arg.value(&self.mem);
+            Mul(Reg(reg), ref arg) => {
+                self.mem[reg as usize] *= arg.eval(&self.mem);
             }
-            Add(ref reg, ref arg) => {
-                self.mem[*reg as usize] += arg.value(&self.mem);
+            Add(Reg(reg), ref arg) => {
+                self.mem[reg as usize] += arg.eval(&self.mem);
             }
-            Mod(ref reg, ref arg) => {
-                self.mem[*reg as usize] %= arg.value(&self.mem);
+            Mod(Reg(reg), ref arg) => {
+                self.mem[reg as usize] %= arg.eval(&self.mem);
             }
             Jgz(ref cond, ref offset) => {
-                let cond = cond.value(&self.mem);
+                let cond = cond.eval(&self.mem);
                 if cond > 0 {
-                    let o = offset.value(&self.mem);
+                    let o = offset.eval(&self.mem);
 
                     if o < 0 {
                         self.ip = self.ip.checked_sub(-o as usize).expect("underflow");
@@ -177,15 +179,15 @@ where
                 }
             }
             Snd(ref arg) => {
-                let val = arg.value(&self.mem);
+                let val = arg.eval(&self.mem);
                 self.channel.snd(val);
             }
-            Rcv(ref reg) => {
-                let val = self.mem[*reg as usize];
+            Rcv(Reg(reg)) => {
+                let val = self.mem[reg as usize];
                 self.state = self.channel.rcv(val);
                 match self.state {
                     Blocked => return,
-                    Store(val) => self.mem[*reg as usize] = val,
+                    Store(val) => self.mem[reg as usize] = val,
                     Running => (),
                 }
             }
@@ -194,37 +196,8 @@ where
     }
 }
 
-
-
-struct Part1 {
-    sent: i64,
-}
-
-impl Channel for Part1 {
-    fn snd(&mut self, val: i64) {
-        self.sent = val;
-    }
-
-    fn rcv(&mut self, val: i64) -> Action {
-        if val != 0 && self.sent > 0 {
-            Blocked
-        } else {
-            Running
-        }
-    }
-}
-
-fn part1(input: &str) -> i64 {
-    let inst = parse(input);
-
-    let mut program = Program::from_inst(inst, Part1 { sent: 0 });
-    program.exec();
-
-    program.channel.sent
-}
-
 #[derive(Debug)]
-struct Part2 {
+struct Second {
     id: i64,
     send: u64,
     recv: u64,
@@ -232,9 +205,9 @@ struct Part2 {
     receiver: Receiver<i64>,
 }
 
-impl Part2 {
-    fn new(id: i64, sender: Sender<i64>, receiver: Receiver<i64>) -> Part2 {
-        Part2 {
+impl Second {
+    fn new(id: i64, sender: Sender<i64>, receiver: Receiver<i64>) -> Second {
+        Second {
             id,
             send: 0,
             recv: 0,
@@ -244,7 +217,7 @@ impl Part2 {
     }
 }
 
-impl Channel for Part2 {
+impl Channel for Second {
     fn id(&mut self) -> Option<i64> {
         Some(self.id)
     }
@@ -273,8 +246,8 @@ fn part2(input: &str) -> u64 {
     let (tx0, rx0) = channel();
     let (tx1, rx1) = channel();
 
-    let mut p0 = Program::from_inst(inst.clone(), Part2::new(0, tx0, rx1));
-    let mut p1 = Program::from_inst(inst.clone(), Part2::new(1, tx1, rx0));
+    let mut p0 = Program::from_inst(inst.clone(), Second::new(0, tx0, rx1));
+    let mut p1 = Program::from_inst(inst.clone(), Second::new(1, tx1, rx0));
 
     while !(p0.blocked() && p1.blocked()) {
         p0.exec();
