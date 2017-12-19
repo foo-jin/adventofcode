@@ -1,13 +1,31 @@
 use failure::Error;
 use std::collections::HashMap;
-use self::Piece::*;
+use self::Edge::*;
 use self::Direction::*;
 
-#[derive(Debug, Eq, PartialEq)]
-enum Piece {
-    Road,
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Edge {
+    Line,
     Cross,
     Letter(char),
+}
+
+impl Edge {
+    fn is_letter(&self) -> bool {
+        if let Letter(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    fn letter(&self) -> Option<char> {
+        if let Letter(c) = self {
+            Some(*c)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
@@ -50,12 +68,12 @@ impl Direction {
 type Node = (i32, i32);
 
 struct Graph {
-    network: HashMap<Node, Piece>,
+    network: HashMap<Node, Edge>,
     init: Node,
 }
 
 impl Graph {
-    fn new(network: HashMap<Node, Piece>, init: Node) -> Graph {
+    fn new(network: HashMap<Node, Edge>, init: Node) -> Graph {
         Graph { network, init }
     }
 
@@ -63,12 +81,12 @@ impl Graph {
         let mut network = HashMap::new();
         let mut init = (0, 0);
         for (y, line) in input.lines().enumerate() {
-            for (x, piece) in line.chars()
+            for (x, edge) in line.chars()
                 .enumerate()
                 .filter(|&(_, c)| !c.is_whitespace())
             {
-                let piece = match piece {
-                    '|' | '-' => Road,
+                let edge = match edge {
+                    '|' | '-' => Line,
                     '+' => Cross,
                     c => Letter(c),
                 };
@@ -80,7 +98,7 @@ impl Graph {
                     init = (x, y);
                 }
 
-                network.insert((x, y), piece);
+                network.insert((x, y), edge);
             }
         }
 
@@ -89,7 +107,7 @@ impl Graph {
 }
 
 impl IntoIterator for Graph {
-    type Item = char;
+    type Item = Edge;
     type IntoIter = Path;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -98,14 +116,14 @@ impl IntoIterator for Graph {
 }
 
 struct Path {
-    network: HashMap<Node, Piece>,
+    network: HashMap<Node, Edge>,
     current: Node,
     direction: Direction,
     steps: usize,
 }
 
 impl Path {
-    fn new(network: HashMap<Node, Piece>, current: Node, direction: Direction) -> Path {
+    fn new(network: HashMap<Node, Edge>, current: Node, direction: Direction) -> Path {
         Path {
             network,
             current,
@@ -116,66 +134,54 @@ impl Path {
 }
 
 impl Iterator for Path {
-    type Item = char;
+    type Item = Edge;
 
-    fn next(&mut self) -> Option<char> {
-        loop {
-            let dir = self.direction;
-            let (x, y) = self.current;
-            let neigh = match dir {
-                North => (x, y - 1),
-                South => (x, y + 1),
-                West => (x - 1, y),
-                East => (x + 1, y),
-            };
+    fn next(&mut self) -> Option<Edge> {
+        let cur = self.current;
+        let dir = self.direction;
+        let result = self.network.get(&self.current).expect("current node not in graph");
 
-            self.current = neigh;
-            self.steps += 1;
-            let next = match self.network.get(&neigh) {
-                Some(n) => n,
-                None => return None,
-            };
-            
-            match *next {
-                Letter(c) => return Some(c),
-                Cross => {
-                    let l = dir.left();
-                    let ln = self.network.get(&Direction::neigh(neigh, l));
-                    let r = dir.right();
-                    let rn = self.network.get(&Direction::neigh(neigh, r));
-                    if ln.is_some() {
-                        self.direction = l;
-                    } else if rn.is_some() {
-                        self.direction = r;
-                    } else {
-                        return None;
-                    }
-                }
-                _ => (),
+        if let Cross = result {
+            let l = dir.left();
+            let ln = self.network.get(&Direction::neigh(cur, l));
+
+            let r = dir.right();
+            let rn = self.network.get(&Direction::neigh(cur, r));
+
+            if ln.is_some() {
+                self.direction = l;
+            } else {
+                self.direction = r;
             }
-            
         }
+
+        let dir = self.direction;
+        let (x, y) = cur;
+
+        let neigh = match dir {
+            North => (x, y - 1),
+            South => (x, y + 1),
+            West => (x - 1, y),
+            East => (x + 1, y),
+        };
+
+        self.current = neigh;
+        self.steps += 1;
+        result
     }
 }
 
 #[allow(dead_code)]
-fn first(input: &str) -> Result<String, Error> {
-    let mut result = String::new();
-    for c in Graph::from_str(input) {
-        result.push(c);
-    }
-
-    Ok(result)
+fn first(input: &str) -> String {
+    Graph::from_str(input).into_iter().filter_map(|e| e.letter()).collect()
 }
 
-fn second(input: &str) -> Result<usize, Error> {
-    let mut it = Graph::from_str(input).into_iter();
-    while let Some(_) = it.next() {}
-    Ok(it.steps)
+fn second(input: &str) -> usize {
+    Graph::from_str(input).into_iter().count()
 }
 
 pub fn run(input: &str) -> Result<usize, Error> {
-    second(input)
+    Ok(second(input))
 }
 
 #[cfg(test)]
@@ -185,12 +191,12 @@ mod tests {
     #[test]
     fn test_first() {
         let input = include_str!("../../data/d19-test");
-        assert_eq!(first(input).unwrap().as_str(), "ABCDEF");
+        assert_eq!(first(input).as_str(), "ABCDEF");
     }
 
     #[test]
     fn test_second() {
         let input = include_str!("../../data/d19-test");
-        assert_eq!(second(input).unwrap(), 38);
+        assert_eq!(second(input), 38);
     }
 }
