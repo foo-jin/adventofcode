@@ -5,8 +5,7 @@ use self::Direction::*;
 
 #[derive(Debug, Eq, PartialEq)]
 enum Piece {
-    Pipe,
-    Bar,
+    Road,
     Cross,
     Letter(char),
 }
@@ -69,8 +68,7 @@ impl Graph {
                 .filter(|&(_, c)| !c.is_whitespace())
             {
                 let piece = match piece {
-                    '|' => Pipe,
-                    '-' => Bar,
+                    '|' | '-' => Road,
                     '+' => Cross,
                     c => Letter(c),
                 };
@@ -124,7 +122,6 @@ impl Iterator for Path {
         loop {
             let dir = self.direction;
             let (x, y) = self.current;
-            println!("cur: {:?}", dir);
             let neigh = match dir {
                 North => (x, y - 1),
                 South => (x, y + 1),
@@ -133,14 +130,11 @@ impl Iterator for Path {
             };
 
             self.current = neigh;
-            println!("neigh: {:?}", neigh);
             self.steps += 1;
             let next = match self.network.get(&neigh) {
                 Some(n) => n,
                 None => return None,
             };
-
-            println!("next: {:?}\n dir: {:?}", next, self.direction);
             
             match *next {
                 Letter(c) => return Some(c),
@@ -164,6 +158,7 @@ impl Iterator for Path {
     }
 }
 
+#[allow(dead_code)]
 fn first(input: &str) -> Result<String, Error> {
     let mut result = String::new();
     for c in Graph::from_str(input) {
