@@ -1,6 +1,7 @@
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
+use failure::*;
 
 use self::Action::*;
 use self::Inst::*;
@@ -53,7 +54,7 @@ enum Inst {
     Rcv(Reg),
 }
 
-fn parse(input: &str) -> Vec<Inst> {
+fn parse(input: &str) -> Result<Vec<Inst>, Error> {
     let mut out = Vec::new();
 
     for line in input.lines() {
@@ -89,13 +90,13 @@ fn parse(input: &str) -> Vec<Inst> {
                     "mod" => {
                         out.push(Inst::Mod(reg, arg));
                     }
-                    _ => panic!("unkown instruction: {}", inst),
+                    _ => bail!("unkown instruction: {}", inst),
                 }
             }
         }
     }
 
-    out
+    Ok(out)
 }
 
 #[derive(Clone)]
@@ -232,8 +233,8 @@ impl Channel for Second {
     }
 }
 
-fn part2(input: &str) -> u64 {
-    let inst = parse(input);
+fn part2(input: &str) -> Result<u64, Error> {
+    let inst = parse(input)?;
     
     let (tx0, rx0) = channel();
     let (tx1, rx1) = channel();
@@ -252,10 +253,10 @@ fn part2(input: &str) -> u64 {
     let _ = h0.join();
     let p1 = h1.join().expect("error in thread p1");
 
-    p1.channel.sent
+    Ok(p1.channel.sent)
 }
 
-pub fn run(input: &str) -> u64 {
+pub fn run(input: &str) -> Result<u64, Error> {
     part2(input)
 }
 
@@ -266,12 +267,12 @@ mod tests {
     #[test]
     fn test_exec1() {
         let input = "snd 1\nsnd 2\nsnd p\nrcv a\nrcv b\nrcv c\nrcv d";
-        assert_eq!(part2(input), 3);
+        assert_eq!(part2(input).unwrap(), 3);
     }
 
     #[test]
     fn test_exec2() {
         let input = include_str!("../../data/d18-test");
-        assert_eq!(part2(input), 7112)
+        assert_eq!(part2(input).unwrap(), 7112)
     }
 }
