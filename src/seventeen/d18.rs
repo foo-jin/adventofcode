@@ -102,7 +102,7 @@ enum Action {
 }
 
 trait Channel {
-    fn id(&mut self) -> Option<i64> {
+    fn id(&mut self) -> Option<u8> {
         None
     }
 
@@ -134,7 +134,7 @@ where
         };
 
         if let Some(id) = program.channel.id() {
-            program.mem['p' as u8 as usize] = id;
+            program.mem['p' as u8 as usize] = id as i64;
         }
 
         program
@@ -198,7 +198,7 @@ where
 
 #[derive(Debug)]
 struct Second {
-    id: i64,
+    id: u8,
     send: u64,
     recv: u64,
     sender: Sender<i64>,
@@ -206,7 +206,7 @@ struct Second {
 }
 
 impl Second {
-    fn new(id: i64, sender: Sender<i64>, receiver: Receiver<i64>) -> Second {
+    fn new(id: u8, sender: Sender<i64>, receiver: Receiver<i64>) -> Second {
         Second {
             id,
             send: 0,
@@ -218,7 +218,7 @@ impl Second {
 }
 
 impl Channel for Second {
-    fn id(&mut self) -> Option<i64> {
+    fn id(&mut self) -> Option<u8> {
         Some(self.id)
     }
 

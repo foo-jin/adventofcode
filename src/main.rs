@@ -13,6 +13,6 @@ fn main() {
         "error reading the file",
     );
 
-    let result = d18::run(&contents);
+    let result = d19::run(&contents).unwrap();
     println!("Result: {}", result)
 }
