@@ -1,9 +1,9 @@
-use std::sync::mpsc::{channel, Receiver, Sender, RecvError, RecvTimeoutError};
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
 
 use self::Action::*;
-use self::Msg::*;
+use self::Inst::*;
 
 type Memory = Vec<i64>;
 
@@ -100,10 +100,8 @@ fn parse(input: &str) -> Vec<Inst> {
 
 #[derive(Clone)]
 enum Action {
-    Running,
-    Blocked,
-    Terminate,
     Store(i64),
+    Terminate,
 }
 
 trait Channel {
@@ -119,7 +117,6 @@ trait Channel {
 #[derive(Clone)]
 struct Program<C> {
     mem: Memory,
-    state: Action,
     inst: Vec<Inst>,
     ip: usize,
     channel: C,
@@ -132,7 +129,6 @@ where
     fn from_inst(inst: Vec<Inst>, channel: C) -> Program<C> {
         let mut program = Program {
             mem: vec![0; 256],
-            state: Running,
             inst: inst,
             ip: 0,
             channel: channel,
@@ -145,15 +141,7 @@ where
         program
     }
 
-    fn blocked(&self) -> bool {
-        match self.state {
-            Blocked => true,
-            _ => false,
-        }
-    }
-
-    pub fn exec(&mut self) {
-        use self::Inst::*;
+    pub fn exec(mut self) -> Program<C> {
         loop {
             let it = self.inst.get(self.ip).expect("ip overflow");
 
@@ -189,42 +177,34 @@ where
                 }
                 Rcv(Reg(reg)) => {
                     let val = self.mem[reg as usize];
-                    self.state = self.channel.rcv(val);
-                    match self.state {
-                        Blocked => return,
-                        Terminate => return,
+                    let state = self.channel.rcv(val);
+                    match state {
                         Store(val) => self.mem[reg as usize] = val,
-                        Running => (),
+                        Terminate => break,
                     }
                 }
             }
             self.ip += 1;
         }
+        self
     }
-}
-
-enum Msg {
-    Send(u8),
-    Block,
 }
 
 #[derive(Debug)]
 struct Second {
     id: u8,
-    send: u64,
+    sent: u64,
     recv: u64,
-    main: Sender<Msg>,
     sender: Sender<i64>,
     receiver: Receiver<i64>,
 }
 
 impl Second {
-    fn new(id: u8, main: Sender<Msg>, sender: Sender<i64>, receiver: Receiver<i64>) -> Second {
+    fn new(id: u8, sender: Sender<i64>, receiver: Receiver<i64>) -> Second {
         Second {
             id,
-            send: 0,
+            sent: 0,
             recv: 0,
-            main,
             sender,
             receiver,
         }
@@ -237,9 +217,8 @@ impl Channel for Second {
     }
 
     fn snd(&mut self, val: i64) {
-        self.send += 1;
+        self.sent += 1;
         self.sender.send(val).expect("no receiver");
-        self.main.send(Send(self.id)).expect("no receiver");
     }
 
     fn rcv(&mut self, _: i64) -> Action {
@@ -248,51 +227,32 @@ impl Channel for Second {
                 self.recv += 1;
                 Store(val)
             }
-            Err(RecvTimeoutError::Timeout) => {
-                self.main.send(Block).expect("no receiver");
-                Blocked
-            }
-            Err(_) => Terminate,
+            _ => Terminate,
         }
     }
 }
 
 fn part2(input: &str) -> u64 {
     let inst = parse(input);
-    let (tx, rx) = channel();
+    
     let (tx0, rx0) = channel();
     let (tx1, rx1) = channel();
 
-    let mut p0 = Program::from_inst(inst.clone(), Second::new(0, tx.clone(), tx0, rx1));
-    let mut p1 = Program::from_inst(inst.clone(), Second::new(1, tx, tx1, rx0));
+    let p0 = Program::from_inst(inst.clone(), Second::new(0, tx0, rx1));
+    let p1 = Program::from_inst(inst.clone(), Second::new(1, tx1, rx0));
 
-    thread::spawn(move || {
-        p0.exec();
+    let h0 = thread::spawn(move || {
+        p0.exec()
     });
 
-    thread::spawn(move || {
-        p1.exec();
+    let h1 = thread::spawn(move || {
+        p1.exec()
     });
 
-    let mut blocked = 0;
-    let mut sent = 0;
+    let _ = h0.join();
+    let p1 = h1.join().expect("error in thread p1");
 
-    loop {
-        match rx.recv() {
-            Ok(msg) => match msg {
-                Send(1) => {
-                    blocked -= 1;
-                    sent += 1;
-                }
-                Send(_) => blocked -= 1,
-                Block => blocked += 1,
-            }
-            Err(RecvError) => break,
-        }
-        println!("blocked: {}", blocked);
-    }
-
-    sent
+    p1.channel.sent
 }
 
 pub fn run(input: &str) -> u64 {
