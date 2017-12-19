@@ -1,5 +1,9 @@
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::mpsc::{channel, Receiver, Sender, RecvError, RecvTimeoutError};
+use std::thread;
+use std::time::Duration;
+
 use self::Action::*;
+use self::Msg::*;
 
 type Memory = Vec<i64>;
 
@@ -98,6 +102,7 @@ fn parse(input: &str) -> Vec<Inst> {
 enum Action {
     Running,
     Blocked,
+    Terminate,
     Store(i64),
 }
 
@@ -149,51 +154,58 @@ where
 
     pub fn exec(&mut self) {
         use self::Inst::*;
+        loop {
+            let it = self.inst.get(self.ip).expect("ip overflow");
 
-        let it = self.inst.get(self.ip).expect("ip overflow");
+            match *it {
+                Set(Reg(reg), ref arg) => {
+                    self.mem[reg as usize] = arg.eval(&self.mem);
+                }
+                Mul(Reg(reg), ref arg) => {
+                    self.mem[reg as usize] *= arg.eval(&self.mem);
+                }
+                Add(Reg(reg), ref arg) => {
+                    self.mem[reg as usize] += arg.eval(&self.mem);
+                }
+                Mod(Reg(reg), ref arg) => {
+                    self.mem[reg as usize] %= arg.eval(&self.mem);
+                }
+                Jgz(ref cond, ref offset) => {
+                    let cond = cond.eval(&self.mem);
+                    if cond > 0 {
+                        let o = offset.eval(&self.mem);
 
-        match *it {
-            Set(Reg(reg), ref arg) => {
-                self.mem[reg as usize] = arg.eval(&self.mem);
-            }
-            Mul(Reg(reg), ref arg) => {
-                self.mem[reg as usize] *= arg.eval(&self.mem);
-            }
-            Add(Reg(reg), ref arg) => {
-                self.mem[reg as usize] += arg.eval(&self.mem);
-            }
-            Mod(Reg(reg), ref arg) => {
-                self.mem[reg as usize] %= arg.eval(&self.mem);
-            }
-            Jgz(ref cond, ref offset) => {
-                let cond = cond.eval(&self.mem);
-                if cond > 0 {
-                    let o = offset.eval(&self.mem);
-
-                    if o < 0 {
-                        self.ip = self.ip.checked_sub(-o as usize).expect("underflow");
-                    } else {
-                        self.ip = self.ip.checked_add(o as usize).expect("overflow");
+                        if o < 0 {
+                            self.ip = self.ip.checked_sub(-o as usize).expect("underflow");
+                        } else {
+                            self.ip = self.ip.checked_add(o as usize).expect("overflow");
+                        }
+                        continue;
                     }
-                    return;
+                }
+                Snd(ref arg) => {
+                    let val = arg.eval(&self.mem);
+                    self.channel.snd(val);
+                }
+                Rcv(Reg(reg)) => {
+                    let val = self.mem[reg as usize];
+                    self.state = self.channel.rcv(val);
+                    match self.state {
+                        Blocked => return,
+                        Terminate => return,
+                        Store(val) => self.mem[reg as usize] = val,
+                        Running => (),
+                    }
                 }
             }
-            Snd(ref arg) => {
-                let val = arg.eval(&self.mem);
-                self.channel.snd(val);
-            }
-            Rcv(Reg(reg)) => {
-                let val = self.mem[reg as usize];
-                self.state = self.channel.rcv(val);
-                match self.state {
-                    Blocked => return,
-                    Store(val) => self.mem[reg as usize] = val,
-                    Running => (),
-                }
-            }
+            self.ip += 1;
         }
-        self.ip += 1;
     }
+}
+
+enum Msg {
+    Send(u8),
+    Block,
 }
 
 #[derive(Debug)]
@@ -201,16 +213,18 @@ struct Second {
     id: u8,
     send: u64,
     recv: u64,
+    main: Sender<Msg>,
     sender: Sender<i64>,
     receiver: Receiver<i64>,
 }
 
 impl Second {
-    fn new(id: u8, sender: Sender<i64>, receiver: Receiver<i64>) -> Second {
+    fn new(id: u8, main: Sender<Msg>, sender: Sender<i64>, receiver: Receiver<i64>) -> Second {
         Second {
             id,
             send: 0,
             recv: 0,
+            main,
             sender,
             receiver,
         }
@@ -225,36 +239,60 @@ impl Channel for Second {
     fn snd(&mut self, val: i64) {
         self.send += 1;
         self.sender.send(val).expect("no receiver");
+        self.main.send(Send(self.id)).expect("no receiver");
     }
 
     fn rcv(&mut self, _: i64) -> Action {
-        use std::sync::mpsc::TryRecvError;
-
-        match self.receiver.try_recv() {
+        match self.receiver.recv_timeout(Duration::new(2, 0)) {
             Ok(val) => {
                 self.recv += 1;
                 Store(val)
             }
-            Err(TryRecvError::Empty) => Blocked,
-            Err(e) => panic!("unexpected error: {}", e),
+            Err(RecvTimeoutError::Timeout) => {
+                self.main.send(Block).expect("no receiver");
+                Blocked
+            }
+            Err(_) => Terminate,
         }
     }
 }
 
 fn part2(input: &str) -> u64 {
     let inst = parse(input);
+    let (tx, rx) = channel();
     let (tx0, rx0) = channel();
     let (tx1, rx1) = channel();
 
-    let mut p0 = Program::from_inst(inst.clone(), Second::new(0, tx0, rx1));
-    let mut p1 = Program::from_inst(inst.clone(), Second::new(1, tx1, rx0));
+    let mut p0 = Program::from_inst(inst.clone(), Second::new(0, tx.clone(), tx0, rx1));
+    let mut p1 = Program::from_inst(inst.clone(), Second::new(1, tx, tx1, rx0));
 
-    while !(p0.blocked() && p1.blocked()) {
+    thread::spawn(move || {
         p0.exec();
+    });
+
+    thread::spawn(move || {
         p1.exec();
+    });
+
+    let mut blocked = 0;
+    let mut sent = 0;
+
+    loop {
+        match rx.recv() {
+            Ok(msg) => match msg {
+                Send(1) => {
+                    blocked -= 1;
+                    sent += 1;
+                }
+                Send(_) => blocked -= 1,
+                Block => blocked += 1,
+            }
+            Err(RecvError) => break,
+        }
+        println!("blocked: {}", blocked);
     }
 
-    p1.channel.send
+    sent
 }
 
 pub fn run(input: &str) -> u64 {
