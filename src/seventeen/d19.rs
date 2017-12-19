@@ -6,22 +6,14 @@ use self::Direction::*;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Edge {
     Line,
-    Cross,
+    Corner,
     Letter(char),
 }
 
 impl Edge {
-    fn is_letter(&self) -> bool {
-        if let Letter(_) = self {
-            true
-        } else {
-            false
-        }
-    }
-
-    fn letter(&self) -> Option<char> {
+    fn letter(self) -> Option<char> {
         if let Letter(c) = self {
-            Some(*c)
+            Some(c)
         } else {
             None
         }
@@ -87,7 +79,7 @@ impl Graph {
             {
                 let edge = match edge {
                     '|' | '-' => Line,
-                    '+' => Cross,
+                    '+' => Corner,
                     c => Letter(c),
                 };
 
@@ -119,7 +111,6 @@ struct Path {
     network: HashMap<Node, Edge>,
     current: Node,
     direction: Direction,
-    steps: usize,
 }
 
 impl Path {
@@ -128,7 +119,6 @@ impl Path {
             network,
             current,
             direction,
-            steps: 0,
         }
     }
 }
@@ -139,19 +129,19 @@ impl Iterator for Path {
     fn next(&mut self) -> Option<Edge> {
         let cur = self.current;
         let dir = self.direction;
-        let result = self.network.get(&self.current).expect("current node not in graph");
+        let &result = match self.network.get(&self.current) {
+            Some(n) => n,
+            None => return None
+        };
 
-        if let Cross = result {
+        if let Corner = result {
             let l = dir.left();
             let ln = self.network.get(&Direction::neigh(cur, l));
-
-            let r = dir.right();
-            let rn = self.network.get(&Direction::neigh(cur, r));
 
             if ln.is_some() {
                 self.direction = l;
             } else {
-                self.direction = r;
+                self.direction = dir.right();
             }
         }
 
@@ -166,8 +156,7 @@ impl Iterator for Path {
         };
 
         self.current = neigh;
-        self.steps += 1;
-        result
+        Some(result)
     }
 }
 
