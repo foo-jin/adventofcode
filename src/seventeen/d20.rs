@@ -117,24 +117,7 @@ pub fn run(input: &str) -> Result<usize, Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fmt::Debug;
-
-    fn check<T>(result: Result<T, Error>, expected: T)
-    where
-        T: PartialEq + Eq + Debug,
-    {
-        match result {
-            Ok(result) => {
-                assert_eq!(result, expected);
-            }
-            Err(e) => {
-                for cause in e.causes() {
-                    println!("{}", cause);
-                }
-                panic!("test failed");
-            }
-        };
-    }
+    use seventeen::check;
 
     fn check_first(input: &str, expected: usize) {
         check(first(input), expected);

@@ -11,6 +11,7 @@ fn main() {
         for cause in e.causes() {
             println!("{}", cause);
         }
+        println!("{}", e.backtrace());
     }
 }
 
@@ -21,7 +22,7 @@ fn run() -> Result<(), Error> {
     let mut contents = String::new();
     f.read_to_string(&mut contents)?;
 
-    let result = d20::run(&contents)?;
+    let result = d21::run(&contents)?;
     println!("Result: {}", result);
     Ok(())
 }

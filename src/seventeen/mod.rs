@@ -18,3 +18,27 @@ pub mod d17;
 pub mod d18;
 pub mod d19;
 pub mod d20;
+pub mod d21;
+
+use std::fmt::Debug;
+use failure::Error;
+
+#[allow(dead_code)]
+fn check<T>(result: Result<T, Error>, expected: T)
+where
+    T: PartialEq + Eq + Debug,
+{
+    match result {
+        Ok(result) => {
+            assert_eq!(result, expected);
+        }
+        Err(e) => {
+            for cause in e.causes() {
+                println!("{}", cause);
+            }
+
+            println!("{}", e.backtrace())
+        }
+    };
+    panic!("test failed");
+}
