@@ -7,3 +7,4 @@ authors = ["Frank <frank.049@hotmail.com>"]
 nom = "3.2.1"
 failure = "0.1.1"
 bit-vec = "0.4.4"
+rayon = "0.9"

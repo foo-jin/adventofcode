@@ -6,6 +6,7 @@
 extern crate nom;
 extern crate failure;
 extern crate bit_vec;
+extern crate rayon;
 
 pub mod sixteen;
 pub mod seventeen;
