@@ -16,7 +16,7 @@ fn main() {
 }
 
 fn run() -> Result<(), Error> {
-    let filename = "./data/input";
+    let filename = "./data/d21-test";
     let mut f = File::open(filename)?;
 
     let mut contents = String::new();

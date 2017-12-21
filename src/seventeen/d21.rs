@@ -1,4 +1,5 @@
 use failure::*;
+use rayon::prelude::*;
 
 use self::Pixel::*;
 
@@ -55,9 +56,9 @@ impl Pattern {
         Ok(Pattern::new(pixels))
     }
 
-    fn split(self) -> Result<Vec<Pattern>, Error> {
+    fn split(&self) -> Result<Vec<Pattern>, Error> {
         let mut result = Vec::new();
-        let pix = self.pixels;
+        let pix = &self.pixels;
 
         let size = if self.size % 2 == 0 {
             2
@@ -114,7 +115,7 @@ impl Pattern {
     }
 
     fn rotate(&self) -> Result<Pattern, Error> {
-        let pix = self.pixels.clone();
+        let pix = &self.pixels;
         let n = self.size;
         let rot = match n {
             2 => vec![vec![pix[1][0], pix[0][0]], vec![pix[1][1], pix[0][1]]],
@@ -241,12 +242,13 @@ impl RuleSet {
         Ok(RuleSet::new(rules))
     }
 
-    fn apply(&self, pat: &Pattern) -> Pattern {
+    fn apply(&self, pat: Pattern) -> Pattern {
         let mut result = None;
         for rule in self.rules.iter() {
-            let out = rule.try(pat);
+            let out = rule.try(&pat);
             if out.is_some() {
                 result = out;
+                break;
             }
         }
         result.expect("no applicable rule present")
@@ -272,9 +274,8 @@ impl Grid {
 
     fn enhance(&mut self) -> Result<(), Error> {
         let next = self.pattern
-            .clone()
             .split()?
-            .iter()
+            .into_par_iter()
             .map(|p| self.rules.apply(p))
             .collect();
         self.pattern = Pattern::join(next)?;
@@ -364,7 +365,7 @@ mod tests {
     use test::Bencher;
 
     #[bench]
-    fn bench_exec(b: Bencher) {
+    fn bench_exec(b: &mut Bencher) {
         let input = include_str!("../../data/d21-test");
         b.iter(|| check(exec(input, 18), 3018423));
     }
