@@ -73,14 +73,15 @@ impl Graph {
         let mut network = HashMap::new();
         let mut init = (0, 0);
         for (y, line) in input.lines().enumerate() {
-            for (x, edge) in line.chars()
+            for (x, c) in line.chars()
                 .enumerate()
                 .filter(|&(_, c)| !c.is_whitespace())
             {
-                let edge = match edge {
+                let edge = match c {
                     '|' | '-' => Line,
                     '+' => Corner,
-                    c => Letter(c),
+                    'A'...'Z' => Letter(c),
+                    _ => panic!("Graph::from_str: invalid character"),
                 };
 
                 let x = x as i32;
