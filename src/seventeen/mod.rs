@@ -37,8 +37,8 @@ where
                 println!("{}", cause);
             }
 
-            println!("{}", e.backtrace())
+            println!("{}", e.backtrace());
+            panic!("test failed");
         }
-    };
-    panic!("test failed");
+    }
 }
