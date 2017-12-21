@@ -21,7 +21,7 @@ pub fn pipegraph(input: &str) -> Result<u32, Error> {
 
     let mut components = Vec::new();
     for i in 0..len {
-        if let None = graph.get(&i) {
+        if graph.get(&i).is_none() {
             continue;
         }
 
@@ -31,12 +31,14 @@ pub fn pipegraph(input: &str) -> Result<u32, Error> {
         while let Some(cur) = stack.pop() {
             if connected.contains(&cur) {
                 continue;
-            } else {
-                connected.insert(cur);
-                if let Some(ks) = graph.get(&cur) {
-                    stack.extend(ks);
-                }
             }
+
+            connected.insert(cur);
+            
+            if let Some(ks) = graph.get(&cur) {
+                stack.extend(ks);
+            }
+            
             graph.remove(&cur);
         }
         components.push(connected);

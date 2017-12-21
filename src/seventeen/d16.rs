@@ -67,12 +67,12 @@ fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
     let mut result = String::new();
 
     for i in 0..reps {
-        for m in routine.iter() {
-            match m {
-                &S(k) => {
+        for m in &routine {
+            match *m {
+                S(k) => {
                     offset = (offset + k) % n;
                 }
-                &X(p1, p2) => {
+                X(p1, p2) => {
                     let p1 = ((((p1 - offset) % n) + n) % n) as usize;
                     let c1 = order[p1];
 
@@ -82,7 +82,7 @@ fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
                     order[p1] = c2;
                     order[p2] = c1;
                 }
-                &P(c1, c2) => {
+                P(c1, c2) => {
                     let p1 = order.iter().position(|c| *c == c1).unwrap();
                     let p2 = order.iter().position(|c| *c == c2).unwrap();
 
@@ -106,7 +106,7 @@ fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
 }
 
 pub fn run(input: &str) -> Result<String, Error> {
-    dance(input, 1000000000, 16)
+    dance(input, 1_000_000_000, 16)
 }
 
 #[cfg(test)]

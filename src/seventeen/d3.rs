@@ -116,10 +116,9 @@ impl<'a> Iterator for Spiral {
 
     fn next(&mut self) -> Option<Point> {
         let Spiral {
-            pos: _,
             count,
             dist,
-            turns: _,
+            ..
         } = *self;
 
         if count == 0 {
@@ -163,7 +162,7 @@ impl Iterator for SumSpiral {
         let p = self.sp.next().unwrap();
         let val: u32 = p.neighbours()
             .iter()
-            .map(|i| self.seen.get(&i))
+            .map(|i| self.seen.get(i))
             .filter(|i| i.is_some())
             .map(|i| i.unwrap())
             .sum();

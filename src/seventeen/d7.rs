@@ -77,12 +77,14 @@ pub fn rec_circus(input: &str) -> &str {
         let mut it = s.split_whitespace();
         let name = it.next().unwrap();
         let num = it.next().unwrap();
-        let mut children = None;
-        if let Some(_) = it.next() {
-            let result = it.map(|s| str::replace(s, ",", ""))
-                .collect::<Vec<String>>();
-            children = Some(result);
-        }
+        let children = 
+            if it.next().is_some() {
+                let result = it.map(|s| s.replace(",", ""))
+                    .collect::<Vec<String>>();
+                Some(result)
+            } else {
+                None
+            };
         (name, num, children)
     });
 
@@ -99,7 +101,7 @@ pub fn rec_circus(input: &str) -> &str {
     }
 
     while seen.contains_key(root) {
-        root = seen.get(root).unwrap();
+        root = seen[root];
     }
 
     root
@@ -136,7 +138,7 @@ pub fn balance(input: &str) -> u32 {
     }
 
     while parents.contains_key(root) {
-        root = parents.get(root).unwrap();
+        root = parents[root];
     }
 
     fix_imbalance(&tree, root, 0).unwrap()

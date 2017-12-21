@@ -33,7 +33,7 @@ impl RegVal {
         }
     }
 
-    fn eval(&self, mem: &Memory) -> i64 {
+    fn eval(&self, mem: &[i64]) -> i64 {
         use self::RegVal::*;
 
         match *self {
@@ -136,7 +136,7 @@ where
         };
 
         if let Some(id) = program.channel.id() {
-            program.mem['p' as u8 as usize] = id as i64;
+            program.mem[b'p' as usize] = i64::from(id);
         }
 
         program

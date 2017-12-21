@@ -7,7 +7,7 @@ pub fn escape_maze(input: &str) -> u32 {
     let mut j = 0;
     while i >= 0 && i < n as i32 {
         let el = &mut lines[i as usize];
-        i = i + *el;
+        i += *el;
         if (*el) >= 3 {
             *el -= 1;
         } else {

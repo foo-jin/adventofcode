@@ -9,9 +9,9 @@ enum Direction {
 }
 
 impl Direction {
-    fn turn(&self, rot: Rotation) -> Direction {
+    fn turn(&self, rot: &Rotation) -> Direction {
         use sixteen::d1::Rotation::*;
-        match rot {
+        match *rot {
             Right => self.right(),
             Left => self.left(),
         }
@@ -73,7 +73,7 @@ impl Position {
     }
 
     fn turn(&mut self, rot: Rotation) {
-        self.direction = self.direction.turn(rot);
+        self.direction = self.direction.turn(&rot);
     }
 
     fn exec(mut self, (rotation, distance): Move) -> Position {
@@ -142,7 +142,7 @@ impl<'a> Iterator for Line {
 type Move = (Rotation, i32);
 
 fn parse_instructions(input: &str) -> Vec<Move> {
-    fn parse<'a, T>(mut chars: T) -> Move
+    fn parse<T>(mut chars: T) -> Move
     where
         T: Iterator<Item = char>,
     {
@@ -176,7 +176,7 @@ pub fn find_cycle(input: &str) -> u32 {
     let mut visited = HashSet::new();
 
     for mv in instructions {
-        let prev = current.location.clone();
+        let prev = current.location;
         current = current.exec(mv);
         let line = prev.to_line(current.location);
 

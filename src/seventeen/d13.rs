@@ -26,12 +26,11 @@ pub fn firewall(input: &str) -> Result<u32, Error> {
 
 
     let wait = (0..)
-        .filter(|delay| {
+        .find(|delay| {
             !layers.iter().any(|layer| {
                 (delay + layer.depth) % (2 * (layer.range - 1)) == 0
             })
         })
-        .next()
         .unwrap();
     Ok(wait)
 }

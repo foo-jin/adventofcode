@@ -16,7 +16,7 @@ pub fn defrag(input: &str) -> Result<u32, Error> {
                     squares += 1;
                 }
 
-                b = b >> 1;
+                b >>= 1;
             }
         }
     }

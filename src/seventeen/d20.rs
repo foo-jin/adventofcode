@@ -66,9 +66,9 @@ impl Particle {
                 Vector::from_str(&s)
             })
             .collect::<Result<_, Error>>()?;
-        let pos = *vs.get(0).unwrap();
-        let vel = *vs.get(1).unwrap();
-        let acc = *vs.get(2).unwrap();
+        let pos = vs[0];
+        let vel = vs[1];
+        let acc = vs[2];
 
         Ok(Particle { pos, vel, acc })
     }
@@ -102,7 +102,7 @@ fn second(input: &str) -> Result<usize, Error> {
         let aux = particles.clone();
         particles.retain(|p| !aux.iter().any(|other| p != other && p.pos == other.pos));
 
-        for p in particles.iter_mut() {
+        for p in &mut particles {
             p.update()
         }
     }

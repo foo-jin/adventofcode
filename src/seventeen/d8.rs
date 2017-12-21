@@ -31,7 +31,7 @@ pub fn largest_register(input: &str) -> i32 {
             ">=" => regvalc >= valc,
             "<=" => regvalc <= valc,
             "==" => regvalc == valc,
-            "!=" => regvalc == valc,
+            "!=" => regvalc != valc,
             _ => panic!("faulty bool operator"),
         };
 

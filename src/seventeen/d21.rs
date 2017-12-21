@@ -39,7 +39,7 @@ impl Pattern {
 
         for line in s.lines() {
             let line: Vec<Pixel> = line.chars()
-                .map(|c| Pixel::new(c))
+                .map(Pixel::new)
                 .collect::<Result<_, Error>>()?;
 
             let len = line.len();
@@ -81,8 +81,8 @@ impl Pattern {
             for _ in 0..n {
                 let mut temp: Vec<Vec<Pixel>> = Vec::with_capacity(size);
 
-                for it in it.iter_mut() {
-                    temp.push(it.take(size).map(|p| *p).collect());
+                for it in &mut it {
+                    temp.push(it.take(size).cloned().collect());
                 }
 
                 result.push(Pattern::new(temp));
@@ -91,7 +91,7 @@ impl Pattern {
         Ok(result)
     }
 
-    fn join(squares: Vec<Pattern>) -> Result<Pattern, Error> {
+    fn join(squares: &[Pattern]) -> Result<Pattern, Error> {
         let n = {
             let sq = (squares.len() as f64).sqrt();
             sq as usize
@@ -144,7 +144,7 @@ impl Pattern {
         let mut pix = self.pixels.clone();
         let n = self.size;
 
-        for v in pix.iter_mut() {
+        for v in &mut pix {
             v.swap(0, n - 1);
         }
 
@@ -174,7 +174,7 @@ impl Pattern {
 
     fn count_on(&self) -> usize {
         let mut count = 0;
-        for line in self.pixels.iter() {
+        for line in &self.pixels {
             for pix in line.iter() {
                 match pix {
                     On => count += 1,
@@ -242,10 +242,10 @@ impl RuleSet {
         Ok(RuleSet::new(rules))
     }
 
-    fn apply(&self, pat: Pattern) -> Pattern {
+    fn apply(&self, pat: &Pattern) -> Pattern {
         let mut result = None;
-        for rule in self.rules.iter() {
-            let out = rule.try(&pat);
+        for rule in &self.rules {
+            let out = rule.try(pat);
             if out.is_some() {
                 result = out;
                 break;
@@ -273,12 +273,12 @@ impl Grid {
     }
 
     fn enhance(&mut self) -> Result<(), Error> {
-        let next = self.pattern
+        let next: Vec<Pattern> = self.pattern
             .split()?
             .into_par_iter()
-            .map(|p| self.rules.apply(p))
+            .map(|p| self.rules.apply(&p))
             .collect();
-        self.pattern = Pattern::join(next)?;
+        self.pattern = Pattern::join(next.as_slice())?;
         Ok(())
     }
 

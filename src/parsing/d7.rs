@@ -35,7 +35,7 @@ pub fn parse<'a, T>(input: &'a str, mapper: fn(&'a str, u32, Vec<&'a str>) -> T)
     input
         .lines()
         .filter_map(|l| line(l.as_bytes()).to_result().ok())
-        .map(|(n, w, c)| (n.clone(), mapper(n, w, c)))
+        .map(|(n, w, c)| (n, mapper(n, w, c)))
         .collect()
 }
 

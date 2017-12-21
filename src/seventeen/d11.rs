@@ -1,4 +1,5 @@
 
+#[derive(Clone, Copy)]
 enum Direction {
     N,
     NE,
@@ -61,22 +62,22 @@ impl Point {
             let Point { x: x1, y: y1 } = cur;
             let Point { x: x2, y: y2 } = dest;
 
-            cur = if x1 < x2 {
-                if y1 < y2 {
-                    dist += 1;
-                    cur.neighbour(NE)
-                } else if y1 == y2 {
-                    dist += (x2 - x1).abs();
+            cur = 
+                if x1 < x2 {
+                    if y1 < y2 {
+                        dist += 1;
+                        cur.neighbour(NE)
+                    } else if y1 == y2 {
+                        dist += (x2 - x1).abs();
+                        break;
+                    } else {
+                        dist += 1;
+                        cur.neighbour(SE)
+                    }
+                } else if x1 == x2 {
+                    dist += (y1 - y2).abs() / 2;
                     break;
-                } else {
-                    dist += 1;
-                    cur.neighbour(SE)
-                }
-            } else if x1 == x2 {
-                dist += (y1 - y2).abs() / 2;
-                break;
-            } else {
-                if y1 < y2 {
+                } else if y1 < y2 {
                     dist += 1;
                     cur.neighbour(NW)
                 } else if y1 == y2 {
@@ -85,8 +86,7 @@ impl Point {
                 } else {
                     dist += 1;
                     cur.neighbour(SW)
-                }
-            }
+                };
         }
         dist as u32
     }
