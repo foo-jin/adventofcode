@@ -53,48 +53,79 @@ impl State {
             _ => panic!("invalid state character"),
         }
     }
+
+    fn is_infected(&self) -> bool {
+        match self {
+            Infected => true,
+            _ => false,
+        }
+    }
+
+    fn flip(self) -> State {
+        match self {
+            Clean => Infected,
+            Infected => Clean,
+            _ => panic!("unexpected state"),
+        }
+    }
+
+    fn escalate(self) -> State {
+        match self {
+            Clean => Weakened,
+            Weakened => Infected,
+            Infected => Flagged,
+            Flagged => Clean,
+        }
+    }
+
+    fn parse_grid(s: &str) -> HashMap<Coord, State> {
+        let mut grid = HashMap::new();
+        for (y, line) in s.lines().enumerate() {
+            let offset = (line.len() / 2) as i64;
+            for (x, c) in line.chars().enumerate() {
+                let x = x as i64 - offset;
+                let y = y as i64 - offset;
+                let p = (x, y);
+                let state = State::new(c);
+                grid.insert(p, state);
+            }
+        }
+        grid
+    }
 }
 
 type Coord = (i64, i64);
 
-#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
-struct Node {
+struct Carrier<F>
+where
+    F: Fn(State) -> State,
+{
     pos: Coord,
-    state: State,
-}
-
-impl Node {
-    fn new(pos: Coord, state: State) -> Node {
-        Node { pos, state }
-    }
-
-    fn progress(&mut self) {
-        self.state = match self.state {
-            Clean => Weakened,
-            Weakened => Infected,
-            Infected => Flagged,
-            Flagged => Clean,   
-        }
-    }
-}
-
-struct Carrier {
-    pos: Node,
     dir: Direction,
-    grid: HashMap<Coord, Node>,
-    infected: usize,
+    grid: HashMap<Coord, State>,
+    progressor: F,
+    count: usize,
 }
 
-impl Carrier {
-    fn new(grid: HashMap<Coord, Node>) -> Carrier {
-        let pos = *grid.get(&(0, 0)).expect("Origin not in grid");
+impl<F> Carrier<F>
+where
+    F: Fn(State) -> State,
+{
+    fn new(grid: HashMap<Coord, State>, progressor: F) -> Carrier<F> {
+        let pos = (0, 0);
         let dir = North;
-        let infected = 0;
-        Carrier { pos, dir, grid, infected }
+        let count = 0;
+        Carrier {
+            pos,
+            dir,
+            grid,
+            progressor,
+            count,
+        }
     }
 
     fn next(&mut self) {
-        let Node{ pos: (x, y), .. } = self.pos;
+        let (x, y) = self.pos;
         let pos = match self.dir {
             North => (x, y - 1),
             South => (x, y + 1),
@@ -102,60 +133,64 @@ impl Carrier {
             West => (x - 1, y),
         };
 
-        match self.grid.get(&pos) {
-            Some(node) => self.pos = *node,
-            None => {
-                self.pos = Node::new(pos, Clean);
-            }
+        if !self.grid.contains_key(&pos) {
+            self.grid.insert(pos, Clean);
         }
+
+        self.pos = pos
     }
 
-    fn update(&mut self) {
-        let mut cur = self.pos;
-        self.dir = match cur.state {
-            Clean => self.dir.left(),
-            Infected => self.dir.right(),
-            Flagged => self.dir.rev(),
-            Weakened => {
-                self.infected += 1;
-                self.dir
-            }
-        };
+    fn update(&mut self, n: usize) {
+        for _ in 0..n {
+            let mut p = self.pos;
+            let state = *self.grid.get(&p).unwrap();
 
-        cur.progress();
-        self.grid.insert(cur.pos, cur);
-        self.next();
+            self.dir = match state {
+                Clean => self.dir.left(),
+                Infected => self.dir.right(),
+                Flagged => self.dir.rev(),
+                Weakened => self.dir,
+            };
+
+            let new = (self.progressor)(state);
+
+            if new.is_infected() {
+                self.count += 1;
+            }
+
+            self.grid.insert(p, new);
+            self.next();
+        }
     }
 }
 
-fn parse_grid(s: &str) -> HashMap<Coord, Node> {
-    let mut out = HashMap::new();
-    for (y, line) in s.lines().enumerate() {
-        let offset = (line.len() / 2) as i64;
-        for (x, c) in line.chars().enumerate() {
-            let x = x as i64 - offset;
-            let y = y as i64 - offset;
-            let p = (x, y);
-            let state = State::new(c);
-            out.insert(p, Node::new(p, state));
-        }
-    }
-    out
+fn exec<F>(input: &str, n: usize, next: F) -> Result<usize, Error>
+where
+    F: Fn(State) -> State,
+{
+    let grid = State::parse_grid(input);
+    let mut carrier = Carrier::new(grid, next);
+    carrier.update(n);
+
+    Ok(carrier.count)
 }
 
-fn exec(input: &str, bursts: usize) -> Result<usize, Error> {
-    let grid = parse_grid(input);
-    let mut carrier = Carrier::new(grid);
-    for _ in 0..bursts {
-        carrier.update();
-    }
-    Ok(carrier.infected)
+#[allow(dead_code)]
+fn first(input: &str, n: usize) -> Result<usize, Error> {
+    let next = State::flip;
+    exec(input, n, next)
+}
+
+fn second(input: &str, n: usize) -> Result<usize, Error> {
+    let next = State::escalate;
+    exec(input, n, next)
 }
 
 pub fn run(input: &str) -> Result<usize, Error> {
-    exec(input, 10_000_000)
+    second(input, 10_000_000)
 }
 
+#[allow(dead_code)]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -164,15 +199,36 @@ mod tests {
     const input: &str = "..#\n#..\n...";
 
     #[test]
-    fn test_exec1() {
-        let result = exec(input, 100);
+    fn test_first1() {
+        let result = first(input, 7);
+        let expected = 5;
+        check(result, expected);
+    }
+
+    #[test]
+    fn test_first2() {
+        let result = first(input, 70);
+        let expected = 41;
+        check(result, expected);
+    }
+
+    #[test]
+    fn test_first3() {
+        let result = first(input, 10_000);
+        let expected = 5587;
+        check(result, expected);
+    }
+
+    #[test]
+    fn test_second1() {
+        let result = second(input, 100);
         let expected = 26;
         check(result, expected);
     }
 
     #[test]
-    fn test_exec2() {
-        let result = exec(input, 10_000_000);
+    fn test_second2() {
+        let result = second(input, 10_000_000);
         let expected = 2_511_944;
         check(result, expected);
     }
