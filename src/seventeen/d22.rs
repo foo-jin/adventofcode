@@ -124,7 +124,7 @@ where
         }
     }
 
-    fn next(&mut self) {
+    fn forward(&mut self) {
         let (x, y) = self.pos;
         let pos = match self.dir {
             North => (x, y - 1),
@@ -133,17 +133,13 @@ where
             West => (x - 1, y),
         };
 
-        if !self.grid.contains_key(&pos) {
-            self.grid.insert(pos, Clean);
-        }
-
+        self.grid.entry(pos).or_insert(Clean);
         self.pos = pos
     }
 
     fn update(&mut self, n: usize) {
         for _ in 0..n {
-            let mut p = self.pos;
-            let state = *self.grid.get(&p).unwrap();
+            let state = self.grid[&self.pos];
 
             self.dir = match state {
                 Clean => self.dir.left(),
@@ -158,8 +154,8 @@ where
                 self.count += 1;
             }
 
-            self.grid.insert(p, new);
-            self.next();
+            self.grid.insert(self.pos, new);
+            self.forward();
         }
     }
 }
@@ -196,39 +192,39 @@ mod tests {
     use super::*;
     use seventeen::check;
 
-    const input: &str = "..#\n#..\n...";
+    const IN: &str = "..#\n#..\n...";
 
     #[test]
     fn test_first1() {
-        let result = first(input, 7);
+        let result = first(IN, 7);
         let expected = 5;
         check(result, expected);
     }
 
     #[test]
     fn test_first2() {
-        let result = first(input, 70);
+        let result = first(IN, 70);
         let expected = 41;
         check(result, expected);
     }
 
     #[test]
     fn test_first3() {
-        let result = first(input, 10_000);
+        let result = first(IN, 10_000);
         let expected = 5587;
         check(result, expected);
     }
 
     #[test]
     fn test_second1() {
-        let result = second(input, 100);
+        let result = second(IN, 100);
         let expected = 26;
         check(result, expected);
     }
 
     #[test]
     fn test_second2() {
-        let result = second(input, 10_000_000);
+        let result = second(IN, 10_000_000);
         let expected = 2_511_944;
         check(result, expected);
     }
