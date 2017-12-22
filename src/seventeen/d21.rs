@@ -349,7 +349,7 @@ mod tests {
             Pattern::new(vec![vec![Off, Off], vec![On, Off]]),
             Pattern::new(vec![vec![Off, Off], vec![Off, On]]),
         ];
-        let result = Pattern::join(input);
+        let result = Pattern::join(input.as_slice());
         let expected = Pattern::from_str("#..#\n....\n....\n#..#").unwrap();
         check(result, expected);
     }
