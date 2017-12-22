@@ -53,6 +53,21 @@ impl State {
             _ => panic!("invalid state character"),
         }
     }
+    
+    fn parse_grid(s: &str) -> HashMap<Coord, State> {
+        let mut grid = HashMap::new();
+        for (y, line) in s.lines().enumerate() {
+            let offset = (line.len() / 2) as i64;
+            for (x, c) in line.chars().enumerate() {
+                let x = x as i64 - offset;
+                let y = y as i64 - offset;
+                let p = (x, y);
+                let state = State::new(c);
+                grid.insert(p, state);
+            }
+        }
+        grid
+    }
 
     fn is_infected(&self) -> bool {
         match self {
@@ -76,21 +91,6 @@ impl State {
             Infected => Flagged,
             Flagged => Clean,
         }
-    }
-
-    fn parse_grid(s: &str) -> HashMap<Coord, State> {
-        let mut grid = HashMap::new();
-        for (y, line) in s.lines().enumerate() {
-            let offset = (line.len() / 2) as i64;
-            for (x, c) in line.chars().enumerate() {
-                let x = x as i64 - offset;
-                let y = y as i64 - offset;
-                let p = (x, y);
-                let state = State::new(c);
-                grid.insert(p, state);
-            }
-        }
-        grid
     }
 }
 
