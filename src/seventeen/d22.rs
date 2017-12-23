@@ -57,10 +57,10 @@ impl State {
     fn parse_grid(s: &str) -> HashMap<Coord, State> {
         let mut grid = HashMap::new();
         for (y, line) in s.lines().enumerate() {
-            let offset = (line.len() / 2) as i64;
+            let offset = (line.len() / 2) as isize;
             for (x, c) in line.chars().enumerate() {
-                let x = x as i64 - offset;
-                let y = y as i64 - offset;
+                let x = x as isize - offset;
+                let y = y as isize - offset;
                 let p = (x, y);
                 let state = State::new(c);
                 grid.insert(p, state);
@@ -94,7 +94,7 @@ impl State {
     }
 }
 
-type Coord = (i64, i64);
+type Coord = (isize, isize);
 
 struct Carrier<F>
 where
