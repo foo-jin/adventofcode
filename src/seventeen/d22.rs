@@ -5,30 +5,32 @@ use failure::Error;
 use self::Direction::*;
 use self::State::*;
 
+type Coord = (isize, isize);
+
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 enum Direction {
-    North,
-    South,
-    East,
-    West,
+    Up,
+    Down,
+    Right,
+    Left,
 }
 
 impl Direction {
     fn left(&self) -> Direction {
         match *self {
-            North => West,
-            South => East,
-            East => North,
-            West => South,
+            Up => Left,
+            Down => Right,
+            Right => Up,
+            Left => Down,
         }
     }
 
     fn right(&self) -> Direction {
         match *self {
-            North => East,
-            South => West,
-            East => South,
-            West => North,
+            Up => Right,
+            Down => Left,
+            Right => Down,
+            Left => Up,
         }
     }
 
@@ -94,8 +96,6 @@ impl State {
     }
 }
 
-type Coord = (isize, isize);
-
 struct Carrier<F>
 where
     F: Fn(State) -> State,
@@ -113,7 +113,7 @@ where
 {
     fn new(grid: HashMap<Coord, State>, progressor: F) -> Carrier<F> {
         let pos = (0, 0);
-        let dir = North;
+        let dir = Up;
         let count = 0;
         Carrier {
             pos,
@@ -127,10 +127,10 @@ where
     fn forward(&mut self) {
         let (x, y) = self.pos;
         let pos = match self.dir {
-            North => (x, y - 1),
-            South => (x, y + 1),
-            East => (x + 1, y),
-            West => (x - 1, y),
+            Up => (x, y - 1),
+            Down => (x, y + 1),
+            Right => (x + 1, y),
+            Left => (x - 1, y),
         };
 
         self.grid.entry(pos).or_insert(Clean);
