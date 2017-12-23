@@ -2,6 +2,8 @@
 #![feature(inclusive_range_syntax)]
 #![feature(match_default_bindings)]
 #![feature(test)]
+#![feature(iterator_step_by)]
+
 
 #[macro_use]
 extern crate nom;

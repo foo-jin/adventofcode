@@ -25,7 +25,7 @@ fn run() -> Result<(), Error> {
     let mut contents = String::new();
     f.read_to_string(&mut contents)?;
 
-    let result = d22::run(&contents)?;
+    let result = d23::run(&contents)?;
     println!("Result: {}", result);
     Ok(())
 }
