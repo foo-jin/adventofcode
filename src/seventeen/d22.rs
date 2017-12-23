@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use failure::Error;
+use failure::*;
 
 use self::Direction::*;
 use self::State::*;
@@ -48,15 +48,17 @@ enum State {
 }
 
 impl State {
-    fn new(c: char) -> State {
-        match c {
+    fn parse(c: char) -> Result<State, Error> {
+        let result = match c {
             '.' => Clean,
             '#' => Infected,
-            _ => panic!("invalid state character"),
-        }
+            _ => bail!("invalid state character"),
+        };
+
+        Ok(result)
     }
-    
-    fn parse_grid(s: &str) -> HashMap<Coord, State> {
+
+    fn parse_grid(s: &str) -> Result<HashMap<Coord, State>, Error> {
         let mut grid = HashMap::new();
         for (y, line) in s.lines().enumerate() {
             let offset = (line.len() / 2) as isize;
@@ -64,11 +66,12 @@ impl State {
                 let x = x as isize - offset;
                 let y = y as isize - offset;
                 let p = (x, y);
-                let state = State::new(c);
+                let state = State::parse(c)?;
                 grid.insert(p, state);
             }
         }
-        grid
+
+        Ok(grid)
     }
 
     fn is_infected(&self) -> bool {
@@ -164,7 +167,7 @@ fn exec<F>(input: &str, n: usize, next: F) -> Result<usize, Error>
 where
     F: Fn(State) -> State,
 {
-    let grid = State::parse_grid(input);
+    let grid = State::parse_grid(input)?;
     let mut carrier = Carrier::new(grid, next);
     carrier.update(n);
 
