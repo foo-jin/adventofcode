@@ -52,7 +52,7 @@ impl State {
         let result = match c {
             '.' => Clean,
             '#' => Infected,
-            _ => bail!("invalid state character"),
+            c => bail!("Unexpected state character: {}", c),
         };
 
         Ok(result)
