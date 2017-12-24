@@ -136,12 +136,7 @@ impl Program {
     }
 
     pub fn exec(&mut self) {
-        loop {
-            let it = match self.inst.get(self.ip) {
-                Some(val) => val,
-                None => break,
-            };
-
+        while let Some(it) = self.inst.get(self.ip) {
             match *it {
                 Set(Reg(reg), ref arg) => {
                     self.count.set();
@@ -184,11 +179,11 @@ fn first(input: &str) -> Result<usize, Error> {
 }
 
 fn second(input: &str) -> Result<usize, Error> {
-    let mut b: usize = input.split_whitespace().skip(2).next().unwrap().parse()?;
+    let mut b: usize = input.split_whitespace().nth(2).unwrap().parse()?;
     b *= 100;
     b += 100_000;
     let mut h = 0;
-    let end = b + 17000 + 1;
+    let end = b + 17_000 + 1;
 
     for x in (b..end).step_by(17) {
         for i in 2..x {

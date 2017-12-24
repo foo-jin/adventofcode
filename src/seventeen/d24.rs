@@ -6,7 +6,7 @@ fn parse_connectors(s: &str) -> Vec<Connector> {
     s.trim()
         .lines()
         .map(|s| {
-            let mut it = s.split("/");
+            let mut it = s.split('/');
             let first = it.next()
                 .expect("no connector present")
                 .parse()
@@ -71,13 +71,13 @@ fn backtrack(xs: &[Connector], used: &mut Vec<Connector>, bridge: Bridge) -> Bri
     max
 }
 
-fn setup(xs: Vec<Connector>) -> usize {
-    backtrack(&xs, &mut vec![], Bridge::new()).str
+fn setup(xs: &[Connector]) -> usize {
+    backtrack(xs, &mut vec![], Bridge::new()).str
 }
 
 pub fn run(input: &str) -> Result<usize, Error> {
     let connectors = parse_connectors(input);
-    let result = setup(connectors);
+    let result = setup(&connectors);
     Ok(result)
 }
 
