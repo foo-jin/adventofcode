@@ -1,8 +1,8 @@
 use failure::Error;
 
-type Component = (usize, usize);
+type Connector = (usize, usize);
 
-fn parse_connectors(s: &str) -> Vec<Component> {
+fn parse_connectors(s: &str) -> Vec<Connector> {
     s.trim()
         .lines()
         .map(|s| {
@@ -24,40 +24,55 @@ fn parse_connectors(s: &str) -> Vec<Component> {
 struct Bridge {
     len: usize,
     str: usize,
+    pins: usize,
 }
 
 impl Bridge {
-    fn new(len: usize, str: usize) -> Bridge {
-        Bridge { len, str }
+    fn new() -> Bridge {
+        Bridge {
+            len: 0,
+            str: 0,
+            pins: 0,
+        }
+    }
+
+    fn extend(&self, (pin, pout): Connector) -> Option<Bridge> {
+        let pins = if pin == self.pins {
+            pout
+        } else if pout == self.pins {
+            pin
+        } else {
+            return None;
+        };
+
+        let result = Bridge {
+            len: self.len + 1,
+            str: self.str + pin + pout,
+            pins,
+        };
+
+        Some(result)
     }
 }
 
-fn backtrack(xs: &[Component], used: &mut Vec<Component>, pins: usize, bridge: Bridge) -> Bridge {
+fn backtrack(xs: &[Connector], used: &mut Vec<Connector>, bridge: Bridge) -> Bridge {
     let mut max = bridge;
-    for &(pin, pout) in xs {
-        let pins = if pin == pins {
-            pout
-        } else if pout == pins {
-            pin
-        } else {
-            continue;
-        };
 
+    for &(pin, pout) in xs {
         if !used.contains(&(pin, pout)) {
-            used.push((pin, pout));
-            let mut new = bridge;
-            new.len += 1;
-            new.str += pin + pout;
-            max = max.max(backtrack(xs, used, pins, new));
-            used.pop();
+            if let Some(bridge) = bridge.extend((pin, pout)) {
+                used.push((pin, pout));
+                max = max.max(backtrack(xs, used, bridge));
+                used.pop();
+            }
         }
     }
 
     max
 }
 
-fn setup(xs: Vec<Component>) -> usize {
-    backtrack(&xs, &mut vec![], 0, Bridge::new(0, 0)).str
+fn setup(xs: Vec<Connector>) -> usize {
+    backtrack(&xs, &mut vec![], Bridge::new()).str
 }
 
 pub fn run(input: &str) -> Result<usize, Error> {
