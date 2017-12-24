@@ -11,6 +11,7 @@ extern crate failure;
 extern crate bit_vec;
 extern crate rayon;
 extern crate test;
+extern crate itertools;
 
 pub mod sixteen;
 pub mod seventeen;
