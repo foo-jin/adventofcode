@@ -2,20 +2,14 @@ use failure::Error;
 
 type Connector = (usize, usize);
 
-fn parse_connectors(s: &str) -> Vec<Connector> {
+fn parse_connectors(s: &str) -> Result<Vec<Connector>, Error> {
     s.trim()
         .lines()
         .map(|s| {
             let mut it = s.split('/');
-            let first = it.next()
-                .expect("no connector present")
-                .parse()
-                .expect("invalid input");
-            let second = it.next()
-                .expect("no connector present")
-                .parse()
-                .expect("invalid input");
-            (first, second)
+            let first = it.next().expect("no connector present").parse()?;
+            let second = it.next().expect("no connector present").parse()?;
+            Ok((first, second))
         })
         .collect()
 }
@@ -76,7 +70,7 @@ fn setup(xs: &[Connector]) -> usize {
 }
 
 pub fn run(input: &str) -> Result<usize, Error> {
-    let connectors = parse_connectors(input);
+    let connectors = parse_connectors(input)?;
     let result = setup(&connectors);
     Ok(result)
 }
