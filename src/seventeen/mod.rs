@@ -23,6 +23,7 @@ pub mod d22;
 #[allow(dead_code)]
 pub mod d23;
 pub mod d24;
+pub mod d25;
 
 use std::fmt::Debug;
 use failure::Error;
