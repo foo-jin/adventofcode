@@ -3,7 +3,7 @@
 #![feature(match_default_bindings)]
 #![feature(test)]
 #![feature(iterator_step_by)]
-
+#![feature (range_contains)]
 
 #[macro_use]
 extern crate nom;
