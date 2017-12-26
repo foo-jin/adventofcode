@@ -3,17 +3,16 @@ use std::collections::HashSet;
 pub fn check_password(input: &str) -> u32 {
     let mut result = 0;
 
-    for l in input.lines() {
+    'outer: for l in input.lines() {
         let mut seen = HashSet::new();
-        let mut duplicates = true;
 
         for s in l.split_whitespace() {
-            duplicates = duplicates && seen.insert(s)
+            if !seen.insert(s) {
+                continue 'outer;
+            }
         }
 
-        if duplicates {
-            result += 1;
-        }
+        result += 1;
     }
 
     result
@@ -22,19 +21,19 @@ pub fn check_password(input: &str) -> u32 {
 pub fn check_anagram(input: &str) -> u32 {
     let mut result = 0;
 
-    for l in input.lines() {
+    'outer: for l in input.lines() {
         let mut seen = HashSet::new();
-        let mut duplicates = true;
 
         for s in l.split_whitespace() {
             let mut chars = s.chars().collect::<Vec<char>>();
-            chars.sort();
-            duplicates = duplicates && seen.insert(chars);
-        }
+            chars.sort_unstable();
 
-        if duplicates {
-            result += 1;
+            if !seen.insert(chars) {
+                continue 'outer;
+            }
         }
+        
+        result += 1;
     }
 
     result
