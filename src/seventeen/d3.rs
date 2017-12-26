@@ -21,17 +21,13 @@ impl Point {
 
     fn neighbours(&self) -> Vec<Point> {
         let Point { x, y } = *self;
-        vec![
-            Point { x: x - 1, y: y - 1 },
-            Point { x: x - 1, y },
-            Point { x: x - 1, y: y + 1 },
-            Point { x, y: y - 1 },
-            Point { x, y },
-            Point { x, y: y + 1 },
-            Point { x: x + 1, y: y - 1 },
-            Point { x: x + 1, y },
-            Point { x: x + 1, y: y + 1 },
-        ]
+        let mut result = Vec::new();
+        for x in x - 1..=x + 1 {
+            for y in y - 1..=y + 1 {
+                result.push(Point { x, y });
+            }
+        }
+        result
     }
 }
 
@@ -98,15 +94,11 @@ struct Spiral {
 
 impl Spiral {
     fn new() -> Spiral {
-        let pos = Position::new();
-        let count = 0;
-        let dist = 0;
-        let turns = 0;
         Spiral {
-            pos,
-            count,
-            dist,
-            turns,
+            pos: Position::new(),
+            count: 0,
+            dist: 0,
+            turns: 0,
         }
     }
 }
@@ -115,12 +107,7 @@ impl<'a> Iterator for Spiral {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
-        let Spiral {
-            count,
-            dist,
-            ..
-        } = *self;
-
+        let Spiral { count, dist, .. } = *self;
         if count == 0 {
             self.count = 1;
             Some(Point::new())
@@ -162,9 +149,7 @@ impl Iterator for SumSpiral {
         let p = self.sp.next().unwrap();
         let val: u32 = p.neighbours()
             .iter()
-            .map(|i| self.seen.get(i))
-            .filter(|i| i.is_some())
-            .map(|i| i.unwrap())
+            .filter_map(|i| self.seen.get(i))
             .sum();
 
         self.seen.insert(p, val);
@@ -172,9 +157,9 @@ impl Iterator for SumSpiral {
     }
 }
 
-pub fn nthspiral(n: u32) -> u32 {
+pub fn nthspiral(n: usize) -> u32 {
     Spiral::new()
-        .nth(n as usize - 1)
+        .nth(n - 1)
         .unwrap()
         .distance_from_start()
 }
