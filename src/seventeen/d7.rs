@@ -1,7 +1,12 @@
 use std::str;
 use std::collections::HashMap;
 
-fn tree_weight(tree: &HashMap<&str, (u32, Vec<String>)>, root: &str) -> u32 {
+use failure::*;
+
+type Program<'a> = (&'a str, Attr<'a>);
+type Attr<'a> = (u32, Vec<&'a str>);
+
+fn tree_weight(tree: &HashMap<&str, Attr>, root: &str) -> u32 {
     let &(w, ref children) = tree.get(root).unwrap();
     let mut result = w;
     for c in children {
@@ -12,7 +17,7 @@ fn tree_weight(tree: &HashMap<&str, (u32, Vec<String>)>, root: &str) -> u32 {
 }
 
 fn fix_imbalance(
-    tree: &HashMap<&str, (u32, Vec<String>)>,
+    tree: &HashMap<&str, (u32, Vec<&str>)>,
     root: &str,
     mut offset: i32,
 ) -> Option<u32> {
@@ -68,7 +73,6 @@ fn fix_imbalance(
             }
             result
         }
-
     }
 }
 
@@ -77,14 +81,12 @@ pub fn rec_circus(input: &str) -> &str {
         let mut it = s.split_whitespace();
         let name = it.next().unwrap();
         let num = it.next().unwrap();
-        let children = 
-            if it.next().is_some() {
-                let result = it.map(|s| s.replace(",", ""))
-                    .collect::<Vec<String>>();
-                Some(result)
-            } else {
-                None
-            };
+        let children = if it.next().is_some() {
+            let result = it.map(|s| s.replace(",", "")).collect::<Vec<String>>();
+            Some(result)
+        } else {
+            None
+        };
         (name, num, children)
     });
 
@@ -107,45 +109,48 @@ pub fn rec_circus(input: &str) -> &str {
     root
 }
 
-pub fn balance(input: &str) -> u32 {
-    let input = input.lines().map(|s| {
-        let mut it = s.split_whitespace();
-        let key = it.next().unwrap();
-        let w: u32 = it.next()
-            .unwrap()
-            .chars()
-            .filter(|&c| c != '(' && c != ')')
-            .collect::<String>()
-            .parse()
-            .unwrap();
-        let children: Vec<String> = it.filter(|&s| s != "->")
-            .map(|s| s.chars().filter(|&c| c != ',').collect::<String>())
-            .collect();
-        (key, w, children)
-    });
+pub fn balance(input: &str) -> Result<u32, Error> {
+    let brackets: &[char] = &['(', ')'];
+    let input: Vec<Program> = input
+        .lines()
+        .map(|s| {
+            let mut it = s.split("->").map(|s| s.trim());
+            let mut attr = it.next().unwrap().split_whitespace();
+            let key = attr.next().unwrap();
+            let w: u32 = attr.next().unwrap().trim_matches(brackets).parse()?;
+
+            let children: Vec<&str> = match it.next() {
+                Some(s) => s.split(", ").collect(),
+                None => vec![],
+            };
+
+            Ok((key, (w, children)))
+        })
+        .collect::<Result<_, Error>>()?;
 
     let mut tree = HashMap::new();
     let mut parents = HashMap::new();
     let mut root = "";
 
-    for (key, w, children) in input {
-        tree.insert(key, (w, children.clone()));
-        for c in children {
+    for (key, (w, children)) in input {
+        for c in children.iter() {
             root = key;
-            println!("inserting: {}", key);
-            parents.insert(c, key);
+            parents.insert(*c, key);
         }
+
+        tree.insert(key, (w, children));
     }
 
     while parents.contains_key(root) {
         root = parents[root];
     }
 
-    fix_imbalance(&tree, root, 0).unwrap()
+    Ok(fix_imbalance(&tree, root, 0).unwrap())
 }
 
 #[cfg(test)]
 mod tests {
+    use seventeen::check;
     use super::*;
     const IN: &str = "pbga (66)\nxhth (57)\nebii (61)\nhavc (66)\nktlj (57)\nfwft (72) -> ktlj, cntj, xhth\nqoyq (66)\npadx (45) -> pbga, havc, qoyq\ntknk (41) -> ugml, padx, fwft\njptl (61)\nugml (68) -> gyxo, ebii, jptl\ngyxo (61)\ncntj (57)";
 
@@ -156,6 +161,6 @@ mod tests {
 
     #[test]
     fn test_balance() {
-        assert_eq!(balance(IN), 60);
+        check(balance(IN), 60);
     }
 }
