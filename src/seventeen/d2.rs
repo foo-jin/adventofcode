@@ -23,7 +23,7 @@ pub fn checksum(input: &str) -> u32 {
     result
 }
 
-fn divides(x: u32, y: u32) -> Option<u32> {
+fn divides((x, y): (&u32, &u32)) -> Option<u32> {
     if x % y == 0 {
         Some(x / y)
     } else if y % x == 0 {
@@ -35,16 +35,15 @@ fn divides(x: u32, y: u32) -> Option<u32> {
 
 pub fn divsum(input: &str) -> u32 {
     let lines = parse(input);
-    let mut result = 0;
+    let mut result = 0u32;
 
     for l in lines {
-        for (v1, v2) in l.iter().enumerate().flat_map(|(i, val)| {
-            iter::repeat(val).zip(l.iter().skip(i + 1))
-        })
+        for v in l.iter()
+            .enumerate()
+            .flat_map(|(i, val)| iter::repeat(val).zip(l.iter().skip(i + 1)))
+            .filter_map(divides)
         {
-            if let Some(x) = divides(*v1, *v2) {
-                result += x
-            }
+            result += v;
         }
     }
 
