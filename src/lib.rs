@@ -4,9 +4,11 @@
 #![feature(test)]
 #![feature(iterator_step_by)]
 #![feature (range_contains)]
+#![feature(type_ascription)]
 
 #[macro_use]
 extern crate nom;
+#[macro_use]
 extern crate failure;
 extern crate bit_vec;
 extern crate rayon;

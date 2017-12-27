@@ -1,151 +1,88 @@
-use std::str;
 use std::collections::HashMap;
 
 use failure::*;
 
-type Program<'a> = (&'a str, Attr<'a>);
+use parsing::d7;
+
+type Name<'a> = &'a str;
 type Attr<'a> = (u32, Vec<&'a str>);
 
-fn tree_weight(tree: &HashMap<&str, Attr>, root: &str) -> u32 {
-    let &(w, ref children) = tree.get(root).unwrap();
-    let mut result = w;
-    for c in children {
-        result += tree_weight(tree, c);
-    }
-
-    result
+struct Tree<'a> {
+    root: Name<'a>,
+    tree: HashMap<Name<'a>, Attr<'a>>,
 }
 
-fn fix_imbalance(
-    tree: &HashMap<&str, (u32, Vec<&str>)>,
-    root: &str,
-    mut offset: i32,
-) -> Option<u32> {
-    let &(w, ref children) = tree.get(root).unwrap();
-    let mut result = None;
-    if offset == 0 {
-        for (i, val) in children.iter().map(|v| tree_weight(tree, v)).enumerate() {
-            if children
+impl<'a> Tree<'a> {
+    fn mapper(_: &str, w: u32, c: Vec<&'a str>) -> Attr<'a> {
+        (w, c)
+    }
+
+    fn from_str(s: &str) -> Result<Tree, Error> {
+        let tree = d7::parse(s, Tree::mapper)?;
+
+        ensure!(
+            tree.iter()
+                .all(|(_, (_, c))| c.iter().all(|n| tree.contains_key(n))),
+            "child missing from tree"
+        );
+
+        let root = tree.iter()
+            .find(|(n, _)| tree.iter().all(|(_, &(_, ref c))| !c.contains(n)))
+            .ok_or_else(|| err_msg("unable to find root in tree"))
+            .map(|(&n, _)| n)?;
+
+        Ok(Tree { root, tree })
+    }
+
+    fn tree_weight(&self, root: &str) -> u32 {
+        let (w, ref children) = self.tree[root];
+        children.iter().fold(w, |acc, c| acc + self.tree_weight(c))
+    }
+
+    fn fix_tree(&self, offset: Option<i32>, root: &str) -> Option<u32> {
+        let (w, ref children) = self.tree[root];
+        let weights: Vec<u32> = children.iter().map(|c| self.tree_weight(c)).collect();
+        let first = weights.first().unwrap();
+        let balanced = weights.iter().all(|w| w == first);
+
+        if balanced {
+            offset.map(|v| (w as i32 + v) as u32)
+        } else {
+            let (i, off) = weights
                 .iter()
                 .enumerate()
-                .filter(|&(j, _)| j != i)
-                .map(|(_, v)| tree_weight(tree, v))
-                .all(|v| val != v)
-            {
-                if let Some((_, v)) = children
-                    .iter()
-                    .map(|v| tree_weight(tree, v))
-                    .enumerate()
-                    .find(|&(j, _)| j != i)
-                {
-                    offset = v as i32 - val as i32;
-                    result = fix_imbalance(tree, &children[i], offset);
-                    break;
-                }
-            }
+                .find(|&(i, w)| weights.iter().enumerate().all(|(j, ww)| i == j || w != ww))
+                .expect("wrong child weight not found");
+
+            let normal = weights
+                .iter()
+                .find(|&w2| off != w2)
+                .expect("normal child weight not found");
+
+            let offset = *normal as i32 - *off as i32;
+            println!("offset: {}", offset);
+            self.fix_tree(Some(offset), children[i])
         }
-        result
-    } else {
-        let mut it = children.iter().map(|v| tree_weight(tree, v));
-        let first = it.next().unwrap();
-        if it.all(|v| v == first) {
-            Some((w as i32 + offset) as u32)
-        } else {
-            for (i, val) in children.iter().map(|v| tree_weight(tree, v)).enumerate() {
-                if children
-                    .iter()
-                    .enumerate()
-                    .filter(|&(j, _)| j != i)
-                    .map(|(_, v)| tree_weight(tree, v))
-                    .all(|v| val != v)
-                {
-                    if let Some((_, v)) = children
-                        .iter()
-                        .map(|v| tree_weight(tree, v))
-                        .enumerate()
-                        .find(|&(j, _)| j != i)
-                    {
-                        offset = v as i32 - val as i32;
-                        result = fix_imbalance(tree, &children[i], offset);
-                        break;
-                    }
-                }
-            }
-            result
-        }
+    }
+
+    fn solve(&self) -> u32 {
+        self.fix_tree(None, self.root)
+            .expect("No defect found in tree")
     }
 }
 
-pub fn rec_circus(input: &str) -> &str {
-    let input = input.lines().map(|s| {
-        let mut it = s.split_whitespace();
-        let name = it.next().unwrap();
-        let num = it.next().unwrap();
-        let children = if it.next().is_some() {
-            let result = it.map(|s| s.replace(",", "")).collect::<Vec<String>>();
-            Some(result)
-        } else {
-            None
-        };
-        (name, num, children)
-    });
-
-    let mut seen = HashMap::new();
-    let mut root = "";
-
-    for (name, _, children) in input {
-        if let Some(ch) = children {
-            for s in ch {
-                root = name;
-                seen.insert(s, name);
-            }
-        }
-    }
-
-    while seen.contains_key(root) {
-        root = seen[root];
-    }
-
-    root
+fn first(input: &str) -> Result<&str, Error> {
+    let tree = Tree::from_str(input)?;
+    Ok(tree.root)
 }
 
-pub fn balance(input: &str) -> Result<u32, Error> {
-    let brackets: &[char] = &['(', ')'];
-    let input: Vec<Program> = input
-        .lines()
-        .map(|s| {
-            let mut it = s.split("->").map(|s| s.trim());
-            let mut attr = it.next().unwrap().split_whitespace();
-            let key = attr.next().unwrap();
-            let w: u32 = attr.next().unwrap().trim_matches(brackets).parse()?;
+fn second(input: &str) -> Result<u32, Error> {
+    let tree = Tree::from_str(input)?;
+    Ok(tree.solve())
+}
 
-            let children: Vec<&str> = match it.next() {
-                Some(s) => s.split(", ").collect(),
-                None => vec![],
-            };
-
-            Ok((key, (w, children)))
-        })
-        .collect::<Result<_, Error>>()?;
-
-    let mut tree = HashMap::new();
-    let mut parents = HashMap::new();
-    let mut root = "";
-
-    for (key, (w, children)) in input {
-        for c in children.iter() {
-            root = key;
-            parents.insert(*c, key);
-        }
-
-        tree.insert(key, (w, children));
-    }
-
-    while parents.contains_key(root) {
-        root = parents[root];
-    }
-
-    Ok(fix_imbalance(&tree, root, 0).unwrap())
+pub fn run(input: &str) -> Result<u32, Error> {
+    second(input)
 }
 
 #[cfg(test)]
@@ -156,11 +93,11 @@ mod tests {
 
     #[test]
     fn test_rec_circus() {
-        assert_eq!(rec_circus(IN), "tknk");
+        check(first(IN), "tknk");
     }
 
     #[test]
     fn test_balance() {
-        check(balance(IN), 60);
+        check(second(IN), 60);
     }
 }

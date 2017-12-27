@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub mod d1;
 pub mod d2;
 pub mod d3;
@@ -20,7 +22,6 @@ pub mod d19;
 pub mod d20;
 pub mod d21;
 pub mod d22;
-#[allow(dead_code)]
 pub mod d23;
 pub mod d24;
 pub mod d25;

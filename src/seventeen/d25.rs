@@ -107,8 +107,7 @@ impl Program {
             .next()
             .unwrap()
             .split_whitespace()
-            .skip(5)
-            .next()
+            .nth(6)
             .unwrap()
             .parse()?;
 
@@ -117,7 +116,7 @@ impl Program {
             let mut sections = block.split("If").map(|s| s.trim());
             let state = State::parse(sections.next().unwrap().trim_matches(&FILTER[..]))?;
 
-            for sect in sections.into_iter() {
+            for sect in sections {
                 let mut lines = sect.lines().map(|l| l.trim_matches(&FILTER[..]));
                 let val = parse_value(lines.next().unwrap())?;
                 let actions = Actions::parse(lines)?;
