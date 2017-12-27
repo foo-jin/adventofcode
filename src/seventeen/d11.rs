@@ -1,3 +1,4 @@
+use self::Direction::*;
 
 #[derive(Clone, Copy)]
 enum Direction {
@@ -20,7 +21,7 @@ impl Direction {
             "s" => S,
             "sw" => SW,
             "nw" => NW,
-            _ => panic!("faulty input"),
+            _ => panic!("unexpected direction: {}", input),
         }
     }
 }
@@ -38,8 +39,6 @@ impl Point {
 
     fn neighbour(&self, dir: Direction) -> Point {
         let &Point { x, y } = self;
-
-        use super::d11::Direction::*;
         let (x, y) = match dir {
             N => (x, y + 2),
             NE => (x + 1, y + 1),
@@ -53,8 +52,6 @@ impl Point {
     }
 
     fn dist(&self, dest: Point) -> u32 {
-        use super::d11::Direction::*;
-
         let mut cur = *self;
         let mut dist = 0;
 
@@ -62,31 +59,30 @@ impl Point {
             let Point { x: x1, y: y1 } = cur;
             let Point { x: x2, y: y2 } = dest;
 
-            cur = 
-                if x1 < x2 {
-                    if y1 < y2 {
-                        dist += 1;
-                        cur.neighbour(NE)
-                    } else if y1 == y2 {
-                        dist += (x2 - x1).abs();
-                        break;
-                    } else {
-                        dist += 1;
-                        cur.neighbour(SE)
-                    }
-                } else if x1 == x2 {
-                    dist += (y1 - y2).abs() / 2;
-                    break;
-                } else if y1 < y2 {
+            cur = if x1 < x2 {
+                if y1 < y2 {
                     dist += 1;
-                    cur.neighbour(NW)
+                    cur.neighbour(NE)
                 } else if y1 == y2 {
                     dist += (x2 - x1).abs();
                     break;
                 } else {
                     dist += 1;
-                    cur.neighbour(SW)
-                };
+                    cur.neighbour(SE)
+                }
+            } else if x1 == x2 {
+                dist += (y1 - y2).abs() / 2;
+                break;
+            } else if y1 < y2 {
+                dist += 1;
+                cur.neighbour(NW)
+            } else if y1 == y2 {
+                dist += (x2 - x1).abs();
+                break;
+            } else {
+                dist += 1;
+                cur.neighbour(SW)
+            };
         }
         dist as u32
     }
@@ -98,14 +94,16 @@ impl Point {
 
 pub fn hexfind(input: &str) -> u32 {
     let mut dist = 0;
-    input.trim().split(',').map(Direction::new).fold(
-        Point::new(),
-        |p, d| {
+    input
+        .trim()
+        .split(',')
+        .map(Direction::new)
+        .fold(Point::new(), |p, d| {
             let new = p.neighbour(d);
-            dist = u32::max(dist, new.to_origin());
+            dist = dist.max(new.to_origin());
             new
-    });
-    //end.to_origin()
+        });
+
     dist
 }
 

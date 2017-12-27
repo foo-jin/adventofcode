@@ -1,4 +1,3 @@
-
 pub fn count_groups(input: &str) -> u32 {
     let mut nesting = 0;
     let mut count = 0;
@@ -9,25 +8,22 @@ pub fn count_groups(input: &str) -> u32 {
             '!' => {
                 chars.next();
             }
-            '<' => {
-                while let Some(c) = chars.next() {
-                    match c {
-                        '!' => {chars.next();},
-                        '>' => break,
-                        _ => count += 1,
+            '<' => while let Some(c) = chars.next() {
+                match c {
+                    '!' => {
+                        chars.next();
                     }
+                    '>' => break,
+                    _ => count += 1,
                 }
-            }
+            },
             '{' => {
                 nesting += 1;
                 count += nesting;
-                },
+            }
             '}' => nesting -= 1,
             ',' => (),
-            c => {
-                println!("unexpected input:{}", c);
-                panic!("unexpected input!");
-            }
+            c => panic!("unexpected input: {}", c),
         }
     }
 

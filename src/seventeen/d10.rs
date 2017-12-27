@@ -1,33 +1,3 @@
-use std::str;
-use std::fmt;
-
-pub struct HexSlice<'a>(&'a [u8]);
-
-impl<'a> HexSlice<'a> {
-    pub fn new<T>(data: &'a T) -> HexSlice<'a>
-    where
-        T: ?Sized + AsRef<[u8]> + 'a,
-    {
-        HexSlice(data.as_ref())
-    }
-}
-
-impl<'a> fmt::Display for HexSlice<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for byte in self.0 {
-            write!(f, "{:02x}", byte)?;
-        }
-
-        Ok(())
-    }
-}
-
-impl<'a> fmt::Debug for HexSlice<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "\"{}\"", self)
-    }
-}
-
 fn reverse<T>(d: &mut [T], pos: usize, length: usize) {
     let len = d.len();
 
@@ -61,17 +31,44 @@ pub fn knothash(input: &str) -> Vec<u8> {
         sparse
     };
 
-    let out: Vec<u8> = sparse
+    sparse
         .chunks(16)
-        .map(|chunk| chunk.into_iter().fold(0u8, |s, v| s ^ v))
-        .collect();
-
-    out
+        .map(|chunk| chunk.into_iter().fold(0u8, |acc, v| acc ^ v))
+        .collect()
 }
 
 #[cfg(test)]
 mod tests {
-    use seventeen::d10::*;
+    use super::*;
+    use std::str;
+    use std::fmt;
+
+    pub struct HexSlice<'a>(&'a [u8]);
+
+    impl<'a> HexSlice<'a> {
+        pub fn new<T>(data: &'a T) -> HexSlice<'a>
+        where
+            T: ?Sized + AsRef<[u8]> + 'a,
+        {
+            HexSlice(data.as_ref())
+        }
+    }
+
+    impl<'a> fmt::Display for HexSlice<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            for byte in self.0 {
+                write!(f, "{:02x}", byte)?;
+            }
+
+            Ok(())
+        }
+    }
+
+    impl<'a> fmt::Debug for HexSlice<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(f, "\"{}\"", self)
+        }
+    }
 
     #[test]
     fn test_reverse() {
