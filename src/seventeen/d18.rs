@@ -1,6 +1,7 @@
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
+
 use failure::*;
 
 use self::Action::*;
@@ -77,6 +78,7 @@ fn parse(input: &str) -> Result<Vec<Inst>, Error> {
             inst => {
                 let reg = Reg::from_str(it.next().expect("no register"));
                 let arg = RegVal::from_str(it.next().expect("no argument"));
+
                 match inst {
                     "set" => {
                         out.push(Inst::Set(reg, arg));
@@ -235,20 +237,16 @@ impl Channel for Second {
 
 fn part2(input: &str) -> Result<u64, Error> {
     let inst = parse(input)?;
-    
+
     let (tx0, rx0) = channel();
     let (tx1, rx1) = channel();
 
     let p0 = Program::from_inst(inst.clone(), Second::new(0, tx0, rx1));
     let p1 = Program::from_inst(inst.clone(), Second::new(1, tx1, rx0));
 
-    let h0 = thread::spawn(move || {
-        p0.exec()
-    });
+    let h0 = thread::spawn(move || p0.exec());
 
-    let h1 = thread::spawn(move || {
-        p1.exec()
-    });
+    let h1 = thread::spawn(move || p1.exec());
 
     let _ = h0.join();
     let p1 = h1.join().expect("error in thread p1");

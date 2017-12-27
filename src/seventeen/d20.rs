@@ -3,7 +3,6 @@ use std::cmp::Ordering;
 
 use failure::Error;
 
-
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 struct Vector {
     x: i64,
@@ -66,6 +65,7 @@ impl Particle {
                 Vector::from_str(&s)
             })
             .collect::<Result<_, Error>>()?;
+
         let pos = vs[0];
         let vel = vs[1];
         let acc = vs[2];
@@ -83,7 +83,6 @@ fn parse(input: &str) -> Result<Vec<Particle>, Error> {
     input.lines().map(|s| Particle::from_str(s)).collect()
 }
 
-#[allow(dead_code)]
 fn first(input: &str) -> Result<usize, Error> {
     let particles = parse(input)?;
     let result = particles
@@ -92,12 +91,13 @@ fn first(input: &str) -> Result<usize, Error> {
         .min_by(|(_, &x), (_, &y)| x.acc.cmp(&y.acc))
         .map(|(i, _)| i)
         .unwrap();
+
     Ok(result)
 }
 
 fn second(input: &str) -> Result<usize, Error> {
     let mut particles = parse(input)?;
-    
+
     for _ in 0..1000 {
         let aux = particles.clone();
         particles.retain(|p| !aux.iter().any(|other| p != other && p.pos == other.pos));

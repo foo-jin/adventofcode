@@ -1,7 +1,9 @@
-use failure::Error;
 use std::collections::HashMap;
-use self::Edge::*;
-use self::Direction::*;
+
+use failure::*;
+
+use self::Edge::{Corner, Letter, Line};
+use self::Direction::{East, North, South, West};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Edge {
@@ -11,11 +13,18 @@ enum Edge {
 }
 
 impl Edge {
-    fn letter(self) -> Option<char> {
+    fn get_letter(self) -> Option<char> {
         if let Letter(c) = self {
             Some(c)
         } else {
             None
+        }
+    }
+
+    fn is_corner(&self) -> bool {
+        match *self {
+            Corner => true,
+            _ => false,
         }
     }
 }
@@ -59,17 +68,22 @@ impl Direction {
 
 type Node = (i32, i32);
 
-struct Graph {
+struct Path {
     network: HashMap<Node, Edge>,
-    init: Node,
+    current: Node,
+    direction: Direction,
 }
 
-impl Graph {
-    fn new(network: HashMap<Node, Edge>, init: Node) -> Graph {
-        Graph { network, init }
+impl Path {
+    fn new(network: HashMap<Node, Edge>, init: Node) -> Path {
+        Path {
+            network,
+            current: init,
+            direction: South,
+        }
     }
 
-    fn from_str(input: &str) -> Graph {
+    fn from_str(input: &str) -> Result<Path, Error> {
         let mut network = HashMap::new();
         let mut init = (0, 0);
         for (y, line) in input.lines().enumerate() {
@@ -81,7 +95,7 @@ impl Graph {
                     '|' | '-' => Line,
                     '+' => Corner,
                     'A'...'Z' => Letter(c),
-                    _ => panic!("Graph::from_str: invalid character"),
+                    _ => bail!("unexpected character: {}", c),
                 };
 
                 let x = x as i32;
@@ -95,32 +109,7 @@ impl Graph {
             }
         }
 
-        Graph::new(network, init)
-    }
-}
-
-impl IntoIterator for Graph {
-    type Item = Edge;
-    type IntoIter = Path;
-
-    fn into_iter(self) -> Self::IntoIter {
-        Path::new(self.network, self.init, South)
-    }
-}
-
-struct Path {
-    network: HashMap<Node, Edge>,
-    current: Node,
-    direction: Direction,
-}
-
-impl Path {
-    fn new(network: HashMap<Node, Edge>, current: Node, direction: Direction) -> Path {
-        Path {
-            network,
-            current,
-            direction,
-        }
+        Ok(Path::new(network, init))
     }
 }
 
@@ -128,28 +117,24 @@ impl Iterator for Path {
     type Item = Edge;
 
     fn next(&mut self) -> Option<Edge> {
-        let cur = self.current;
-        let dir = self.direction;
         let &result = match self.network.get(&self.current) {
             Some(n) => n,
-            None => return None
+            None => return None,
         };
 
-        if let Corner = result {
-            let l = dir.left();
-            let ln = self.network.get(&Direction::neigh(cur, l));
+        if result.is_corner() {
+            let l = self.direction.left();
+            let k = &Direction::neigh(self.current, l);
 
-            if ln.is_some() {
+            if self.network.contains_key(k) {
                 self.direction = l;
             } else {
-                self.direction = dir.right();
+                self.direction = self.direction.right();
             }
         }
 
-        let dir = self.direction;
-        let (x, y) = cur;
-
-        let neigh = match dir {
+        let (x, y) = self.current;
+        let neigh = match self.direction {
             North => (x, y - 1),
             South => (x, y + 1),
             West => (x - 1, y),
@@ -161,32 +146,34 @@ impl Iterator for Path {
     }
 }
 
-#[allow(dead_code)]
-fn first(input: &str) -> String {
-    Graph::from_str(input).into_iter().filter_map(|e| e.letter()).collect()
+fn first(input: &str) -> Result<String, Error> {
+    let result = Path::from_str(input)?.filter_map(|e| e.get_letter()).collect();
+
+    Ok(result)
 }
 
-fn second(input: &str) -> usize {
-    Graph::from_str(input).into_iter().count()
+fn second(input: &str) -> Result<usize, Error> {
+    Ok(Path::from_str(input)?.count())
 }
 
 pub fn run(input: &str) -> Result<usize, Error> {
-    Ok(second(input))
+    second(input)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use seventeen::check;
 
     #[test]
     fn test_first() {
         let input = include_str!("../../data/d19-test");
-        assert_eq!(first(input).as_str(), "ABCDEF");
+        check(first(input), "ABCDEF".to_owned());
     }
 
     #[test]
     fn test_second() {
         let input = include_str!("../../data/d19-test");
-        assert_eq!(second(input), 38);
+        check(second(input), 38)
     }
 }
