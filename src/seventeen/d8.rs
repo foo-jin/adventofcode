@@ -49,7 +49,7 @@ pub fn largest_register(input: &str) -> i32 {
             }
         }
     }
-    //*env.iter().map(|(k, v)| v).max().unwrap()
+
     max
 }
 

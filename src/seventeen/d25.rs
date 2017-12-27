@@ -16,7 +16,7 @@ enum Direction {
 impl Direction {
     fn parse(s: &str) -> Result<Direction, Error> {
         let s = s.to_lowercase();
-        
+
         let result = match s.split_whitespace().last().unwrap() {
             "right" => Right,
             "left" => Left,
@@ -32,12 +32,7 @@ struct State(char);
 
 impl State {
     fn parse(s: &str) -> Result<State, Error> {
-        let state = s.split_whitespace()
-            .last()
-            .unwrap()
-            .chars()
-            .next()
-            .unwrap();
+        let state = s.split_whitespace().last().unwrap().chars().next().unwrap();
 
         match state {
             'A'...'Z' => Ok(State(state)),
@@ -101,8 +96,8 @@ impl Program {
             .unwrap()
             .lines()
             .map(|l| l.trim_matches(&FILTER[..]));
-        let state = State::parse(metadata.next().unwrap())?;
 
+        let state = State::parse(metadata.next().unwrap())?;
         let steps: usize = metadata
             .next()
             .unwrap()
