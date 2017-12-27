@@ -102,7 +102,7 @@ impl Program {
             .next()
             .unwrap()
             .split_whitespace()
-            .nth(6)
+            .nth(5)
             .unwrap()
             .parse()?;
 

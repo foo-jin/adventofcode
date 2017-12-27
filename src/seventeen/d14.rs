@@ -8,9 +8,7 @@ pub fn defrag(input: &str) -> Result<u32, Error> {
     let mut squares = 0;
 
     for line in 0..128 {
-        let out = knothash(&format!("{}-{}", input, line));
-
-        for mut b in out {
+        for mut b in knothash(&format!("{}-{}", input, line)) {
             while b > 0 {
                 if b % 2 == 1 {
                     squares += 1;

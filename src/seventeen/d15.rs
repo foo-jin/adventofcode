@@ -12,11 +12,13 @@ pub fn genmatch(input: &str) -> Result<u32, Error> {
 
     for _ in 0..5_000_000 {
         a = (a * A) % DIV;
+
         while a % 4 != 0 {
             a = (a * A) % DIV;
         }
 
         b = (b * B) % DIV;
+
         while b % 8 != 0 {
             b = (b * B) % DIV;
         }
@@ -32,15 +34,11 @@ pub fn genmatch(input: &str) -> Result<u32, Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn check_smth(input: &str, expected: u32) {
-        let result = genmatch(input).unwrap();
-        assert_eq!(result, expected);
-    }
+    use seventeen::check;
 
     #[test]
     fn test_genmatch() {
         let input = "65, 8921";
-        check_smth(input, 309);
+        check(genmatch(input), 309);
     }
 }

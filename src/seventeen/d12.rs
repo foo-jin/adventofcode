@@ -1,4 +1,4 @@
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashMap, HashSet};
 use failure::Error;
 
 pub fn pipegraph(input: &str) -> Result<u32, Error> {
@@ -20,8 +20,9 @@ pub fn pipegraph(input: &str) -> Result<u32, Error> {
     }
 
     let mut components = Vec::new();
+
     for i in 0..len {
-        if graph.get(&i).is_none() {
+        if !graph.contains_key(&i) {
             continue;
         }
 
@@ -34,13 +35,12 @@ pub fn pipegraph(input: &str) -> Result<u32, Error> {
             }
 
             connected.insert(cur);
-            
-            if let Some(ks) = graph.get(&cur) {
+
+            if let Some(ks) = graph.remove(&cur) {
                 stack.extend(ks);
             }
-            
-            graph.remove(&cur);
         }
+        
         components.push(connected);
     }
 
@@ -53,7 +53,8 @@ mod tests {
 
     #[test]
     fn test_pipegraph() {
-        let input = "0 <-> 2\n1 <-> 1\n2 <-> 0, 3, 4\n3 <-> 2, 4\n4 <-> 2, 3, 6\n5 <-> 6\n6 <-> 4, 5";
+        let input =
+            "0 <-> 2\n1 <-> 1\n2 <-> 0, 3, 4\n3 <-> 2, 4\n4 <-> 2, 3, 6\n5 <-> 6\n6 <-> 4, 5";
 
         assert_eq!(pipegraph(input).expect("failed"), 2);
     }
