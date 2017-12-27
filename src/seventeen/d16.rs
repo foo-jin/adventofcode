@@ -16,7 +16,7 @@ impl Dancemove {
     fn parse(input: &str) -> Result<Dancemove, Error> {
         let mut c = input.chars();
         let first = c.next().unwrap();
-        let s = c.collect::<String>();
+        let s: String = c.collect();
         let mut rest = s.split('/');
 
         let result = match first {
@@ -51,13 +51,14 @@ fn shift(offset: i32, order: &[char]) -> String {
     result
 }
 
-fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
-    let routine: Vec<Dancemove> = input
-        .trim()
+fn parse_routine(s: &str) -> Result<Vec<Dancemove>, Error> {
+    s.trim()
         .split(',')
         .map(|s| Dancemove::parse(s))
-        .collect::<Result<_, Error>>()?;
+        .collect::<Result<_, Error>>()
+}
 
+fn dance(routine: &[Dancemove], reps: usize, n: usize) -> String {
     let order = &mut ABC[..n];
     let n = n as i32;
     let mut offset = 0;
@@ -66,8 +67,8 @@ fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
     let mut result = String::new();
 
     for i in 0..reps {
-        for m in &routine {
-            match *m {
+        for m in routine {
+            match m {
                 S(k) => {
                     offset = (offset + k) % n;
                 }
@@ -77,8 +78,8 @@ fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
                     order.swap(p1, p2);
                 }
                 P(c1, c2) => {
-                    let p1 = order.iter().position(|c| *c == c1).unwrap();
-                    let p2 = order.iter().position(|c| *c == c2).unwrap();
+                    let p1 = order.iter().position(|c| c == c1).unwrap();
+                    let p2 = order.iter().position(|c| c == c2).unwrap();
                     order.swap(p1, p2);
                 }
             }
@@ -94,11 +95,12 @@ fn dance(input: &str, reps: usize, n: usize) -> Result<String, Error> {
         }
     }
 
-    Ok(result)
+    result
 }
 
 pub fn run(input: &str) -> Result<String, Error> {
-    dance(input, 1_000_000_000, 16)
+    let routine = parse_routine(input)?;
+    Ok(dance(&routine, 1_000_000_000, 16))
 }
 
 #[cfg(test)]
@@ -106,7 +108,8 @@ mod tests {
     use super::*;
 
     fn check_dance(input: &str, rep: usize, expected: &str) {
-        let result = dance(input, rep, expected.len()).unwrap();
+        let routine = parse_routine(input).unwrap();
+        let result = dance(&routine, rep, expected.len());
         assert_eq!(result.as_str(), expected);
     }
 
