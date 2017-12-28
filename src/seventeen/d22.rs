@@ -225,10 +225,14 @@ mod tests {
         check(result, expected);
     }
 
-    #[test]
-    fn test_second2() {
-        let result = second(IN, 10_000_000);
-        let expected = 2_511_944;
-        check(result, expected);
+    use test::Bencher;
+
+    #[bench]
+    fn test_second2(b: &mut Bencher) {
+        b.iter(|| {
+            let result = second(IN, 10_000_000);
+            let expected = 2_511_944;
+            check(result, expected)
+        });
     }
 }

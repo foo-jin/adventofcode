@@ -50,44 +50,42 @@ enum Inst {
 impl Inst {
     fn from_str(line: &str) -> Result<Inst, Error> {
         let mut it = line.split_whitespace();
-        let inst = it.next().expect("no instruction");
+        let inst = it.next().ok_or(err_msg("no instruction"))?;
         let result = match inst {
             "jnz" => {
-                let cond = RegVal::from_str(it.next().expect("no register"));
-                let arg = RegVal::from_str(it.next().expect("no argument"));
+                let cond = RegVal::from_str(it.next().ok_or(err_msg("no register"))?);
+                let arg = RegVal::from_str(it.next().ok_or(err_msg("no argument"))?);
                 Jnz(cond, arg)
             }
             inst => {
-                let reg = Reg::from_str(it.next().expect("no register"));
-                let arg = RegVal::from_str(it.next().expect("no argument"));
+                let reg = Reg::from_str(it.next().ok_or(err_msg("no register"))?);
+                let arg = RegVal::from_str(it.next().ok_or(err_msg("no argument"))?);
                 match inst {
-                    "set" => {
-                        Set(reg, arg)
-                    }
-                    "sub" => {
-                        Sub(reg, arg)
-                    }
-                    "mul" => {
-                        Mul(reg, arg)
-                    }
+                    "set" => Set(reg, arg),
+                    "sub" => Sub(reg, arg),
+                    "mul" => Mul(reg, arg),
                     _ => bail!("unkown instruction: {}", inst),
                 }
             }
         };
+
         Ok(result)
     }
 }
 
 fn parse_inst(input: &str) -> Result<Vec<Inst>, Error> {
-    input.lines().map(Inst::from_str).collect::<Result<Vec<Inst>, Error>>()
+    input
+        .lines()
+        .map(Inst::from_str)
+        .collect::<Result<Vec<Inst>, Error>>()
 }
 
 #[derive(Debug, Clone)]
 struct Counter {
-    set: usize,
-    sub: usize,
-    mul: usize,
-    jnz: usize,
+    set: u32,
+    sub: u32,
+    mul: u32,
+    jnz: u32,
 }
 
 impl Counter {
@@ -170,18 +168,17 @@ impl Program {
     }
 }
 
-fn first(input: &str) -> Result<usize, Error> {
+fn first(input: &str) -> Result<u32, Error> {
     let inst = parse_inst(input)?;
     let mut program = Program::from_inst(inst);
     program.exec();
-    let result = program.count.mul;
-    Ok(result)
+
+    Ok(program.count.mul)
 }
 
-fn second(input: &str) -> Result<usize, Error> {
-    let mut b: usize = input.split_whitespace().nth(2).unwrap().parse()?;
-    b *= 100;
-    b += 100_000;
+fn second(input: &str) -> Result<u64, Error> {
+    let mut b = input.split_whitespace().nth(2).unwrap().parse()?;
+    b = b * 100 + 100_000;
     let mut h = 0;
     let end = b + 17_000 + 1;
 
@@ -193,11 +190,11 @@ fn second(input: &str) -> Result<usize, Error> {
             }
         }
     }
-    
+
     Ok(h)
 }
 
-pub fn run(input: &str) -> Result<usize, Error> {
+pub fn run(input: &str) -> Result<u64, Error> {
     second(input)
 }
 

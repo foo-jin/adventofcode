@@ -1,14 +1,20 @@
-use failure::Error;
+use failure::*;
 
-type Connector = (usize, usize);
+type Connector = (u32, u32);
 
 fn parse_connectors(s: &str) -> Result<Vec<Connector>, Error> {
     s.trim()
         .lines()
         .map(|s| {
             let mut it = s.split('/');
-            let first = it.next().expect("no connector present").parse()?;
-            let second = it.next().expect("no connector present").parse()?;
+            let first = it.next()
+                .ok_or(err_msg("unexpected end of input"))?
+                .parse()?;
+
+            let second = it.next()
+                .ok_or(err_msg("unexpected end of input"))?
+                .parse()?;
+
             Ok((first, second))
         })
         .collect()
@@ -16,9 +22,9 @@ fn parse_connectors(s: &str) -> Result<Vec<Connector>, Error> {
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
 struct Bridge {
-    len: usize,
-    str: usize,
-    pins: usize,
+    len: u32,
+    str: u32,
+    pins: u32,
 }
 
 impl Bridge {
@@ -31,12 +37,10 @@ impl Bridge {
     }
 
     fn extend(&self, (pin, pout): Connector) -> Option<Bridge> {
-        let pins = if pin == self.pins {
-            pout
-        } else if pout == self.pins {
-            pin
-        } else {
-            return None;
+        let pins = match self.pins {
+            p if p == pin => pout,
+            p if p == pout => pin,
+            _ => return None,
         };
 
         let result = Bridge {
@@ -65,11 +69,11 @@ fn backtrack(xs: &[Connector], used: &mut Vec<Connector>, bridge: Bridge) -> Bri
     max
 }
 
-fn setup(xs: &[Connector]) -> usize {
+fn setup(xs: &[Connector]) -> u32 {
     backtrack(xs, &mut vec![], Bridge::new()).str
 }
 
-pub fn run(input: &str) -> Result<usize, Error> {
+pub fn run(input: &str) -> Result<u32, Error> {
     let connectors = parse_connectors(input)?;
     let result = setup(&connectors);
     Ok(result)

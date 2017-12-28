@@ -14,7 +14,7 @@ impl Pixel {
         let result = match c {
             '#' => On,
             '.' => Off,
-            _ => bail!("pixel: unexpected character"),
+            _ => bail!("unexpected character: {}", c),
         };
 
         Ok(result)
@@ -38,9 +38,7 @@ impl Pattern {
         let mut pixels = Vec::new();
 
         for line in s.lines() {
-            let line: Vec<Pixel> = line.chars()
-                .map(Pixel::new)
-                .collect::<Result<_, Error>>()?;
+            let line: Vec<Pixel> = line.chars().map(Pixel::new).collect::<Result<_, Error>>()?;
 
             let len = line.len();
             ensure!(
@@ -65,7 +63,7 @@ impl Pattern {
         } else if self.size % 3 == 0 {
             3
         } else {
-            bail!("Pattern::split: invalid size")
+            bail!("unexpected size")
         };
 
         let n = self.size / size;
@@ -119,13 +117,11 @@ impl Pattern {
         let n = self.size;
         let rot = match n {
             2 => vec![vec![pix[1][0], pix[0][0]], vec![pix[1][1], pix[0][1]]],
-            3 => {
-                vec![
-                    vec![pix[2][0], pix[1][0], pix[0][0]],
-                    vec![pix[2][1], pix[1][1], pix[0][1]],
-                    vec![pix[2][2], pix[1][2], pix[0][2]],
-                ]
-            }
+            3 => vec![
+                vec![pix[2][0], pix[1][0], pix[0][0]],
+                vec![pix[2][1], pix[1][1], pix[0][1]],
+                vec![pix[2][2], pix[1][2], pix[0][2]],
+            ],
             _ => bail!("rotate: unkown pattern size"),
         };
 
@@ -201,16 +197,14 @@ impl Rule {
         let mut it = s.split(" => ").map(|s| s.replace("/", "\n"));
 
         let variations = {
-            let s = it.next().expect(
-                "Rule::from_str: no source pattern present",
-            );
+            let s = it.next()
+                .ok_or(err_msg("no source pattern present"))?;
             Pattern::from_str(&s)?.permute()?
         };
 
         let out = {
-            let s = it.next().expect(
-                "Rule::from_str: no target pattern present",
-            );
+            let s = it.next()
+                .ok_or(err_msg("no target pattern present"))?;
             Pattern::from_str(&s)?
         };
 
