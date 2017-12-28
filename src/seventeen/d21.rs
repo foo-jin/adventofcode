@@ -1,7 +1,7 @@
 use failure::*;
-use rayon::prelude::*;
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-use self::Pixel::*;
+use self::Pixel::{Off, On};
 
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
 enum Pixel {
