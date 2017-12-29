@@ -64,7 +64,6 @@ impl<'a> Tree<'a> {
                 .expect("normal child weight not found");
 
             let offset = *normal as i32 - *off as i32;
-            println!("offset: {}", offset);
             self.fix_tree(Some(offset), children[i])
         }
     }

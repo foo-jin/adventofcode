@@ -86,7 +86,7 @@ impl Path {
     fn parse(input: &str) -> Result<Path, Error> {
         let mut network = HashMap::new();
         let mut init = (0, 0);
-        for (y, line) in input.trim().lines().enumerate() {
+        for (y, line) in input.lines().enumerate() {
             for (x, c) in line.chars()
                 .enumerate()
                 .filter(|&(_, c)| !c.is_whitespace())
