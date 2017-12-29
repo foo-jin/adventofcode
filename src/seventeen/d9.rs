@@ -1,7 +1,10 @@
-pub fn count_groups(input: &str) -> u32 {
+use failure::*;
+
+pub fn run(input: &str) -> Result<(u32, u32), Error> {
     let mut nesting = 0;
+    let mut score = 0;
     let mut count = 0;
-    let mut chars = input.chars();
+    let mut chars = input.trim().chars();
 
     while let Some(c) = chars.next() {
         match c {
@@ -19,54 +22,62 @@ pub fn count_groups(input: &str) -> u32 {
             },
             '{' => {
                 nesting += 1;
-                count += nesting;
+                score += nesting;
             }
             '}' => nesting -= 1,
             ',' => (),
-            c => panic!("unexpected input: {}", c),
+            c => bail!("unexpected input: {}", c),
         }
     }
 
-    count
+    Ok((score, count))
 }
 
 #[cfg(test)]
 mod tests {
-    use seventeen::d9::*;
-
+    use super::*;
+    use seventeen::check;
 
     #[test]
-    fn test_count_groups1() {
-        assert_eq!(count_groups("<>"), 0);
+    fn test_both1() {
+        check(run("{}<>"), (1, 0));
     }
 
     #[test]
-    fn test_count_groups2() {
-        assert_eq!(count_groups("<random characters>"), 17);
+    fn test_both2() {
+        check(run("{{{}}}<random characters>"), (6, 17));
     }
 
     #[test]
-    fn test_count_groups3() {
-        assert_eq!(count_groups("<{o\"i!a,<{i<a>"), 10);
+    fn test_both3() {
+        check(run("{{},{}}<{o\"i!a,<{i<a>"), (5, 10));
     }
 
     #[test]
-    fn test_count_groups4() {
-        assert_eq!(count_groups("<<<<>"), 3);
+    fn test_both4() {
+        check(run("{{{},{},{{}}}}<<<<>"), (16, 3));
     }
 
     #[test]
-    fn test_count_groups5() {
-        assert_eq!(count_groups("<{!>}>"), 2);
+    fn test_both5() {
+        check(run("{<a>,<a>,<a>,<a>}<{!>}>"), (1, 6));
     }
 
     #[test]
-    fn test_count_groups6() {
-        assert_eq!(count_groups("<!!>"), 0);
+    fn test_both6() {
+        check(run("{{<ab>},{<ab>},{<ab>},{<ab>}}<!!>"), (9, 8));
     }
 
     #[test]
-    fn test_count_groups7() {
-        assert_eq!(count_groups("<!!!>>"), 0);
+    fn test_both7() {
+        check(run("{{<a!>},{<a!>},{<a!>},{<ab>}}<!!!>>"), (3, 17));
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d9-test");
+
+    #[bench]
+    fn bench_both(b: &mut Bencher) {
+        b.iter(|| check(run(FULL), (12505, 6671)))
     }
 }

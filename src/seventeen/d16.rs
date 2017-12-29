@@ -98,30 +98,36 @@ fn dance(routine: &[Dancemove], reps: usize, n: usize) -> String {
     result
 }
 
-pub fn run(input: &str) -> Result<String, Error> {
+fn first(input: &str) -> Result<String, Error> {
+    let routine = parse_routine(input)?;
+    Ok(dance(&routine, 1, 16))
+}
+
+fn second(input: &str) -> Result<String, Error> {
     let routine = parse_routine(input)?;
     Ok(dance(&routine, 1_000_000_000, 16))
+}
+
+pub fn run(input: &str) -> Result<String, Error> {
+    second(input)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use seventeen::check;
 
-    fn check_dance(input: &str, rep: usize, expected: &str) {
-        let routine = parse_routine(input).unwrap();
-        let result = dance(&routine, rep, expected.len());
-        assert_eq!(result.as_str(), expected);
-    }
+    const FULL: &str = include_str!("../../data/d16-test");
 
     #[test]
-    fn test_dance1() {
-        let input = "s1,x3/4,pe/b";
-        check_dance(input, 2, "ceadb");
+    fn test_first() {
+        check(first(FULL), "ociedpjbmfnkhlga".to_owned())
     }
 
-    #[test]
-    fn test_dance2() {
-        let input = include_str!("../../data/d16-test");
-        check_dance(input, 1_000_000_000, "gnflbkojhicpmead")
+    use test::Bencher;
+
+    #[bench]
+    fn bench_both(b: &mut Bencher) {
+        b.iter(|| check(second(FULL), "gnflbkojhicpmead".to_owned()))
     }
 }

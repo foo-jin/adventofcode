@@ -226,13 +226,15 @@ mod tests {
     }
 
     use test::Bencher;
+    const FULL: &str = include_str!("../../data/d22-test");
 
     #[bench]
-    fn test_second2(b: &mut Bencher) {
-        b.iter(|| {
-            let result = second(IN, 10_000_000);
-            let expected = 2_511_944;
-            check(result, expected)
-        });
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL, 10_000), 5433))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(second(FULL, 10_000_000), 2_512_599))
     }
 }

@@ -21,7 +21,7 @@ pub fn check_password(input: &str) -> u32 {
 pub fn check_anagram(input: &str) -> u32 {
     let mut result = 0;
 
-    'outer: for l in input.lines() {
+    'outer: for l in input.trim().lines() {
         let mut seen = HashSet::new();
 
         for s in l.split_whitespace() {
@@ -32,7 +32,7 @@ pub fn check_anagram(input: &str) -> u32 {
                 continue 'outer;
             }
         }
-        
+
         result += 1;
     }
 
@@ -41,7 +41,7 @@ pub fn check_anagram(input: &str) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use seventeen::d4::*;
+    use super::*;
 
     #[test]
     fn test_check_password1() {
@@ -81,5 +81,18 @@ mod tests {
     #[test]
     fn test_check_anagram5() {
         assert_eq!(check_anagram("oiii ioii iioi iiio"), 0);
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d4-test");
+
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| assert_eq!(check_password(FULL), 466))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| assert_eq!(check_anagram(FULL), 251))
     }
 }

@@ -4,7 +4,7 @@ use bit_vec::BitVec;
 
 use super::d10::knothash;
 
-pub fn defrag(input: &str) -> Result<u32, Error> {
+pub fn first(input: &str) -> Result<u32, Error> {
     let mut squares = 0;
 
     for line in 0..128 {
@@ -22,11 +22,11 @@ pub fn defrag(input: &str) -> Result<u32, Error> {
     Ok(squares)
 }
 
-pub fn regions(input: &str) -> Result<u32, Error> {
+pub fn second(input: &str) -> Result<u32, Error> {
     let mut grid = HashSet::new();
 
     for y in 0..128 {
-        let bytes = knothash(&format!("{}-{}", input, y));
+        let bytes = knothash(&format!("{}-{}", input.trim(), y));
         let bits = BitVec::from_bytes(&bytes);
         grid.extend(
             bits.into_iter()
@@ -57,16 +57,30 @@ pub fn regions(input: &str) -> Result<u32, Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use seventeen::check;
 
     #[test]
-    fn test_defrag() {
+    fn test_first() {
         let input = "flqrgnkx";
-        assert_eq!(defrag(input).unwrap(), 8108);
+        check(first(input), 8108);
     }
 
     #[test]
-    fn test_regions() {
+    fn test_second() {
         let input = "flqrgnkx";
-        assert_eq!(regions(input).unwrap(), 1242);
+        check(second(input), 1242);
+    }
+
+    use test::Bencher;
+    const FULL: &str = "oundnydw";
+    
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL), 8106))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(second(FULL), 1164))
     }
 }

@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 
 use failure::*;
 
-use self::Direction::*;
+use self::Direction::{Left, Right};
 
 const FILTER: [char; 4] = ['.', '-', ':', ' '];
 
@@ -91,7 +91,7 @@ impl Program {
     }
 
     fn parse(s: &str) -> Result<Program, Error> {
-        let mut it = s.split("\n\n");
+        let mut it = s.trim().split("\n\n");
         let mut metadata = it.next()
             .unwrap()
             .lines()
@@ -178,9 +178,17 @@ mod tests {
     const IN: &str = include_str!("../../data/d25-test");
 
     #[test]
-    fn test_first1() {
+    fn test_first() {
         let result = first(IN);
         let expected = 3;
         check(result, expected);
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d25-full");
+
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL), 2870))
     }
 }

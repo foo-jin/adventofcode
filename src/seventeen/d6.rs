@@ -1,55 +1,61 @@
 use std::collections::HashMap;
 
-pub fn redistribute(input: &str) -> u32 {
-    let mut input: Vec<u32> = input
-        .split_whitespace()
-        .map(|s| s.parse::<u32>().unwrap())
-        .collect();
+use failure::*;
 
-    let n = input.len();
+fn parse(s: &str) -> Result<Vec<u32>, Error> {
+    s.trim()
+        .split_whitespace()
+        .map(|s| s.parse::<u32>().map_err(Into::into))
+        .collect::<Result<_, Error>>()
+}
+
+pub fn run(input: &str) -> Result<(u32, u32), Error> {
+    let mut input = parse(input)?;
     let mut seen = HashMap::new();
-    let mut result = 0;
+    let mut result = (0, 0);
+    let n = input.len();
 
     for i in 0.. {
         let mut clone = input.clone();
-        {
-            let (mut key, el) = input
-                .iter()
-                .cloned()
-                .enumerate()
-                .max_by_key(|&(i, v)| (v, -(i as i32)))
-                .unwrap();
-
-            input[key] = 0;
-            key += 1;
-
-            for _ in 0..el {
-                input[key % n] += 1;
-                key += 1;
-            }
+        if let Some(x) = seen.insert(clone, i) {
+            result = (i, i - x);
+            break;
         }
 
-        if let Some(x) = seen.insert(clone, i) {
-            result = i - x;
-            break;
+        let (mut key, el) = input
+            .iter()
+            .cloned()
+            .enumerate()
+            .max_by_key(|&(i, v)| (v, -(i as i32)))
+            .unwrap();
+
+        input[key] = 0;
+        key += 1;
+
+        for _ in 0..el {
+            input[key % n] += 1;
+            key += 1;
         }
     }
 
-    result
+    Ok(result)
 }
 
 #[cfg(test)]
 mod tests {
-    use seventeen::d6::*;
+    use super::*;
+    use seventeen::check;
 
     #[test]
-    fn test_redistribute() {
-        assert_eq!(redistribute("0\t2\t7\t0"), 4);
+    fn test_both() {
+        check(run("0\t2\t7\t0"), (5, 4));
     }
 
-    #[test]
-    fn test_redistribute_full() {
-        let input = include_str!("../../data/d6-test");
-        assert_eq!(redistribute(input), 8038);
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d6-test");
+
+    #[bench]
+    fn bench_both(b: &mut Bencher) {
+        b.iter(|| check(run(FULL), (12841, 8038)))
     }
 }

@@ -33,7 +33,7 @@ impl Pattern {
         Pattern { pixels, size }
     }
 
-    fn from_str(s: &str) -> Result<Pattern, Error> {
+    fn parse(s: &str) -> Result<Pattern, Error> {
         let size = s.lines().count();
         let mut pixels = Vec::new();
 
@@ -193,19 +193,17 @@ impl Rule {
         Rule { variations, out }
     }
 
-    fn from_str(s: &str) -> Result<Rule, Error> {
+    fn parse(s: &str) -> Result<Rule, Error> {
         let mut it = s.split(" => ").map(|s| s.replace("/", "\n"));
 
         let variations = {
-            let s = it.next()
-                .ok_or(err_msg("no source pattern present"))?;
-            Pattern::from_str(&s)?.permute()?
+            let s = it.next().ok_or(err_msg("no source pattern present"))?;
+            Pattern::parse(&s)?.permute()?
         };
 
         let out = {
-            let s = it.next()
-                .ok_or(err_msg("no target pattern present"))?;
-            Pattern::from_str(&s)?
+            let s = it.next().ok_or(err_msg("no target pattern present"))?;
+            Pattern::parse(&s)?
         };
 
         Ok(Rule::new(variations, out))
@@ -229,9 +227,10 @@ impl RuleSet {
         RuleSet { rules }
     }
 
-    fn from_str(s: &str) -> Result<RuleSet, Error> {
-        let rules = s.lines()
-            .map(|s| Rule::from_str(s))
+    fn parse(s: &str) -> Result<RuleSet, Error> {
+        let rules = s.trim()
+            .lines()
+            .map(|s| Rule::parse(s))
             .collect::<Result<_, Error>>()?;
         Ok(RuleSet::new(rules))
     }
@@ -261,8 +260,8 @@ impl Grid {
         Grid { pattern, rules }
     }
 
-    fn from_str(s: &str) -> Result<Grid, Error> {
-        let rules = RuleSet::from_str(s)?;
+    fn parse(s: &str) -> Result<Grid, Error> {
+        let rules = RuleSet::parse(s)?;
         Ok(Grid::new(rules))
     }
 
@@ -282,7 +281,7 @@ impl Grid {
 }
 
 fn exec(input: &str, n: usize) -> Result<usize, Error> {
-    let mut grid = Grid::from_str(input)?;
+    let mut grid = Grid::parse(input)?;
     for _ in 0..n {
         grid.enhance()?;
     }
@@ -300,7 +299,7 @@ mod tests {
 
     #[test]
     fn test_pattern() {
-        let result = Pattern::from_str(".#.\n..#\n###");
+        let result = Pattern::parse(".#.\n..#\n###");
         let expected = Pattern::new(vec![
             vec![Off, On, Off],
             vec![Off, Off, On],
@@ -311,7 +310,7 @@ mod tests {
 
     #[test]
     fn test_rotate() {
-        let init = Pattern::from_str(".#.\n..#\n###").unwrap();
+        let init = Pattern::parse(".#.\n..#\n###").unwrap();
         let result = init.rotate();
         let expected = Pattern::new(vec![
             vec![On, Off, Off],
@@ -324,7 +323,7 @@ mod tests {
     #[test]
     fn test_split() {
         let input = "#..#\n....\n....\n#..#";
-        let init = Pattern::from_str(input).unwrap();
+        let init = Pattern::parse(input).unwrap();
         let result = init.split();
         let expected = vec![
             Pattern::new(vec![vec![On, Off], vec![Off, Off]]),
@@ -344,12 +343,12 @@ mod tests {
             Pattern::new(vec![vec![Off, Off], vec![Off, On]]),
         ];
         let result = Pattern::join(input.as_slice());
-        let expected = Pattern::from_str("#..#\n....\n....\n#..#").unwrap();
+        let expected = Pattern::parse("#..#\n....\n....\n#..#").unwrap();
         check(result, expected);
     }
 
     #[test]
-    fn test_exec() {
+    fn test_first() {
         let input = "../.# => ##./#../...\n.#./..#/### => #..#/..../..../#..#";
         let result = exec(input, 2);
         let expected = 12;
@@ -357,10 +356,10 @@ mod tests {
     }
 
     use test::Bencher;
+    const FULL: &str = include_str!("../../data/d21-test");
 
     #[bench]
-    fn bench_exec(b: &mut Bencher) {
-        let input = include_str!("../../data/d21-test");
-        b.iter(|| check(exec(input, 18), 3018423));
+    fn bench_both(b: &mut Bencher) {
+        b.iter(|| check(exec(FULL, 18), 3_018_423));
     }
 }

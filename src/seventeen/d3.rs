@@ -177,7 +177,7 @@ pub fn firstlarger(n: u32) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use seventeen::d3::*;
+    use super::*;
 
     #[test]
     fn test_nthspiral1() {
@@ -247,5 +247,17 @@ mod tests {
     #[test]
     fn test_firstlarger747() {
         assert_eq!(firstlarger(747), 806);
+    }
+
+    use test::Bencher;
+
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| assert_eq!(nthspiral(265149), 438))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| assert_eq!(firstlarger(265149), 266330))
     }
 }

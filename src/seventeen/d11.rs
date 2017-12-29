@@ -11,7 +11,7 @@ enum Direction {
 }
 
 impl Direction {
-    fn new(input: &str) -> Direction {
+    fn parse(input: &str) -> Direction {
         use super::d11::Direction::*;
 
         match input {
@@ -92,19 +92,20 @@ impl Point {
     }
 }
 
-pub fn hexfind(input: &str) -> u32 {
-    let mut dist = 0;
-    input
+pub fn run(input: &str) -> (u32, u32) {
+    let mut max = 0;
+    let last = input
         .trim()
         .split(',')
-        .map(Direction::new)
+        .map(Direction::parse)
         .fold(Point::new(), |p, d| {
             let new = p.neighbour(d);
-            dist = dist.max(new.to_origin());
+            max = max.max(new.to_origin());
             new
-        });
+        })
+        .to_origin();
 
-    dist
+    (last, max)
 }
 
 #[cfg(test)]
@@ -112,22 +113,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_hexfind1() {
-        assert_eq!(hexfind("ne,ne,ne"), 3);
+    fn test_both1() {
+        assert_eq!(run("ne,ne,ne"), (3, 3));
     }
 
     #[test]
-    fn test_hexfind2() {
-        assert_eq!(hexfind("ne,ne,sw,sw"), 2);
+    fn test_both2() {
+        assert_eq!(run("ne,ne,sw,sw"), (0, 2));
     }
 
     #[test]
-    fn test_hexfind3() {
-        assert_eq!(hexfind("ne,ne,s,s"), 2);
+    fn test_both3() {
+        assert_eq!(run("ne,ne,s,s"), (2, 2));
     }
 
     #[test]
-    fn test_hexfind4() {
-        assert_eq!(hexfind("se,sw,se,sw,sw"), 3);
+    fn test_both4() {
+        assert_eq!(run("se,sw,se,sw,sw"), (3, 3));
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d11-test");
+
+    #[bench]
+    fn bench_both(b: &mut Bencher) {
+        b.iter(|| assert_eq!(run(FULL), (824, 1548)))
     }
 }

@@ -8,7 +8,7 @@ type Memory = Vec<i64>;
 struct Reg(u8);
 
 impl Reg {
-    fn from_str(input: &str) -> Reg {
+    fn parse(input: &str) -> Reg {
         Reg(input.chars().next().expect("empty string") as u8)
     }
 }
@@ -20,7 +20,7 @@ enum RegVal {
 }
 
 impl RegVal {
-    fn from_str(input: &str) -> RegVal {
+    fn parse(input: &str) -> RegVal {
         if let Ok(v) = input.parse::<i64>() {
             RegVal::Val(v)
         } else {
@@ -48,18 +48,18 @@ enum Inst {
 }
 
 impl Inst {
-    fn from_str(line: &str) -> Result<Inst, Error> {
+    fn parse(line: &str) -> Result<Inst, Error> {
         let mut it = line.split_whitespace();
         let inst = it.next().ok_or(err_msg("no instruction"))?;
         let result = match inst {
             "jnz" => {
-                let cond = RegVal::from_str(it.next().ok_or(err_msg("no register"))?);
-                let arg = RegVal::from_str(it.next().ok_or(err_msg("no argument"))?);
+                let cond = RegVal::parse(it.next().ok_or(err_msg("no register"))?);
+                let arg = RegVal::parse(it.next().ok_or(err_msg("no argument"))?);
                 Jnz(cond, arg)
             }
             inst => {
-                let reg = Reg::from_str(it.next().ok_or(err_msg("no register"))?);
-                let arg = RegVal::from_str(it.next().ok_or(err_msg("no argument"))?);
+                let reg = Reg::parse(it.next().ok_or(err_msg("no register"))?);
+                let arg = RegVal::parse(it.next().ok_or(err_msg("no argument"))?);
                 match inst {
                     "set" => Set(reg, arg),
                     "sub" => Sub(reg, arg),
@@ -75,8 +75,9 @@ impl Inst {
 
 fn parse_inst(input: &str) -> Result<Vec<Inst>, Error> {
     input
+        .trim()
         .lines()
-        .map(Inst::from_str)
+        .map(Inst::parse)
         .collect::<Result<Vec<Inst>, Error>>()
 }
 
@@ -204,19 +205,16 @@ mod tests {
     use super::*;
     use seventeen::check;
 
-    const IN: &str = include_str!("../../data/d23-test");
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d23-test");
 
-    #[test]
-    fn test_first() {
-        let result = first(IN);
-        let expected = 5929;
-        check(result, expected);
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL), 5929))
     }
 
-    #[test]
-    fn test_second() {
-        let result = second(IN);
-        let expected = 907;
-        check(result, expected);
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(second(FULL), 907))
     }
 }

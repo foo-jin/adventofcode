@@ -13,7 +13,7 @@ type Memory = Vec<i64>;
 struct Reg(u8);
 
 impl Reg {
-    fn from_str(input: &str) -> Reg {
+    fn parse(input: &str) -> Reg {
         Reg(input.chars().next().expect("empty string") as u8)
     }
 }
@@ -25,7 +25,7 @@ enum RegVal {
 }
 
 impl RegVal {
-    fn from_str(input: &str) -> RegVal {
+    fn parse(input: &str) -> RegVal {
         if let Ok(v) = input.parse::<i64>() {
             RegVal::Val(v)
         } else {
@@ -58,26 +58,26 @@ enum Inst {
 fn parse(input: &str) -> Result<Vec<Inst>, Error> {
     let mut out = Vec::new();
 
-    for line in input.lines() {
+    for line in input.trim().lines() {
         let mut it = line.split_whitespace();
         let inst = it.next().expect("no instruction");
         match inst {
             "jgz" => {
-                let cond = RegVal::from_str(it.next().expect("no register"));
-                let arg = RegVal::from_str(it.next().expect("no argument"));
+                let cond = RegVal::parse(it.next().expect("no register"));
+                let arg = RegVal::parse(it.next().expect("no argument"));
                 out.push(Inst::Jgz(cond, arg));
             }
             "snd" => {
-                let arg = RegVal::from_str(it.next().expect("no argument"));
+                let arg = RegVal::parse(it.next().expect("no argument"));
                 out.push(Inst::Snd(arg));
             }
             "rcv" => {
-                let reg = Reg::from_str(it.next().expect("no argument"));
+                let reg = Reg::parse(it.next().expect("no argument"));
                 out.push(Inst::Rcv(reg));
             }
             inst => {
-                let reg = Reg::from_str(it.next().expect("no register"));
-                let arg = RegVal::from_str(it.next().expect("no argument"));
+                let reg = Reg::parse(it.next().expect("no register"));
+                let arg = RegVal::parse(it.next().expect("no argument"));
 
                 match inst {
                     "set" => {
@@ -104,6 +104,7 @@ fn parse(input: &str) -> Result<Vec<Inst>, Error> {
 #[derive(Clone)]
 enum Action {
     Store(i64),
+    Nothing,
     Terminate,
 }
 
@@ -183,6 +184,7 @@ where
                     let state = self.channel.rcv(val);
                     match state {
                         Store(val) => self.mem[reg as usize] = val,
+                        Nothing => (),
                         Terminate => break,
                     }
                 }
@@ -191,6 +193,41 @@ where
         }
         self
     }
+}
+
+struct First {
+    sent: i64,
+}
+
+impl First {
+    fn new() -> First {
+        First { sent: 0 }
+    }
+}
+
+impl Channel for First {
+    fn id(&mut self) -> Option<u8> {
+        None
+    }
+
+    fn snd(&mut self, val: i64) {
+        self.sent = val;
+    }
+
+    fn rcv(&mut self, cond: i64) -> Action {
+        if cond == 0 {
+            Nothing
+        } else {
+            Terminate
+        }
+    }
+}
+
+fn first(input: &str) -> Result<i64, Error> {
+    let inst = parse(input)?;
+    let mut p = Program::from_inst(inst.clone(), First::new());
+    p = p.exec();
+    Ok(p.channel.sent)
 }
 
 #[derive(Debug)]
@@ -235,7 +272,7 @@ impl Channel for Second {
     }
 }
 
-fn part2(input: &str) -> Result<u64, Error> {
+fn second(input: &str) -> Result<u64, Error> {
     let inst = parse(input)?;
 
     let (tx0, rx0) = channel();
@@ -255,22 +292,36 @@ fn part2(input: &str) -> Result<u64, Error> {
 }
 
 pub fn run(input: &str) -> Result<u64, Error> {
-    part2(input)
+    second(input)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use seventeen::check;
 
     #[test]
-    fn test_exec1() {
-        let input = "snd 1\nsnd 2\nsnd p\nrcv a\nrcv b\nrcv c\nrcv d";
-        assert_eq!(part2(input).unwrap(), 3);
+    fn test_first() {
+        let input = "set a 1\nadd a 2\nmul a a\nmod a 5\nsnd a\nset a 0\nrcv a\njgz a -1\nset a 1\njgz a -2";
+        check(first(input), 4)
     }
 
     #[test]
-    fn test_exec2() {
-        let input = include_str!("../../data/d18-test");
-        assert_eq!(part2(input).unwrap(), 7112)
+    fn test_second() {
+        let input = "snd 1\nsnd 2\nsnd p\nrcv a\nrcv b\nrcv c\nrcv d";
+        check(second(input), 3);
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d18-test");
+
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL), 3188))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(second(FULL), 7112))
     }
 }

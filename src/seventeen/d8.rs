@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-pub fn largest_register(input: &str) -> i32 {
+pub fn run(input: &str) -> (i32, i32) {
     let mut env = HashMap::new();
-    let mut max = 0;
+    let mut second = 0;
 
-    for l in input.lines() {
+    for l in input.trim().lines() {
         let mut tokens = l.split_whitespace();
 
         let reg = tokens.next().unwrap();
@@ -44,22 +44,33 @@ pub fn largest_register(input: &str) -> i32 {
 
             env.insert(reg, result);
 
-            if result > max {
-                max = result;
+            if result > second {
+                second = result;
             }
         }
     }
 
-    max
+    let first = env.values().max().unwrap();
+
+    (*first, second)
 }
 
 #[cfg(test)]
 mod tests {
-    use seventeen::d8::*;
-    const IN: &str = "b inc 5 if a > 1\na inc 1 if b < 5\nc dec -10 if a >= 1\nc inc -20 if c == 10";
+    use super::*;
+    const IN: &str =
+        "b inc 5 if a > 1\na inc 1 if b < 5\nc dec -10 if a >= 1\nc inc -20 if c == 10";
 
     #[test]
-    fn test_largest_register() {
-        assert_eq!(largest_register(IN), 10);
+    fn test_both() {
+        assert_eq!(run(IN), (1, 10));
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d8-test");
+
+    #[bench]
+    fn bench_both(b: &mut Bencher) {
+        b.iter(|| assert_eq!(run(FULL), (4163, 5347)))
     }
 }

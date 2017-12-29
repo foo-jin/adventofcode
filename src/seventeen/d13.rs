@@ -7,24 +7,40 @@ struct Layer {
 }
 
 impl Layer {
-    fn new(depth: u32, range: u32) -> Layer {
-        Layer { depth, range }
+    fn parse(s: &str) -> Result<Layer, Error> {
+        let mut it = s.split(": ");
+        let depth = it.next().unwrap().parse()?;
+        let range = it.next().unwrap().parse()?;
+
+        Ok(Layer { depth, range })
     }
 }
 
-pub fn firewall(input: &str) -> Result<u32, Error> {
-    let layers: Vec<Layer> = input
-        .trim()
+fn parse_layers(s: &str) -> Result<Vec<Layer>, Error> {
+    s.trim()
         .lines()
-        .map(|s| {
-            let mut it = s.split(": ");
-            let depth = it.next().unwrap().parse()?;
-            let range = it.next().unwrap().parse()?;
-            Ok(Layer::new(depth, range))
+        .map(Layer::parse)
+        .collect::<Result<_, Error>>()
+}
+
+fn first(input: &str) -> Result<u32, Error> {
+    let layers = parse_layers(input)?;
+    let severity = layers
+        .iter()
+        .map(|layer| {
+            if layer.depth % (2 * (layer.range - 1)) == 0 {
+                layer.depth * layer.range
+            } else {
+                0
+            }
         })
-        .collect::<Result<_, Error>>()?;
+        .sum();
 
+    Ok(severity)
+}
 
+pub fn second(input: &str) -> Result<u32, Error> {
+    let layers = parse_layers(input)?;
     let wait = (0..)
         .find(|delay| {
             !layers
@@ -32,17 +48,37 @@ pub fn firewall(input: &str) -> Result<u32, Error> {
                 .any(|layer| (delay + layer.depth) % (2 * (layer.range - 1)) == 0)
         })
         .unwrap();
-    
+
     Ok(wait)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use seventeen::check;
+
+    const IN: &str = "0: 3\n1: 2\n4: 4\n6: 4";
 
     #[test]
-    fn test_firewall() {
-        let input = "0: 3\n1: 2\n4: 4\n6: 4";
-        assert_eq!(firewall(input).unwrap(), 10);
+    fn test_first() {
+        check(first(IN), 24);
+    }
+
+    #[test]
+    fn test_second() {
+        check(second(IN), 10);
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d13-test");
+    
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL), 788))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(second(FULL), 3_905_748))
     }
 }

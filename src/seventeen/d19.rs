@@ -83,10 +83,10 @@ impl Path {
         }
     }
 
-    fn from_str(input: &str) -> Result<Path, Error> {
+    fn parse(input: &str) -> Result<Path, Error> {
         let mut network = HashMap::new();
         let mut init = (0, 0);
-        for (y, line) in input.lines().enumerate() {
+        for (y, line) in input.trim().lines().enumerate() {
             for (x, c) in line.chars()
                 .enumerate()
                 .filter(|&(_, c)| !c.is_whitespace())
@@ -147,13 +147,13 @@ impl Iterator for Path {
 }
 
 fn first(input: &str) -> Result<String, Error> {
-    let result = Path::from_str(input)?.filter_map(|e| e.get_letter()).collect();
+    let result = Path::parse(input)?.filter_map(|e| e.get_letter()).collect();
 
     Ok(result)
 }
 
 fn second(input: &str) -> Result<usize, Error> {
-    Ok(Path::from_str(input)?.count())
+    Ok(Path::parse(input)?.count())
 }
 
 pub fn run(input: &str) -> Result<usize, Error> {
@@ -165,15 +165,16 @@ mod tests {
     use super::*;
     use seventeen::check;
 
-    #[test]
-    fn test_first() {
-        let input = include_str!("../../data/d19-test");
-        check(first(input), "ABCDEF".to_owned());
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d19-test");
+
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL), "ABCDEF".to_owned()))
     }
 
-    #[test]
-    fn test_second() {
-        let input = include_str!("../../data/d19-test");
-        check(second(input), 38)
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(second(FULL), 38))
     }
 }

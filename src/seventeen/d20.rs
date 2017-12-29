@@ -11,9 +11,9 @@ struct Vector {
 }
 
 impl Vector {
-    fn from_str(input: &str) -> Result<Vector, Error> {
-        let brackets: &[char] = &['<', '>'];
-        let mut it = input.trim_matches(brackets).trim().split(',');
+    fn parse(input: &str) -> Result<Vector, Error> {
+        let brackets: &[char] = &['<', '>', ' ', '\n', '\t'];
+        let mut it = input.trim_matches(brackets).split(',');
 
         let x = it.next().unwrap().parse()?;
         let y = it.next().unwrap().parse()?;
@@ -57,12 +57,12 @@ struct Particle {
 }
 
 impl Particle {
-    fn from_str(input: &str) -> Result<Particle, Error> {
+    fn parse(input: &str) -> Result<Particle, Error> {
         let vs: Vec<Vector> = input
             .split(", ")
             .map(|s| {
                 let s: String = s.chars().skip(2).collect();
-                Vector::from_str(&s)
+                Vector::parse(&s)
             })
             .collect::<Result<_, Error>>()?;
 
@@ -80,7 +80,7 @@ impl Particle {
 }
 
 fn parse(input: &str) -> Result<Vec<Particle>, Error> {
-    input.lines().map(|s| Particle::from_str(s)).collect()
+    input.lines().map(|s| Particle::parse(s)).collect()
 }
 
 fn first(input: &str) -> Result<usize, Error> {
@@ -119,30 +119,28 @@ mod tests {
     use super::*;
     use seventeen::check;
 
-    fn check_first(input: &str, expected: usize) {
-        check(first(input), expected);
-    }
-
-    fn check_second(input: &str, expected: usize) {
-        check(second(input), expected);
-    }
-
     #[test]
     fn test_first() {
         let input = "p=< 3,0,0>, v=< 2,0,0>, a=<-1,0,0>\np=< 4,0,0>, v=< 0,0,0>, a=<-2,0,0>";
-        check_first(input, 0);
+        check(first(input), 0);
     }
 
     #[test]
     fn test_second() {
         let input = "p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>\np=<-4,0,0>, v=< 2,0,0>, a=< 0,0,0>\np=<-2,0,0>, v=< 1,0,0>, a=< 0,0,0>\np=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>";
-        check_second(input, 1);
+        check(second(input), 1);
     }
 
     use test::Bencher;
+    const FULL: &str = include_str!("../../data/d20-test");
+
     #[bench]
-    fn bench_second(b: &mut Bencher) {
-        let input = include_str!("../../data/d20-test");
-        b.iter(|| check_second(input, 471));
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL), 119))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(second(FULL), 471))
     }
 }

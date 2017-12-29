@@ -1,18 +1,21 @@
 use std::iter;
 
-fn parse(input: &str) -> Vec<Vec<u32>> {
+use failure::*;
+
+fn parse(input: &str) -> Result<Vec<Vec<u32>>, Error> {
     input
+        .trim()
         .lines()
         .map(|l: &str| {
             l.split_whitespace()
-                .map(|s| s.parse::<u32>().unwrap())
-                .collect::<Vec<_>>()
+                .map(|s| s.parse().map_err(Into::into))
+                .collect::<Result<_, Error>>()
         })
-        .collect::<Vec<_>>()
+        .collect::<Result<_, Error>>()
 }
 
-pub fn checksum(input: &str) -> u32 {
-    let lines = parse(input);
+pub fn checksum(input: &str) -> Result<u32, Error> {
+    let lines = parse(input)?;
     let mut result = 0;
 
     for l in lines {
@@ -20,7 +23,8 @@ pub fn checksum(input: &str) -> u32 {
         let max = l.iter().max().unwrap();
         result += max - min;
     }
-    result
+
+    Ok(result)
 }
 
 fn divides((x, y): (&u32, &u32)) -> Option<u32> {
@@ -33,8 +37,8 @@ fn divides((x, y): (&u32, &u32)) -> Option<u32> {
     }
 }
 
-pub fn divsum(input: &str) -> u32 {
-    let lines = parse(input);
+pub fn divsum(input: &str) -> Result<u32, Error> {
+    let lines = parse(input)?;
     let mut result = 0u32;
 
     for l in lines {
@@ -47,22 +51,36 @@ pub fn divsum(input: &str) -> u32 {
         }
     }
 
-    result
+    Ok(result)
 }
 
 #[cfg(test)]
 mod tests {
-    use seventeen::d2::*;
+    use super::*;
+    use seventeen::check;
 
     #[test]
     fn test_checksum() {
         const IN: &str = "5 1 9 5\n7 5 3\n2 4 6 8";
-        assert_eq!(checksum(IN), 18);
+        check(checksum(IN), 18);
     }
 
     #[test]
     fn test_divsum() {
         const IN: &str = "5 9 2 8\n9 4 7 3\n3 8 6 5";
-        assert_eq!(divsum(IN), 9);
+        check(divsum(IN), 9);
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d2-test");
+
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(checksum(FULL), 45351))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(divsum(FULL), 275))
     }
 }

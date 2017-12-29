@@ -1,7 +1,5 @@
 use std::str;
-use std::collections::HashMap;
 
-use failure::Error;
 use nom::{alphanumeric, space};
 
 named!(name<&str>, map_res!(alphanumeric, str::from_utf8));
@@ -25,24 +23,9 @@ named!(
 );
 
 named!(
-    line<(&str, u32, Vec<&str>)>,
+    pub line<(&str, u32, Vec<&str>)>,
     do_parse!(n: name >> opt!(space) >> w: weight >> opt!(child_sep) >> c: children >> (n, w, c))
 );
-
-pub fn parse<'a, T>(
-    input: &'a str,
-    mapper: fn(&'a str, u32, Vec<&'a str>) -> T,
-) -> Result<HashMap<&'a str, T>, Error> {
-    input
-        .lines()
-        .map(|l| {
-            line(l.as_bytes())
-                .to_result()
-                .map(|(n, w, c)| (n, mapper(n, w, c)))
-                .map_err(Into::into)
-        })
-        .collect::<Result<_, Error>>()
-}
 
 #[cfg(test)]
 mod tests {

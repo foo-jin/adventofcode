@@ -13,12 +13,16 @@ struct Tree<'a> {
 }
 
 impl<'a> Tree<'a> {
-    fn mapper(_: &str, w: u32, c: Vec<&'a str>) -> Attr<'a> {
-        (w, c)
-    }
-
-    fn from_str(s: &str) -> Result<Tree, Error> {
-        let tree = d7::parse(s, Tree::mapper)?;
+    fn parse(s: &str) -> Result<Tree, Error> {
+        let tree: HashMap<Name, Attr> = s.trim()
+            .lines()
+            .map(|l| {
+                d7::line(l.as_bytes())
+                    .to_result()
+                    .map(|(n, w, c)| (n, (w, c)))
+                    .map_err(Into::into)
+            })
+            .collect::<Result<_, Error>>()?;
 
         ensure!(
             tree.iter()
@@ -72,12 +76,12 @@ impl<'a> Tree<'a> {
 }
 
 fn first(input: &str) -> Result<&str, Error> {
-    let tree = Tree::from_str(input)?;
+    let tree = Tree::parse(input)?;
     Ok(tree.root)
 }
 
 fn second(input: &str) -> Result<u32, Error> {
-    let tree = Tree::from_str(input)?;
+    let tree = Tree::parse(input)?;
     Ok(tree.solve())
 }
 
@@ -99,5 +103,18 @@ mod tests {
     #[test]
     fn test_balance() {
         check(second(IN), 60);
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d7-test");
+
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL), "fbgguv"))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(second(FULL), 1864))
     }
 }

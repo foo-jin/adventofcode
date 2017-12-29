@@ -36,6 +36,14 @@ impl Bridge {
         }
     }
 
+    fn stronger(b1: Bridge, b2: Bridge) -> Bridge {
+        if b1.str >= b2.str {
+            b1
+        } else {
+            b2
+        }
+    }
+
     fn extend(&self, (pin, pout): Connector) -> Option<Bridge> {
         let pins = match self.pins {
             p if p == pin => pout,
@@ -53,14 +61,17 @@ impl Bridge {
     }
 }
 
-fn backtrack(xs: &[Connector], used: &mut Vec<Connector>, bridge: Bridge) -> Bridge {
+fn backtrack<F>(measure: &F, xs: &[Connector], used: &mut Vec<Connector>, bridge: Bridge) -> Bridge
+where
+    F: Fn(Bridge, Bridge) -> Bridge,
+{
     let mut max = bridge;
 
     for &(pin, pout) in xs {
         if !used.contains(&(pin, pout)) {
             if let Some(bridge) = bridge.extend((pin, pout)) {
                 used.push((pin, pout));
-                max = max.max(backtrack(xs, used, bridge));
+                max = measure(max, backtrack(measure, xs, used, bridge));
                 used.pop();
             }
         }
@@ -69,14 +80,27 @@ fn backtrack(xs: &[Connector], used: &mut Vec<Connector>, bridge: Bridge) -> Bri
     max
 }
 
-fn setup(xs: &[Connector]) -> u32 {
-    backtrack(xs, &mut vec![], Bridge::new()).str
+fn setup<F>(measure: F, xs: &[Connector]) -> Bridge
+where
+    F: Fn(Bridge, Bridge) -> Bridge,
+{
+    backtrack(&measure, xs, &mut vec![], Bridge::new())
+}
+
+fn first(input: &str) -> Result<u32, Error> {
+    let connectors = parse_connectors(input)?;
+    let bridge = setup(Bridge::stronger, &connectors);
+    Ok(bridge.str)
+}
+
+fn second(input: &str) -> Result<u32, Error> {
+    let connectors = parse_connectors(input)?;
+    let bridge = setup(Bridge::max, &connectors);
+    Ok(bridge.str)
 }
 
 pub fn run(input: &str) -> Result<u32, Error> {
-    let connectors = parse_connectors(input)?;
-    let result = setup(&connectors);
-    Ok(result)
+    second(input)
 }
 
 #[allow(dead_code)]
@@ -88,9 +112,25 @@ mod tests {
     const IN: &str = "0/2\n2/2\n2/3\n3/4\n3/5\n0/1\n10/1\n9/10";
 
     #[test]
-    fn test_run() {
-        let result = run(IN);
-        let expected = 19;
-        check(result, expected);
+    fn test_first() {
+        check(first(IN), 31);
+    }
+
+    #[test]
+    fn test_second() {
+        check(second(IN), 19);
+    }
+
+    use test::Bencher;
+    const FULL: &str = include_str!("../../data/d24-test");
+
+    #[bench]
+    fn bench_p1(b: &mut Bencher) {
+        b.iter(|| check(first(FULL), 1906))
+    }
+
+    #[bench]
+    fn bench_p2(b: &mut Bencher) {
+        b.iter(|| check(second(FULL), 1824))
     }
 }
