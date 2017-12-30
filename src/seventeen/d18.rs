@@ -1,11 +1,11 @@
-use crossbeam_channel::*;
+use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
-use std::time::Duration;
 
+use crossbeam_channel::{unbounded, Receiver, Sender, TryRecvError};
 use failure::*;
 
-use self::Action::*;
-use self::Inst::*;
+use self::Action::{Nothing, Store, Terminate};
+use self::Inst::{Add, Jgz, Mod, Mul, Rcv, Set, Snd};
 
 type Memory = Vec<i64>;
 
@@ -249,16 +249,23 @@ struct Second {
     recv: u64,
     sender: Sender<i64>,
     receiver: Receiver<i64>,
+    status: Arc<(Mutex<bool>, Condvar)>,
 }
 
 impl Second {
-    fn new(id: u8, sender: Sender<i64>, receiver: Receiver<i64>) -> Second {
+    fn new(
+        id: u8,
+        sender: Sender<i64>,
+        receiver: Receiver<i64>,
+        status: Arc<(Mutex<bool>, Condvar)>,
+    ) -> Second {
         Second {
             id,
             sent: 0,
             recv: 0,
             sender,
             receiver,
+            status,
         }
     }
 }
@@ -271,16 +278,35 @@ impl Channel for Second {
     fn snd(&mut self, val: i64) {
         self.sent += 1;
         let _ = self.sender.send(val);
+
+        let &(ref lock, ref cvar) = &*self.status;
+        let mut blocked = lock.lock().unwrap();
+        *blocked = false;
+        cvar.notify_all()
     }
 
     fn rcv(&mut self, _: i64) -> Action {
-        match self.receiver.recv_timeout(Duration::new(0, 5_000_000)) {
-            Ok(val) => {
-                self.recv += 1;
-                Store(val)
+        let &(ref lock, ref cvar) = &*self.status;
+        let mut blocked = lock.lock().unwrap();
+        loop {
+            match self.receiver.try_recv() {
+                Ok(val) => {
+                    self.recv += 1;
+                    return Store(val);
+                }
+                Err(TryRecvError::Empty) => {
+                    if *blocked {
+                        cvar.notify_all();
+                        break;
+                    }
+
+                    *blocked = true;
+                    blocked = cvar.wait(blocked).unwrap();
+                }
+                _ => break,
             }
-            _ => Terminate,
         }
+        Terminate
     }
 }
 
@@ -290,8 +316,11 @@ fn second(input: &str) -> Result<u64, Error> {
     let (tx0, rx0) = unbounded();
     let (tx1, rx1) = unbounded();
 
-    let p0 = Program::from_inst(inst.clone(), Second::new(0, tx0, rx1));
-    let p1 = Program::from_inst(inst.clone(), Second::new(1, tx1, rx0));
+    let s0 = Arc::new((Mutex::new(false), Condvar::new()));
+    let s1 = s0.clone();
+
+    let p0 = Program::from_inst(inst.clone(), Second::new(0, tx0, rx1, s0));
+    let p1 = Program::from_inst(inst.clone(), Second::new(1, tx1, rx0, s1));
 
     let h0 = thread::spawn(move || p0.exec());
 
