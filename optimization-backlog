@@ -1,6 +1,5 @@
 test seventeen::d15::tests::bench_p2   ... bench: 309,647,152 ns/iter (+/- 62,270,851)
 test seventeen::d17::tests::bench_p2   ... bench: 341,715,421 ns/iter (+/- 83,883,080)
-test seventeen::d18::tests::bench_p2   ... bench: 2,001,819,048 ns/iter (+/- 649,191)
 test seventeen::d20::tests::bench_p2   ... bench: 245,355,215 ns/iter (+/- 4,019,649)
 test seventeen::d21::tests::bench_both ... bench: 853,885,239 ns/iter (+/- 373,795,336)
 test seventeen::d22::tests::bench_p2   ... bench: 1,313,272,097 ns/iter (+/- 350,398,024)
