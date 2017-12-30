@@ -1,4 +1,4 @@
-use std::sync::mpsc::{channel, Receiver, Sender};
+use crossbeam_channel::*;
 use std::thread;
 use std::time::Duration;
 
@@ -108,6 +108,15 @@ enum Action {
     Terminate,
 }
 
+impl Action {
+    fn is_store(&self) -> bool {
+        match self {
+            Store(_) => true,
+            _ => false,
+        }
+    }
+}
+
 trait Channel {
     fn id(&mut self) -> Option<u8> {
         None
@@ -115,7 +124,7 @@ trait Channel {
 
     fn snd(&mut self, val: i64);
 
-    fn rcv(&mut self, val: i64) -> Action;
+    fn rcv(&mut self, cond: i64) -> Action;
 }
 
 #[derive(Clone)]
@@ -181,8 +190,7 @@ where
                 }
                 Rcv(Reg(reg)) => {
                     let val = self.mem[reg as usize];
-                    let state = self.channel.rcv(val);
-                    match state {
+                    match self.channel.rcv(val) {
                         Store(val) => self.mem[reg as usize] = val,
                         Nothing => (),
                         Terminate => break,
@@ -211,7 +219,7 @@ impl Channel for First {
     }
 
     fn snd(&mut self, val: i64) {
-        self.sent = val;
+        self.sent = val
     }
 
     fn rcv(&mut self, cond: i64) -> Action {
@@ -228,6 +236,10 @@ fn first(input: &str) -> Result<i64, Error> {
     let mut p = Program::from_inst(inst.clone(), First::new());
     p = p.exec();
     Ok(p.channel.sent)
+}
+
+enum Msg {
+
 }
 
 #[derive(Debug)]
@@ -258,11 +270,11 @@ impl Channel for Second {
 
     fn snd(&mut self, val: i64) {
         self.sent += 1;
-        self.sender.send(val).expect("no receiver");
+        let _ = self.sender.send(val);
     }
 
     fn rcv(&mut self, _: i64) -> Action {
-        match self.receiver.recv_timeout(Duration::new(2, 0)) {
+        match self.receiver.recv_timeout(Duration::new(0, 5_000_000)) {
             Ok(val) => {
                 self.recv += 1;
                 Store(val)
@@ -275,8 +287,8 @@ impl Channel for Second {
 fn second(input: &str) -> Result<u64, Error> {
     let inst = parse(input)?;
 
-    let (tx0, rx0) = channel();
-    let (tx1, rx1) = channel();
+    let (tx0, rx0) = unbounded();
+    let (tx1, rx1) = unbounded();
 
     let p0 = Program::from_inst(inst.clone(), Second::new(0, tx0, rx1));
     let p1 = Program::from_inst(inst.clone(), Second::new(1, tx1, rx0));

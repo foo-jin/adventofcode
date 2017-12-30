@@ -14,6 +14,7 @@ extern crate bit_vec;
 extern crate rayon;
 extern crate test;
 extern crate itertools;
+extern crate crossbeam_channel;
 
 pub mod sixteen;
 pub mod seventeen;
