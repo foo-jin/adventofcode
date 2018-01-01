@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use failure::*;
 
+use super::Result;
 use parsing::d7;
 
 type Name<'a> = &'a str;
@@ -13,7 +14,7 @@ struct Tree<'a> {
 }
 
 impl<'a> Tree<'a> {
-    fn parse(s: &str) -> Result<Tree, Error> {
+    fn parse(s: &str) -> Result<Tree> {
         let tree: HashMap<Name, Attr> = s.trim()
             .lines()
             .map(|l| {
@@ -22,7 +23,7 @@ impl<'a> Tree<'a> {
                     .map(|(n, w, c)| (n, (w, c)))
                     .map_err(Into::into)
             })
-            .collect::<Result<_, Error>>()?;
+            .collect::<Result<_>>()?;
 
         ensure!(
             tree.iter()
@@ -74,17 +75,17 @@ impl<'a> Tree<'a> {
     }
 }
 
-fn first(input: &str) -> Result<&str, Error> {
+fn first(input: &str) -> Result<&str> {
     let tree = Tree::parse(input)?;
     Ok(tree.root)
 }
 
-fn second(input: &str) -> Result<u32, Error> {
+fn second(input: &str) -> Result<u32> {
     let tree = Tree::parse(input)?;
     Ok(tree.solve())
 }
 
-pub fn run(input: &str) -> Result<u32, Error> {
+pub fn run(input: &str) -> Result<u32> {
     second(input)
 }
 

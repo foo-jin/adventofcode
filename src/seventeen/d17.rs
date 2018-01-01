@@ -1,4 +1,4 @@
-use failure::Error;
+use super::Result;
 
 fn first(steps: usize) -> u32 {
     let mut buf = Vec::with_capacity(2018);
@@ -33,7 +33,7 @@ fn second(steps: u32, limit: u32) -> u32 {
     result
 }
 
-pub fn run(input: &str) -> Result<u32, Error> {
+pub fn run(input: &str) -> Result<u32> {
     let steps: u32 = input.parse()?;
     Ok(second(steps, 50_000_000))
 }

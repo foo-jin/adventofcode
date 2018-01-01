@@ -1,6 +1,7 @@
 use failure::*;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
+use super::Result;
 use self::Pixel::{Off, On};
 
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
@@ -10,7 +11,7 @@ enum Pixel {
 }
 
 impl Pixel {
-    fn new(c: char) -> Result<Pixel, Error> {
+    fn new(c: char) -> Result<Pixel> {
         let result = match c {
             '#' => On,
             '.' => Off,
@@ -33,12 +34,12 @@ impl Pattern {
         Pattern { pixels, size }
     }
 
-    fn parse(s: &str) -> Result<Pattern, Error> {
+    fn parse(s: &str) -> Result<Pattern> {
         let size = s.lines().count();
         let mut pixels = Vec::new();
 
         for line in s.lines() {
-            let line: Vec<Pixel> = line.chars().map(Pixel::new).collect::<Result<_, Error>>()?;
+            let line: Vec<Pixel> = line.chars().map(Pixel::new).collect::<Result<_>>()?;
 
             let len = line.len();
             ensure!(
@@ -54,7 +55,7 @@ impl Pattern {
         Ok(Pattern::new(pixels))
     }
 
-    fn split(&self) -> Result<Vec<Pattern>, Error> {
+    fn split(&self) -> Result<Vec<Pattern>> {
         let mut result = Vec::new();
         let pix = &self.pixels;
 
@@ -89,7 +90,7 @@ impl Pattern {
         Ok(result)
     }
 
-    fn join(squares: &[Pattern]) -> Result<Pattern, Error> {
+    fn join(squares: &[Pattern]) -> Result<Pattern> {
         let n = {
             let sq = (squares.len() as f64).sqrt();
             sq as usize
@@ -112,7 +113,7 @@ impl Pattern {
         Ok(Pattern::new(result))
     }
 
-    fn rotate(&self) -> Result<Pattern, Error> {
+    fn rotate(&self) -> Result<Pattern> {
         let pix = &self.pixels;
         let n = self.size;
         let rot = match n {
@@ -147,7 +148,7 @@ impl Pattern {
         Pattern::new(pix)
     }
 
-    fn rotations(self) -> Result<Vec<Pattern>, Error> {
+    fn rotations(self) -> Result<Vec<Pattern>> {
         let r1 = self.rotate()?;
         let r2 = r1.rotate()?;
         let r3 = r2.rotate()?;
@@ -155,7 +156,7 @@ impl Pattern {
         Ok(vec![self, r1, r2, r3])
     }
 
-    fn permute(self) -> Result<Vec<Pattern>, Error> {
+    fn permute(self) -> Result<Vec<Pattern>> {
         let mut rotations = Vec::new();
 
         let hor = self.hflip();
@@ -193,7 +194,7 @@ impl Rule {
         Rule { variations, out }
     }
 
-    fn parse(s: &str) -> Result<Rule, Error> {
+    fn parse(s: &str) -> Result<Rule> {
         let mut it = s.split(" => ").map(|s| s.replace("/", "\n"));
 
         let variations = {
@@ -227,11 +228,11 @@ impl RuleSet {
         RuleSet { rules }
     }
 
-    fn parse(s: &str) -> Result<RuleSet, Error> {
+    fn parse(s: &str) -> Result<RuleSet> {
         let rules = s.trim()
             .lines()
             .map(|s| Rule::parse(s))
-            .collect::<Result<_, Error>>()?;
+            .collect::<Result<_>>()?;
         Ok(RuleSet::new(rules))
     }
 
@@ -260,12 +261,12 @@ impl Grid {
         Grid { pattern, rules }
     }
 
-    fn parse(s: &str) -> Result<Grid, Error> {
+    fn parse(s: &str) -> Result<Grid> {
         let rules = RuleSet::parse(s)?;
         Ok(Grid::new(rules))
     }
 
-    fn enhance(&mut self) -> Result<(), Error> {
+    fn enhance(&mut self) -> Result<()> {
         let next: Vec<Pattern> = self.pattern
             .split()?
             .into_par_iter()
@@ -280,7 +281,7 @@ impl Grid {
     }
 }
 
-fn exec(input: &str, n: usize) -> Result<usize, Error> {
+fn exec(input: &str, n: usize) -> Result<usize> {
     let mut grid = Grid::parse(input)?;
     for _ in 0..n {
         grid.enhance()?;
@@ -288,7 +289,7 @@ fn exec(input: &str, n: usize) -> Result<usize, Error> {
     Ok(grid.count_on())
 }
 
-pub fn run(input: &str) -> Result<usize, Error> {
+pub fn run(input: &str) -> Result<usize> {
     exec(input, 18)
 }
 

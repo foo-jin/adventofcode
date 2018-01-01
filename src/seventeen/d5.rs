@@ -1,13 +1,13 @@
-use failure::*;
+use super::Result;
 
-fn parse(s: &str) -> Result<Vec<i32>, Error> {
+fn parse(s: &str) -> Result<Vec<i32>> {
     s.trim()
         .lines()
         .map(|s| s.parse().map_err(Into::into))
-        .collect::<Result<_, Error>>()
+        .collect::<Result<_>>()
 }
 
-fn first(input: &str) -> Result<u32, Error> {
+fn first(input: &str) -> Result<u32> {
     let mut lines = parse(input)?;
     let n = lines.len() as i32;
     let mut i = 0;
@@ -23,7 +23,7 @@ fn first(input: &str) -> Result<u32, Error> {
     Ok(j)
 }
 
-pub fn second(input: &str) -> Result<u32, Error> {
+pub fn second(input: &str) -> Result<u32> {
     let mut lines = parse(input)?;
     let n = lines.len() as i32;
     let mut i = 0;

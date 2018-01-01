@@ -1,7 +1,8 @@
 use std::collections::{HashMap, HashSet};
-use failure::Error;
 
-pub fn run(input: &str) -> Result<(u32, u32), Error> {
+use super::Result;
+
+pub fn run(input: &str) -> Result<(u32, u32)> {
     let mut graph = HashMap::new();
     let mut len = 0;
 
@@ -14,7 +15,7 @@ pub fn run(input: &str) -> Result<(u32, u32), Error> {
             .trim()
             .split(", ")
             .map(|s| s.parse().map_err(Into::into))
-            .collect::<Result<_, Error>>()?;
+            .collect::<Result<_>>()?;
 
         graph.insert(key, right);
     }

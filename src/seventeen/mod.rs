@@ -27,10 +27,14 @@ pub mod d24;
 pub mod d25;
 
 use std::fmt::Debug;
+use std::result;
+
 use failure::Error;
 
+pub type Result<T> = result::Result<T, Error>;
+
 #[allow(dead_code)]
-fn check<T>(result: Result<T, Error>, expected: T)
+fn check<T>(result: Result<T>, expected: T)
 where
     T: PartialEq + Eq + Debug,
 {
@@ -40,10 +44,10 @@ where
         }
         Err(e) => {
             for cause in e.causes() {
-                println!("{}", cause);
+                println!("{:?}", cause);
             }
 
-            println!("{}", e.backtrace());
+            println!("{:?}", e.backtrace());
             panic!("test failed");
         }
     }

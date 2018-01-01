@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
-use failure::*;
+use super::Result;
 
-fn parse(s: &str) -> Result<Vec<u32>, Error> {
+fn parse(s: &str) -> Result<Vec<u32>> {
     s.trim()
         .split_whitespace()
         .map(|s| s.parse::<u32>().map_err(Into::into))
-        .collect::<Result<_, Error>>()
+        .collect::<Result<_>>()
 }
 
-pub fn run(input: &str) -> Result<(u32, u32), Error> {
+pub fn run(input: &str) -> Result<(u32, u32)> {
     let mut input = parse(input)?;
     let mut seen = HashMap::new();
     let mut result = (0, 0);

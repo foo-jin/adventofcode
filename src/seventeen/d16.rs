@@ -1,4 +1,4 @@
-use failure::Error;
+use super::Result;
 
 use self::Dancemove::{P, S, X};
 
@@ -13,7 +13,7 @@ enum Dancemove {
 }
 
 impl Dancemove {
-    fn parse(input: &str) -> Result<Dancemove, Error> {
+    fn parse(input: &str) -> Result<Dancemove> {
         let mut c = input.chars();
         let first = c.next().unwrap();
         let s: String = c.collect();
@@ -51,11 +51,11 @@ fn shift(offset: i32, order: &[char]) -> String {
     result
 }
 
-fn parse_routine(s: &str) -> Result<Vec<Dancemove>, Error> {
+fn parse_routine(s: &str) -> Result<Vec<Dancemove>> {
     s.trim()
         .split(',')
         .map(|s| Dancemove::parse(s))
-        .collect::<Result<_, Error>>()
+        .collect::<Result<_>>()
 }
 
 fn dance(routine: &[Dancemove], reps: usize, n: usize) -> String {
@@ -98,17 +98,17 @@ fn dance(routine: &[Dancemove], reps: usize, n: usize) -> String {
     result
 }
 
-fn first(input: &str) -> Result<String, Error> {
+fn first(input: &str) -> Result<String> {
     let routine = parse_routine(input)?;
     Ok(dance(&routine, 1, 16))
 }
 
-fn second(input: &str) -> Result<String, Error> {
+fn second(input: &str) -> Result<String> {
     let routine = parse_routine(input)?;
     Ok(dance(&routine, 1_000_000_000, 16))
 }
 
-pub fn run(input: &str) -> Result<String, Error> {
+pub fn run(input: &str) -> Result<String> {
     second(input)
 }
 

@@ -1,10 +1,10 @@
-use failure::Error;
+use super::Result;
 
 const A: u64 = 16_807;
 const B: u64 = 48_271;
 const DIV: u64 = 2_147_483_647;
 
-fn parse(s: &str) -> Result<(u64, u64), Error> {
+fn parse(s: &str) -> Result<(u64, u64)> {
     let nums: Vec<u64> = s.trim()
         .lines()
         .map(|s| {
@@ -15,12 +15,12 @@ fn parse(s: &str) -> Result<(u64, u64), Error> {
                 .parse::<u64>()
                 .map_err(Into::into)
         })
-        .collect::<Result<_, Error>>()?;
+        .collect::<Result<_>>()?;
 
     Ok((nums[0], nums[1]))
 }
 
-fn first(input: &str) -> Result<u32, Error> {
+fn first(input: &str) -> Result<u32> {
     let (mut a, mut b) = parse(input)?;
     let mut matches = 0;
 
@@ -36,7 +36,7 @@ fn first(input: &str) -> Result<u32, Error> {
     Ok(matches)
 }
 
-pub fn second(input: &str) -> Result<u32, Error> {
+pub fn second(input: &str) -> Result<u32> {
     let (mut a, mut b) = parse(input)?;
     let mut matches = 0;
 

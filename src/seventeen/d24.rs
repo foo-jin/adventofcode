@@ -1,8 +1,10 @@
 use failure::*;
 
+use super::Result;
+
 type Connector = (u32, u32);
 
-fn parse_connectors(s: &str) -> Result<Vec<Connector>, Error> {
+fn parse_connectors(s: &str) -> Result<Vec<Connector>> {
     s.trim()
         .lines()
         .map(|s| {
@@ -87,19 +89,19 @@ where
     backtrack(&measure, xs, &mut vec![], Bridge::new())
 }
 
-fn first(input: &str) -> Result<u32, Error> {
+fn first(input: &str) -> Result<u32> {
     let connectors = parse_connectors(input)?;
     let bridge = setup(Bridge::stronger, &connectors);
     Ok(bridge.str)
 }
 
-fn second(input: &str) -> Result<u32, Error> {
+fn second(input: &str) -> Result<u32> {
     let connectors = parse_connectors(input)?;
     let bridge = setup(Bridge::max, &connectors);
     Ok(bridge.str)
 }
 
-pub fn run(input: &str) -> Result<u32, Error> {
+pub fn run(input: &str) -> Result<u32> {
     second(input)
 }
 

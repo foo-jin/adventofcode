@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-use failure::*;
-
+use super::Result;
 use self::Direction::{Left, Right};
 
 const FILTER: [char; 4] = ['.', '-', ':', ' '];
@@ -14,7 +13,7 @@ enum Direction {
 }
 
 impl Direction {
-    fn parse(s: &str) -> Result<Direction, Error> {
+    fn parse(s: &str) -> Result<Direction> {
         let s = s.to_lowercase();
 
         let result = match s.split_whitespace().last().unwrap() {
@@ -31,7 +30,7 @@ impl Direction {
 struct State(char);
 
 impl State {
-    fn parse(s: &str) -> Result<State, Error> {
+    fn parse(s: &str) -> Result<State> {
         let state = s.split_whitespace().last().unwrap().chars().next().unwrap();
 
         match state {
@@ -43,7 +42,7 @@ impl State {
 
 type Value = u8;
 
-fn parse_value(s: &str) -> Result<Value, Error> {
+fn parse_value(s: &str) -> Result<Value> {
     s.split_whitespace()
         .last()
         .unwrap()
@@ -55,7 +54,7 @@ fn parse_value(s: &str) -> Result<Value, Error> {
 struct Actions(Value, Direction, State);
 
 impl Actions {
-    fn parse<'a, T>(lines: T) -> Result<Actions, Error>
+    fn parse<'a, T>(lines: T) -> Result<Actions>
     where
         T: Iterator<Item = &'a str>,
     {
@@ -90,7 +89,7 @@ impl Program {
         }
     }
 
-    fn parse(s: &str) -> Result<Program, Error> {
+    fn parse(s: &str) -> Result<Program> {
         let mut it = s.trim().split("\n\n");
         let mut metadata = it.next()
             .unwrap()
@@ -160,12 +159,12 @@ impl Program {
     }
 }
 
-fn first(input: &str) -> Result<usize, Error> {
+fn first(input: &str) -> Result<usize> {
     let mut prog = Program::parse(input)?;
     Ok(prog.eval())
 }
 
-pub fn run(input: &str) -> Result<usize, Error> {
+pub fn run(input: &str) -> Result<usize> {
     first(input)
 }
 

@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
-use failure::*;
-
-use self::Direction::*;
-use self::State::*;
+use super::Result;
+use self::Direction::{Right, Down, Left, Up};
+use self::State::{Flagged, Clean, Infected, Weakened};
 
 type Coord = (isize, isize);
 
@@ -48,7 +47,7 @@ enum State {
 }
 
 impl State {
-    fn parse(c: char) -> Result<State, Error> {
+    fn parse(c: char) -> Result<State> {
         let result = match c {
             '.' => Clean,
             '#' => Infected,
@@ -58,7 +57,7 @@ impl State {
         Ok(result)
     }
 
-    fn parse_grid(s: &str) -> Result<HashMap<Coord, State>, Error> {
+    fn parse_grid(s: &str) -> Result<HashMap<Coord, State>> {
         let mut grid = HashMap::new();
         for (y, line) in s.lines().enumerate() {
             let offset = (line.len() / 2) as isize;
@@ -163,7 +162,7 @@ where
     }
 }
 
-fn exec<F>(input: &str, n: usize, next: F) -> Result<usize, Error>
+fn exec<F>(input: &str, n: usize, next: F) -> Result<usize>
 where
     F: Fn(State) -> State,
 {
@@ -175,17 +174,17 @@ where
 }
 
 #[allow(dead_code)]
-fn first(input: &str, n: usize) -> Result<usize, Error> {
+fn first(input: &str, n: usize) -> Result<usize> {
     let next = State::flip;
     exec(input, n, next)
 }
 
-fn second(input: &str, n: usize) -> Result<usize, Error> {
+fn second(input: &str, n: usize) -> Result<usize> {
     let next = State::escalate;
     exec(input, n, next)
 }
 
-pub fn run(input: &str) -> Result<usize, Error> {
+pub fn run(input: &str) -> Result<usize> {
     second(input, 10_000_000)
 }
 

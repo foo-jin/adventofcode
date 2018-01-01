@@ -2,8 +2,8 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 
 use crossbeam_channel::{unbounded, Receiver, Sender, TryRecvError};
-use failure::*;
 
+use super::Result;
 use self::Action::{Nothing, Store, Terminate};
 use self::Inst::{Add, Jgz, Mod, Mul, Rcv, Set, Snd};
 
@@ -55,7 +55,7 @@ enum Inst {
     Rcv(Reg),
 }
 
-fn parse(input: &str) -> Result<Vec<Inst>, Error> {
+fn parse(input: &str) -> Result<Vec<Inst>> {
     let mut out = Vec::new();
 
     for line in input.trim().lines() {
@@ -231,7 +231,7 @@ impl Channel for First {
     }
 }
 
-fn first(input: &str) -> Result<i64, Error> {
+fn first(input: &str) -> Result<i64> {
     let inst = parse(input)?;
     let mut p = Program::from_inst(inst.clone(), First::new());
     p = p.exec();
@@ -310,7 +310,7 @@ impl Channel for Second {
     }
 }
 
-fn second(input: &str) -> Result<u64, Error> {
+fn second(input: &str) -> Result<u64> {
     let inst = parse(input)?;
 
     let (tx0, rx0) = unbounded();
@@ -332,7 +332,7 @@ fn second(input: &str) -> Result<u64, Error> {
     Ok(p1.channel.sent)
 }
 
-pub fn run(input: &str) -> Result<u64, Error> {
+pub fn run(input: &str) -> Result<u64> {
     second(input)
 }
 

@@ -1,20 +1,20 @@
 use std::iter;
 
-use failure::*;
+use super::Result;
 
-fn parse(input: &str) -> Result<Vec<Vec<u32>>, Error> {
+fn parse(input: &str) -> Result<Vec<Vec<u32>>> {
     input
         .trim()
         .lines()
         .map(|l: &str| {
             l.split_whitespace()
                 .map(|s| s.parse().map_err(Into::into))
-                .collect::<Result<_, Error>>()
+                .collect::<Result<_>>()
         })
-        .collect::<Result<_, Error>>()
+        .collect::<Result<_>>()
 }
 
-pub fn checksum(input: &str) -> Result<u32, Error> {
+pub fn checksum(input: &str) -> Result<u32> {
     let lines = parse(input)?;
     let mut result = 0;
 
@@ -37,7 +37,7 @@ fn divides((x, y): (&u32, &u32)) -> Option<u32> {
     }
 }
 
-pub fn divsum(input: &str) -> Result<u32, Error> {
+pub fn divsum(input: &str) -> Result<u32> {
     let lines = parse(input)?;
     let mut result = 0u32;
 

@@ -1,6 +1,7 @@
 use failure::*;
 
-use self::Inst::*;
+use super::Result;
+use self::Inst::{Set, Jnz, Sub, Mul};
 
 type Memory = Vec<i64>;
 
@@ -48,7 +49,7 @@ enum Inst {
 }
 
 impl Inst {
-    fn parse(line: &str) -> Result<Inst, Error> {
+    fn parse(line: &str) -> Result<Inst> {
         let mut it = line.split_whitespace();
         let inst = it.next().ok_or(err_msg("no instruction"))?;
         let result = match inst {
@@ -73,12 +74,12 @@ impl Inst {
     }
 }
 
-fn parse_inst(input: &str) -> Result<Vec<Inst>, Error> {
+fn parse_inst(input: &str) -> Result<Vec<Inst>> {
     input
         .trim()
         .lines()
         .map(Inst::parse)
-        .collect::<Result<Vec<Inst>, Error>>()
+        .collect::<Result<Vec<Inst>>>()
 }
 
 #[derive(Debug, Clone)]
@@ -169,7 +170,7 @@ impl Program {
     }
 }
 
-fn first(input: &str) -> Result<u32, Error> {
+fn first(input: &str) -> Result<u32> {
     let inst = parse_inst(input)?;
     let mut program = Program::from_inst(inst);
     program.exec();
@@ -177,7 +178,7 @@ fn first(input: &str) -> Result<u32, Error> {
     Ok(program.count.mul)
 }
 
-fn second(input: &str) -> Result<u64, Error> {
+fn second(input: &str) -> Result<u64> {
     let mut b = input.split_whitespace().nth(2).unwrap().parse()?;
     b = b * 100 + 100_000;
     let mut h = 0;
@@ -195,7 +196,7 @@ fn second(input: &str) -> Result<u64, Error> {
     Ok(h)
 }
 
-pub fn run(input: &str) -> Result<u64, Error> {
+pub fn run(input: &str) -> Result<u64> {
     second(input)
 }
 

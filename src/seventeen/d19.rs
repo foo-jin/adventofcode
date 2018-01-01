@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
-use failure::*;
-
+use super::Result;
 use self::Edge::{Corner, Letter, Line};
 use self::Direction::{East, North, South, West};
 
@@ -83,7 +82,7 @@ impl Path {
         }
     }
 
-    fn parse(input: &str) -> Result<Path, Error> {
+    fn parse(input: &str) -> Result<Path> {
         let mut network = HashMap::new();
         let mut init = (0, 0);
         for (y, line) in input.lines().enumerate() {
@@ -146,17 +145,17 @@ impl Iterator for Path {
     }
 }
 
-fn first(input: &str) -> Result<String, Error> {
+fn first(input: &str) -> Result<String> {
     let result = Path::parse(input)?.filter_map(|e| e.get_letter()).collect();
 
     Ok(result)
 }
 
-fn second(input: &str) -> Result<usize, Error> {
+fn second(input: &str) -> Result<usize> {
     Ok(Path::parse(input)?.count())
 }
 
-pub fn run(input: &str) -> Result<usize, Error> {
+pub fn run(input: &str) -> Result<usize> {
     second(input)
 }
 

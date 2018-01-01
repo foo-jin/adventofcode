@@ -1,10 +1,11 @@
-use failure::Error;
 use std::collections::{HashSet, VecDeque};
+
 use bit_vec::BitVec;
 
 use super::d10::knothash;
+use super::Result;
 
-pub fn first(input: &str) -> Result<u32, Error> {
+pub fn first(input: &str) -> Result<u32> {
     let mut squares = 0;
 
     for line in 0..128 {
@@ -22,7 +23,7 @@ pub fn first(input: &str) -> Result<u32, Error> {
     Ok(squares)
 }
 
-pub fn second(input: &str) -> Result<u32, Error> {
+pub fn second(input: &str) -> Result<u32> {
     let mut grid = HashSet::new();
 
     for y in 0..128 {

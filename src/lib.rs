@@ -3,18 +3,18 @@
 #![feature(match_default_bindings)]
 #![feature(test)]
 #![feature(iterator_step_by)]
-#![feature (range_contains)]
+#![feature(range_contains)]
 #![feature(type_ascription)]
 
-#[macro_use]
-extern crate nom;
+extern crate bit_vec;
+extern crate crossbeam_channel;
 #[macro_use]
 extern crate failure;
-extern crate bit_vec;
+extern crate itertools;
+#[macro_use]
+extern crate nom;
 extern crate rayon;
 extern crate test;
-extern crate itertools;
-extern crate crossbeam_channel;
 
 pub mod sixteen;
 pub mod seventeen;

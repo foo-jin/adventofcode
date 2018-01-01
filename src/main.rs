@@ -4,8 +4,6 @@ extern crate failure;
 use std::fs::File;
 use std::io::prelude::*;
 
-use failure::Error;
-
 use adventofcode::seventeen::*;
 
 fn main() {
@@ -18,7 +16,7 @@ fn main() {
     }
 }
 
-fn run() -> Result<(), Error> {
+fn run() -> Result<()> {
     let filename = "./data/input";
     let mut f = File::open(filename)?;
 

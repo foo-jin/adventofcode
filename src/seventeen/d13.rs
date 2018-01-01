@@ -1,4 +1,4 @@
-use failure::Error;
+use super::Result;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 struct Layer {
@@ -7,7 +7,7 @@ struct Layer {
 }
 
 impl Layer {
-    fn parse(s: &str) -> Result<Layer, Error> {
+    fn parse(s: &str) -> Result<Layer> {
         let mut it = s.split(": ");
         let depth = it.next().unwrap().parse()?;
         let range = it.next().unwrap().parse()?;
@@ -16,14 +16,14 @@ impl Layer {
     }
 }
 
-fn parse_layers(s: &str) -> Result<Vec<Layer>, Error> {
+fn parse_layers(s: &str) -> Result<Vec<Layer>> {
     s.trim()
         .lines()
         .map(Layer::parse)
-        .collect::<Result<_, Error>>()
+        .collect::<Result<_>>()
 }
 
-fn first(input: &str) -> Result<u32, Error> {
+fn first(input: &str) -> Result<u32> {
     let layers = parse_layers(input)?;
     let severity = layers
         .iter()
@@ -39,7 +39,7 @@ fn first(input: &str) -> Result<u32, Error> {
     Ok(severity)
 }
 
-pub fn second(input: &str) -> Result<u32, Error> {
+pub fn second(input: &str) -> Result<u32> {
     let layers = parse_layers(input)?;
     let wait = (0..)
         .find(|delay| {

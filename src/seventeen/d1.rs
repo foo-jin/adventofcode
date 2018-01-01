@@ -1,14 +1,16 @@
 use failure::*;
 
-fn parse(input: &str) -> Result<Vec<u32>, Error> {
+use super::Result;
+
+fn parse(input: &str) -> Result<Vec<u32>> {
     input
         .trim()
         .chars()
         .map(|c| c.to_digit(10).ok_or(err_msg("unexpected token")))
-        .collect::<Result<Vec<_>, Error>>()
+        .collect::<Result<Vec<_>>>()
 }
 
-pub fn reverse_captcha(input: &str) -> Result<u32, Error> {
+pub fn reverse_captcha(input: &str) -> Result<u32> {
     let input = parse(input)?;
     let n = input.len();
     let mut result = 0;
@@ -22,7 +24,7 @@ pub fn reverse_captcha(input: &str) -> Result<u32, Error> {
     Ok(result)
 }
 
-pub fn reverse_captcha_half(input: &str) -> Result<u32, Error> {
+pub fn reverse_captcha_half(input: &str) -> Result<u32> {
     let input = parse(input)?;
     let n = input.len();
     let mut result = 0;

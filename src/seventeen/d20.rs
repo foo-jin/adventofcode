@@ -1,7 +1,7 @@
 use std::ops::AddAssign;
 use std::cmp::Ordering;
 
-use failure::Error;
+use super::Result;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 struct Vector {
@@ -11,7 +11,7 @@ struct Vector {
 }
 
 impl Vector {
-    fn parse(input: &str) -> Result<Vector, Error> {
+    fn parse(input: &str) -> Result<Vector> {
         let brackets: &[char] = &['<', '>', ' ', '\n', '\t'];
         let mut it = input.trim_matches(brackets).split(',');
 
@@ -57,14 +57,14 @@ struct Particle {
 }
 
 impl Particle {
-    fn parse(input: &str) -> Result<Particle, Error> {
+    fn parse(input: &str) -> Result<Particle> {
         let vs: Vec<Vector> = input
             .split(", ")
             .map(|s| {
                 let s: String = s.chars().skip(2).collect();
                 Vector::parse(&s)
             })
-            .collect::<Result<_, Error>>()?;
+            .collect::<Result<_>>()?;
 
         let pos = vs[0];
         let vel = vs[1];
@@ -79,11 +79,11 @@ impl Particle {
     }
 }
 
-fn parse(input: &str) -> Result<Vec<Particle>, Error> {
+fn parse(input: &str) -> Result<Vec<Particle>> {
     input.lines().map(|s| Particle::parse(s)).collect()
 }
 
-fn first(input: &str) -> Result<usize, Error> {
+fn first(input: &str) -> Result<usize> {
     let particles = parse(input)?;
     let result = particles
         .iter()
@@ -95,7 +95,7 @@ fn first(input: &str) -> Result<usize, Error> {
     Ok(result)
 }
 
-fn second(input: &str) -> Result<usize, Error> {
+fn second(input: &str) -> Result<usize> {
     let mut particles = parse(input)?;
 
     for _ in 0..1000 {
@@ -110,7 +110,7 @@ fn second(input: &str) -> Result<usize, Error> {
     Ok(particles.len())
 }
 
-pub fn run(input: &str) -> Result<usize, Error> {
+pub fn run(input: &str) -> Result<usize> {
     second(input)
 }
 

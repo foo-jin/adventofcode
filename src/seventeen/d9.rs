@@ -1,6 +1,6 @@
-use failure::*;
+use super::Result;
 
-pub fn run(input: &str) -> Result<(u32, u32), Error> {
+pub fn run(input: &str) -> Result<(u32, u32)> {
     let mut nesting = 0;
     let mut score = 0;
     let mut count = 0;
