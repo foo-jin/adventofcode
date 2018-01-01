@@ -32,14 +32,14 @@ pub fn run(input: &str) -> (i32, i32) {
             "<=" => regvalc <= valc,
             "==" => regvalc == valc,
             "!=" => regvalc != valc,
-            _ => panic!("faulty bool operator"),
+            op => panic!("unexpected bool operator: {}", op),
         };
 
         if resultc {
             let result = match op {
                 "inc" => regval + val,
                 "dec" => regval - val,
-                _ => panic!("faulty operator!"),
+                op => panic!("unexpected operator: {}", op),
             };
 
             env.insert(reg, result);

@@ -1,7 +1,7 @@
 use failure::*;
 
 use super::Result;
-use self::Inst::{Set, Jnz, Sub, Mul};
+use self::Inst::{Jnz, Mul, Set, Sub};
 
 type Memory = Vec<i64>;
 
@@ -22,11 +22,13 @@ enum RegVal {
 
 impl RegVal {
     fn parse(input: &str) -> RegVal {
-        if let Ok(v) = input.parse::<i64>() {
-            RegVal::Val(v)
+        use self::RegVal::*;
+
+        if let Ok(v) = input.parse() {
+            Val(v)
         } else {
             let c = input.chars().next().expect("empty string");
-            RegVal::Reg(c as u8)
+            Reg(c as u8)
         }
     }
 

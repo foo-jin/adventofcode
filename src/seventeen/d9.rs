@@ -26,7 +26,7 @@ pub fn run(input: &str) -> Result<(u32, u32)> {
             }
             '}' => nesting -= 1,
             ',' => (),
-            c => bail!("unexpected input: {}", c),
+            other => bail!("unexpected input: {}", other),
         }
     }
 

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use super::Result;
-use self::Direction::{Right, Down, Left, Up};
-use self::State::{Flagged, Clean, Infected, Weakened};
+use self::Direction::{Down, Left, Right, Up};
+use self::State::{Clean, Flagged, Infected, Weakened};
 
 type Coord = (isize, isize);
 
@@ -51,7 +51,7 @@ impl State {
         let result = match c {
             '.' => Clean,
             '#' => Infected,
-            c => bail!("Unexpected state character: {}", c),
+            other => bail!("Unexpected state character: {}", other),
         };
 
         Ok(result)
@@ -77,23 +77,6 @@ impl State {
         match self {
             Infected => true,
             _ => false,
-        }
-    }
-
-    fn flip(self) -> State {
-        match self {
-            Clean => Infected,
-            Infected => Clean,
-            _ => panic!("unexpected state"),
-        }
-    }
-
-    fn escalate(self) -> State {
-        match self {
-            Clean => Weakened,
-            Weakened => Infected,
-            Infected => Flagged,
-            Flagged => Clean,
         }
     }
 }
@@ -173,14 +156,22 @@ where
     Ok(carrier.count)
 }
 
-#[allow(dead_code)]
 fn first(input: &str, n: usize) -> Result<usize> {
-    let next = State::flip;
+    let next = |state| match state {
+        Clean => Infected,
+        Infected => Clean,
+        _ => panic!("unexpected state"),
+    };
     exec(input, n, next)
 }
 
 fn second(input: &str, n: usize) -> Result<usize> {
-    let next = State::escalate;
+    let next = |state| match state {
+        Clean => Weakened,
+        Weakened => Infected,
+        Infected => Flagged,
+        Flagged => Clean,
+    };
     exec(input, n, next)
 }
 

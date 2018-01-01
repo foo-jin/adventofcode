@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use self::Direction::*;
+
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 struct Point {
     x: i32,
@@ -40,14 +42,13 @@ enum Direction {
 }
 
 impl Direction {
-    fn turn(&self) -> Direction {
-        use seventeen::d3::Direction::*;
-        match *self {
+    fn turn(&mut self) {
+        *self = match *self {
             North => West,
             South => East,
             East => North,
             West => South,
-        }
+        };
     }
 }
 
@@ -66,18 +67,17 @@ impl Position {
     }
 
     fn turn(&mut self) {
-        self.direction = self.direction.turn();
+        self.direction.turn();
     }
 
-    fn travel(&mut self, k: i32) {
-        use seventeen::d3::Direction::*;
+    fn forward(&mut self) {
         let Point { x, y } = self.location;
 
         let (x, y) = match self.direction {
-            North => (x, y + k),
-            South => (x, y - k),
-            East => (x + k, y),
-            West => (x - k, y),
+            North => (x, y + 1),
+            South => (x, y - 1),
+            East => (x + 1, y),
+            West => (x - 1, y),
         };
 
         self.location = Point { x, y };
@@ -118,7 +118,7 @@ impl<'a> Iterator for Spiral {
                 self.dist = (self.turns + 1) / 2;
             }
 
-            self.pos.travel(1);
+            self.pos.forward();
             self.dist -= 1;
             self.count += 1;
 

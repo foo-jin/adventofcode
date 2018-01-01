@@ -31,11 +31,9 @@ struct State(char);
 
 impl State {
     fn parse(s: &str) -> Result<State> {
-        let state = s.split_whitespace().last().unwrap().chars().next().unwrap();
-
-        match state {
-            'A'...'Z' => Ok(State(state)),
-            c => bail!("unexpected state: {}", c),
+        match s.split_whitespace().last().unwrap().chars().next().unwrap() {
+            state @ 'A'...'Z' => Ok(State(state)),
+            other => bail!("unexpected state: {}", other),
         }
     }
 }

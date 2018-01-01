@@ -26,11 +26,13 @@ enum RegVal {
 
 impl RegVal {
     fn parse(input: &str) -> RegVal {
+        use self::RegVal::*;
+
         if let Ok(v) = input.parse::<i64>() {
-            RegVal::Val(v)
+            Val(v)
         } else {
             let c = input.chars().next().expect("empty string");
-            RegVal::Reg(c as u8)
+            Reg(c as u8)
         }
     }
 
@@ -75,11 +77,11 @@ fn parse(input: &str) -> Result<Vec<Inst>> {
                 let reg = Reg::parse(it.next().expect("no argument"));
                 out.push(Inst::Rcv(reg));
             }
-            inst => {
+            bin => {
                 let reg = Reg::parse(it.next().expect("no register"));
                 let arg = RegVal::parse(it.next().expect("no argument"));
 
-                match inst {
+                match bin {
                     "set" => {
                         out.push(Inst::Set(reg, arg));
                     }
@@ -92,7 +94,7 @@ fn parse(input: &str) -> Result<Vec<Inst>> {
                     "mod" => {
                         out.push(Inst::Mod(reg, arg));
                     }
-                    _ => bail!("unkown instruction: {}", inst),
+                    _ => bail!("unkown instruction: {}", bin),
                 }
             }
         }

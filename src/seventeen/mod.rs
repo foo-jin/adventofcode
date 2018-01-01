@@ -34,7 +34,7 @@ use failure::Error;
 pub type Result<T> = result::Result<T, Error>;
 
 #[allow(dead_code)]
-fn check<T>(result: Result<T>, expected: T)
+pub fn check<T>(result: Result<T>, expected: T)
 where
     T: PartialEq + Eq + Debug,
 {

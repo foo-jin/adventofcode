@@ -15,7 +15,7 @@ impl Pixel {
         let result = match c {
             '#' => On,
             '.' => Off,
-            _ => bail!("unexpected character: {}", c),
+            other => bail!("unexpected character: {}", other),
         };
 
         Ok(result)
@@ -123,7 +123,7 @@ impl Pattern {
                 vec![pix[2][1], pix[1][1], pix[0][1]],
                 vec![pix[2][2], pix[1][2], pix[0][2]],
             ],
-            _ => bail!("rotate: unkown pattern size"),
+            n => bail!("unexpected pattern size: {}", n),
         };
 
         Ok(Pattern::new(rot))

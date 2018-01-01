@@ -12,8 +12,6 @@ enum Direction {
 
 impl Direction {
     fn parse(input: &str) -> Direction {
-        use super::d11::Direction::*;
-
         match input {
             "n" => N,
             "ne" => NE,

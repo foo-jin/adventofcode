@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use super::Result;
 use self::Edge::{Corner, Letter, Line};
 use self::Direction::{East, North, South, West};
+use self::Rotation::{Right, Left};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Edge {
@@ -26,6 +27,11 @@ impl Edge {
             _ => false,
         }
     }
+}
+
+enum Rotation {
+    Left,
+    Right,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
@@ -55,17 +61,30 @@ impl Direction {
         }
     }
 
-    fn neigh((x, y): Node, dir: Direction) -> Node {
-        match dir {
-            North => (x, y - 1),
-            South => (x, y + 1),
-            West => (x - 1, y),
-            East => (x + 1, y),
+    fn turn(&self, r: Rotation) -> Direction {
+        match r {
+            Right => self.right(),
+            Left => self.left(),
         }
     }
 }
 
-type Node = (i32, i32);
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+struct Node(i32, i32);
+
+impl Node {
+    fn neigh(&self, dir: Direction) -> Node {
+        let Node(x, y) = *self;
+        let (x, y) = match dir {
+            North => (x, y - 1),
+            South => (x, y + 1),
+            West => (x - 1, y),
+            East => (x + 1, y),
+        };
+
+        Node(x, y)
+    }
+}
 
 struct Path {
     network: HashMap<Node, Edge>,
@@ -84,7 +103,7 @@ impl Path {
 
     fn parse(input: &str) -> Result<Path> {
         let mut network = HashMap::new();
-        let mut init = (0, 0);
+        let mut init = Node(0, 0);
         for (y, line) in input.lines().enumerate() {
             for (x, c) in line.chars()
                 .enumerate()
@@ -93,22 +112,30 @@ impl Path {
                 let edge = match c {
                     '|' | '-' => Line,
                     '+' => Corner,
-                    'A'...'Z' => Letter(c),
-                    _ => bail!("unexpected character: {}", c),
+                    alpha @ 'A'...'Z' => Letter(alpha),
+                    other => bail!("unexpected character: {}", other),
                 };
 
                 let x = x as i32;
                 let y = y as i32;
 
                 if y == 0 {
-                    init = (x, y);
+                    init = Node(x, y);
                 }
 
-                network.insert((x, y), edge);
+                network.insert(Node(x, y), edge);
             }
         }
 
         Ok(Path::new(network, init))
+    }
+
+    fn neigh(&self, r: Rotation) -> Node {
+        self.current.neigh(self.direction.turn(r))
+    }
+
+    fn next_node(&mut self) {
+        self.current = self.current.neigh(self.direction);
     }
 }
 
@@ -122,25 +149,16 @@ impl Iterator for Path {
         };
 
         if result.is_corner() {
-            let l = self.direction.left();
-            let k = &Direction::neigh(self.current, l);
+            let k = self.neigh(Left);
 
-            if self.network.contains_key(k) {
-                self.direction = l;
+            self.direction = if self.network.contains_key(&k) {
+                self.direction.turn(Left)
             } else {
-                self.direction = self.direction.right();
-            }
+                self.direction.turn(Right)
+            };
         }
 
-        let (x, y) = self.current;
-        let neigh = match self.direction {
-            North => (x, y - 1),
-            South => (x, y + 1),
-            West => (x - 1, y),
-            East => (x + 1, y),
-        };
-
-        self.current = neigh;
+        self.next_node();
         Some(result)
     }
 }

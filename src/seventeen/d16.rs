@@ -34,7 +34,7 @@ impl Dancemove {
                 let c2 = rest.next().unwrap().parse()?;
                 P(c1, c2)
             }
-            _ => panic!("wrong input"),
+            _ => bail!("wrong input"),
         };
 
         Ok(result)
