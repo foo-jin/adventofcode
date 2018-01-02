@@ -54,7 +54,7 @@ fn shift(offset: i32, order: &[char]) -> String {
 fn parse_routine(s: &str) -> Result<Vec<Dancemove>> {
     s.trim()
         .split(',')
-        .map(|s| Dancemove::parse(s))
+        .map(Dancemove::parse)
         .collect::<Result<_>>()
 }
 

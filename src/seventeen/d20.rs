@@ -80,7 +80,7 @@ impl Particle {
 }
 
 fn parse(input: &str) -> Result<Vec<Particle>> {
-    input.lines().map(|s| Particle::parse(s)).collect()
+    input.lines().map(Particle::parse).collect()
 }
 
 fn first(input: &str) -> Result<usize> {

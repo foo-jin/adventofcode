@@ -60,26 +60,25 @@ enum Inst {
 fn parse(input: &str) -> Result<Vec<Inst>> {
     let mut out = Vec::new();
 
-    for line in input.trim().lines() {
-        let mut it = line.split_whitespace();
-        let inst = it.next().expect("no instruction");
+    for mut words in input.trim().lines().map(str::split_whitespace) {
+        let inst = words.next().expect("no instruction");
         match inst {
             "jgz" => {
-                let cond = RegVal::parse(it.next().expect("no register"));
-                let arg = RegVal::parse(it.next().expect("no argument"));
+                let cond = RegVal::parse(words.next().expect("no register"));
+                let arg = RegVal::parse(words.next().expect("no argument"));
                 out.push(Inst::Jgz(cond, arg));
             }
             "snd" => {
-                let arg = RegVal::parse(it.next().expect("no argument"));
+                let arg = RegVal::parse(words.next().expect("no argument"));
                 out.push(Inst::Snd(arg));
             }
             "rcv" => {
-                let reg = Reg::parse(it.next().expect("no argument"));
+                let reg = Reg::parse(words.next().expect("no argument"));
                 out.push(Inst::Rcv(reg));
             }
             bin => {
-                let reg = Reg::parse(it.next().expect("no register"));
-                let arg = RegVal::parse(it.next().expect("no argument"));
+                let reg = Reg::parse(words.next().expect("no register"));
+                let arg = RegVal::parse(words.next().expect("no argument"));
 
                 match bin {
                     "set" => {

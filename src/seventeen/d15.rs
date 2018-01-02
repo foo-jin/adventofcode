@@ -12,7 +12,7 @@ fn parse(s: &str) -> Result<(u64, u64)> {
                 .split_whitespace()
                 .last()
                 .unwrap()
-                .parse::<u64>()
+                .parse()
                 .map_err(Into::into)
         })
         .collect::<Result<_>>()?;

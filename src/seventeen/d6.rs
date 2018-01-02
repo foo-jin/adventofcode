@@ -5,7 +5,7 @@ use super::Result;
 fn parse(s: &str) -> Result<Vec<u32>> {
     s.trim()
         .split_whitespace()
-        .map(|s| s.parse::<u32>().map_err(Into::into))
+        .map(|s| s.parse().map_err(Into::into))
         .collect::<Result<_>>()
 }
 

@@ -4,7 +4,7 @@ use std::collections::VecDeque;
 use super::Result;
 use self::Direction::{Left, Right};
 
-const FILTER: [char; 4] = ['.', '-', ':', ' '];
+const FILTER: [char; 6] = ['.', '-', ':', ' ', '\t', '\n'];
 
 #[derive(Eq, PartialEq, Clone, Copy)]
 enum Direction {
@@ -56,7 +56,7 @@ impl Actions {
     where
         T: Iterator<Item = &'a str>,
     {
-        let mut lines = lines.map(|s| s.trim().trim_matches(&FILTER[..]).trim());
+        let mut lines = lines.map(|s| s.trim_matches(&FILTER[..]));
         let write = parse_value(lines.next().unwrap())?;
         let next = Direction::parse(lines.next().unwrap())?;
         let state = State::parse(lines.next().unwrap())?;
@@ -105,7 +105,7 @@ impl Program {
 
         let mut inst: Instructions = HashMap::new();
         for block in it {
-            let mut sections = block.split("If").map(|s| s.trim());
+            let mut sections = block.split("If").map(str::trim);
             let state = State::parse(sections.next().unwrap().trim_matches(&FILTER[..]))?;
 
             for sect in sections {

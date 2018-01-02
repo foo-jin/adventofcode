@@ -164,7 +164,7 @@ impl Iterator for Path {
 }
 
 fn first(input: &str) -> Result<String> {
-    let result = Path::parse(input)?.filter_map(|e| e.get_letter()).collect();
+    let result = Path::parse(input)?.filter_map(Edge::get_letter).collect();
 
     Ok(result)
 }

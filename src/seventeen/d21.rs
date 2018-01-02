@@ -231,7 +231,7 @@ impl RuleSet {
     fn parse(s: &str) -> Result<RuleSet> {
         let rules = s.trim()
             .lines()
-            .map(|s| Rule::parse(s))
+            .map(Rule::parse)
             .collect::<Result<_>>()?;
         Ok(RuleSet::new(rules))
     }

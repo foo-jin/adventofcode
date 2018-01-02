@@ -6,7 +6,7 @@ fn parse(input: &str) -> Result<Vec<Vec<u32>>> {
     input
         .trim()
         .lines()
-        .map(|l: &str| {
+        .map(|l| {
             l.split_whitespace()
                 .map(|s| s.parse().map_err(Into::into))
                 .collect::<Result<_>>()
