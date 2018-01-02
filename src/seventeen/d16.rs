@@ -21,12 +21,12 @@ impl Dancemove {
 
         let result = match first {
             's' => {
-                let offset: i32 = rest.next().unwrap().parse()?;
+                let offset = rest.next().unwrap().parse()?;
                 S(offset)
             }
             'x' => {
-                let p1: i32 = rest.next().unwrap().parse()?;
-                let p2: i32 = rest.next().unwrap().parse()?;
+                let p1 = rest.next().unwrap().parse()?;
+                let p2 = rest.next().unwrap().parse()?;
                 X(p1, p2)
             }
             'p' => {
