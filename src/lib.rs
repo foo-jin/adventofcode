@@ -10,6 +10,7 @@ extern crate bit_vec;
 extern crate crossbeam_channel;
 #[macro_use]
 extern crate failure;
+extern crate fnv;
 extern crate itertools;
 #[macro_use]
 extern crate nom;

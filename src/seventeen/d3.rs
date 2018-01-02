@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 
 use self::Direction::*;
 
@@ -129,13 +129,13 @@ impl<'a> Iterator for Spiral {
 
 struct SumSpiral {
     sp: Spiral,
-    seen: HashMap<Point, u32>,
+    seen: FnvHashMap<Point, u32>,
 }
 
 impl SumSpiral {
     fn new() -> SumSpiral {
         let sp = Spiral::new();
-        let mut seen = HashMap::new();
+        let mut seen = FnvHashMap::default();
         seen.insert(Point::new(), 1);
 
         SumSpiral { sp, seen }

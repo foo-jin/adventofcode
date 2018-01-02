@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 
 use super::Result;
 use self::Edge::{Corner, Letter, Line};
@@ -87,13 +87,13 @@ impl Node {
 }
 
 struct Path {
-    network: HashMap<Node, Edge>,
+    network: FnvHashMap<Node, Edge>,
     current: Node,
     direction: Direction,
 }
 
 impl Path {
-    fn new(network: HashMap<Node, Edge>, init: Node) -> Path {
+    fn new(network: FnvHashMap<Node, Edge>, init: Node) -> Path {
         Path {
             network,
             current: init,
@@ -102,7 +102,7 @@ impl Path {
     }
 
     fn parse(input: &str) -> Result<Path> {
-        let mut network = HashMap::new();
+        let mut network = FnvHashMap::default();
         let mut init = Node(0, 0);
         for (y, line) in input.lines().enumerate() {
             for (x, c) in line.chars()

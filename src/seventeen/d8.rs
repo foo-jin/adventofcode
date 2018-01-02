@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 
 pub fn run(input: &str) -> (i32, i32) {
-    let mut env = HashMap::new();
+    let mut env = FnvHashMap::default();
     let mut second = 0;
 
     for l in input.trim().lines() {

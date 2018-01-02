@@ -1,10 +1,10 @@
-use std::collections::HashSet;
+use fnv::FnvHashSet;
 
 pub fn check_password(input: &str) -> u32 {
     let mut result = 0;
 
     'outer: for l in input.lines() {
-        let mut seen = HashSet::new();
+        let mut seen = FnvHashSet::default();
 
         for s in l.split_whitespace() {
             if !seen.insert(s) {
@@ -22,7 +22,7 @@ pub fn check_anagram(input: &str) -> u32 {
     let mut result = 0;
 
     'outer: for l in input.trim().lines() {
-        let mut seen = HashSet::new();
+        let mut seen = FnvHashSet::default();
 
         for s in l.split_whitespace() {
             let mut chars = s.chars().collect::<Vec<char>>();

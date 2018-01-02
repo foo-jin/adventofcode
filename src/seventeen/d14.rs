@@ -1,5 +1,6 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 
+use fnv::FnvHashSet;
 use bit_vec::BitVec;
 
 use super::d10::knothash;
@@ -24,7 +25,7 @@ pub fn first(input: &str) -> Result<u32> {
 }
 
 pub fn second(input: &str) -> Result<u32> {
-    let mut grid = HashSet::new();
+    let mut grid = FnvHashSet::default();
 
     for y in 0..128 {
         let bytes = knothash(&format!("{}-{}", input.trim(), y));

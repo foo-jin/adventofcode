@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use fnv::FnvHashSet;
 
 use seventeen::Result;
 
@@ -179,7 +179,7 @@ pub fn find_cycle(input: &str) -> Result<u32> {
     let instructions = parse_instructions(input)?;
 
     let mut current = Position::new();
-    let mut visited = HashSet::new();
+    let mut visited = FnvHashSet::default();
 
     for mv in instructions {
         let prev = current.location;

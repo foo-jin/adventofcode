@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 use std::collections::VecDeque;
 
 use super::Result;
@@ -65,7 +65,7 @@ impl Actions {
     }
 }
 
-type Instructions = HashMap<(State, Value), Actions>;
+type Instructions = FnvHashMap<(State, Value), Actions>;
 
 #[derive(Eq, PartialEq, Clone)]
 struct Program {
@@ -103,7 +103,7 @@ impl Program {
             .unwrap()
             .parse()?;
 
-        let mut inst: Instructions = HashMap::new();
+        let mut inst: Instructions = FnvHashMap::default();
         for block in it {
             let mut sections = block.split("If").map(str::trim);
             let state = State::parse(sections.next().unwrap().trim_matches(&FILTER[..]))?;

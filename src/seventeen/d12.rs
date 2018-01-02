@@ -1,9 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use fnv::{FnvHashMap, FnvHashSet};
 
 use super::Result;
 
 pub fn run(input: &str) -> Result<(u32, u32)> {
-    let mut graph = HashMap::new();
+    let mut graph = FnvHashMap::default();
     let mut len = 0;
 
     for l in input.trim().lines() {
@@ -29,7 +29,7 @@ pub fn run(input: &str) -> Result<(u32, u32)> {
         }
 
         let mut stack = vec![i];
-        let mut connected = HashSet::new();
+        let mut connected = FnvHashSet::default();
 
         while let Some(cur) = stack.pop() {
             connected.insert(cur);

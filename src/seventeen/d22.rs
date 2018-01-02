@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 
 use super::Result;
 use self::Direction::{Down, Left, Right, Up};
@@ -57,8 +57,8 @@ impl State {
         Ok(result)
     }
 
-    fn parse_grid(s: &str) -> Result<HashMap<Coord, State>> {
-        let mut grid = HashMap::new();
+    fn parse_grid(s: &str) -> Result<FnvHashMap<Coord, State>> {
+        let mut grid = FnvHashMap::default();
         for (y, line) in s.lines().enumerate() {
             let offset = (line.len() / 2) as isize;
             for (x, c) in line.chars().enumerate() {
@@ -87,7 +87,7 @@ where
 {
     pos: Coord,
     dir: Direction,
-    grid: HashMap<Coord, State>,
+    grid: FnvHashMap<Coord, State>,
     progressor: F,
     count: usize,
 }
@@ -96,7 +96,7 @@ impl<F> Carrier<F>
 where
     F: Fn(State) -> State,
 {
-    fn new(grid: HashMap<Coord, State>, progressor: F) -> Carrier<F> {
+    fn new(grid: FnvHashMap<Coord, State>, progressor: F) -> Carrier<F> {
         let pos = (0, 0);
         let dir = Up;
         let count = 0;

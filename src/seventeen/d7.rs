@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 
 use failure::*;
 
@@ -10,12 +10,12 @@ type Attr<'a> = (u32, Vec<&'a str>);
 
 struct Tree<'a> {
     root: Name<'a>,
-    tree: HashMap<Name<'a>, Attr<'a>>,
+    tree: FnvHashMap<Name<'a>, Attr<'a>>,
 }
 
 impl<'a> Tree<'a> {
     fn parse(s: &str) -> Result<Tree> {
-        let tree: HashMap<Name, Attr> = s.trim()
+        let tree: FnvHashMap<Name, Attr> = s.trim()
             .lines()
             .map(|l| {
                 d7::line(l.as_bytes())

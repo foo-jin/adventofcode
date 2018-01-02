@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 
 use super::Result;
 
@@ -11,7 +11,7 @@ fn parse(s: &str) -> Result<Vec<u32>> {
 
 pub fn run(input: &str) -> Result<(u32, u32)> {
     let mut input = parse(input)?;
-    let mut seen = HashMap::new();
+    let mut seen = FnvHashMap::default();
     let mut result = (0, 0);
     let n = input.len();
 
