@@ -278,21 +278,19 @@ impl Channel for Second {
 
     fn snd(&mut self, val: i64) {
         self.sent += 1;
-        let mut blocked = self.blocked.lock().unwrap();
-        *blocked = false;
+        *self.blocked.lock().unwrap() = false;
         let _ = self.sender.send(Store(val));
     }
 
     fn rcv(&mut self, _: i64) -> Action {
         {
             let mut blocked = self.blocked.lock().unwrap();
-
             if self.receiver.is_empty() {
-                if *blocked {
+                if !*blocked {
+                    *blocked = true;
+                } else {
                     self.snd_term();
                     return Terminate;
-                } else {
-                    *blocked = true;
                 }
             }
         }
