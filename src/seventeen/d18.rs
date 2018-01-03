@@ -1,10 +1,11 @@
 use std::sync::{Arc, Condvar, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 
 use crossbeam_channel::{unbounded, Receiver, Sender, TryRecvError};
 
 use super::Result;
-use self::Action::{Nothing, Store, Terminate};
+use self::Action::*;
 use self::Inst::{Add, Jgz, Mod, Mul, Rcv, Set, Snd};
 
 type Memory = Vec<i64>;
@@ -190,6 +191,7 @@ where
                     self.channel.snd(val);
                 }
                 Rcv(Reg(reg)) => {
+                    use self::{Nothing, Store, Terminate};
                     let val = self.mem[reg as usize];
                     match self.channel.rcv(val) {
                         Store(val) => self.mem[reg as usize] = val,
@@ -239,26 +241,22 @@ fn first(input: &str) -> Result<i64> {
     Ok(p.channel.sent)
 }
 
-enum Msg {
-
-}
-
 #[derive(Debug)]
 struct Second {
     id: u8,
     sent: u64,
     recv: u64,
-    sender: Sender<i64>,
-    receiver: Receiver<i64>,
-    status: Arc<(Mutex<bool>, Condvar)>,
+    sender: Sender<Action>,
+    receiver: Receiver<Action>,
+    blocked: Arc<AtomicBool>,
 }
 
 impl Second {
     fn new(
         id: u8,
-        sender: Sender<i64>,
-        receiver: Receiver<i64>,
-        status: Arc<(Mutex<bool>, Condvar)>,
+        sender: Sender<Action>,
+        receiver: Receiver<Action>,
+        blocked: Arc<AtomicBool>,
     ) -> Second {
         Second {
             id,
@@ -266,8 +264,12 @@ impl Second {
             recv: 0,
             sender,
             receiver,
-            status,
+            blocked,
         }
+    }
+
+    fn snd_term(&self) {
+        let _ = self.sender.send(Terminate);
     }
 }
 
@@ -278,36 +280,30 @@ impl Channel for Second {
 
     fn snd(&mut self, val: i64) {
         self.sent += 1;
-        let _ = self.sender.send(val);
-
-        let &(ref lock, ref cvar) = &*self.status;
-        let mut blocked = lock.lock().unwrap();
-        *blocked = false;
-        cvar.notify_all()
+        self.blocked.store(false, Ordering::SeqCst);
+        let _ = self.sender.send(Store(val));
     }
 
     fn rcv(&mut self, _: i64) -> Action {
-        let &(ref lock, ref cvar) = &*self.status;
-        let mut blocked = lock.lock().unwrap();
-        loop {
-            match self.receiver.try_recv() {
-                Ok(val) => {
-                    self.recv += 1;
-                    return Store(val);
-                }
-                Err(TryRecvError::Empty) => {
-                    if *blocked {
-                        cvar.notify_all();
-                        break;
-                    }
-
-                    *blocked = true;
-                    blocked = cvar.wait(blocked).unwrap();
-                }
-                _ => break,
+        if self.receiver.is_empty() {
+            if self.blocked.swap(true, Ordering::SeqCst) {
+                self.snd_term();
+                return Terminate;
             }
         }
-        Terminate
+
+        match self.receiver.recv() {
+            Ok(action) => {
+                if action.is_store() {
+                    self.recv += 1;
+                }
+                action
+            }
+            _ => {
+                self.snd_term();
+                Terminate
+            }
+        }
     }
 }
 
@@ -317,7 +313,7 @@ fn second(input: &str) -> Result<u64> {
     let (tx0, rx0) = unbounded();
     let (tx1, rx1) = unbounded();
 
-    let s0 = Arc::new((Mutex::new(false), Condvar::new()));
+    let s0 = Arc::new(AtomicBool::new(false));
     let s1 = s0.clone();
 
     let p0 = Program::from_inst(inst.clone(), Second::new(0, tx0, rx1, s0));
