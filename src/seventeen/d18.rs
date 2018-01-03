@@ -1,8 +1,7 @@
-use std::sync::{Arc, Condvar, Mutex};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::thread;
+use std::sync::{Arc, Mutex};
 
-use crossbeam_channel::{unbounded, Receiver, Sender, TryRecvError};
+use crossbeam::scope;
+use crossbeam_channel::{unbounded, Receiver, Sender};
 
 use super::Result;
 use self::Action::*;
@@ -130,18 +129,18 @@ trait Channel {
 }
 
 #[derive(Clone)]
-struct Program<C> {
+struct Program<'a, C> {
     mem: Memory,
-    inst: Vec<Inst>,
+    inst: &'a [Inst],
     ip: usize,
     channel: C,
 }
 
-impl<C> Program<C>
+impl<'a, C> Program<'a, C>
 where
     C: Channel,
 {
-    fn from_inst(inst: Vec<Inst>, channel: C) -> Program<C> {
+    fn from_inst(inst: &'a [Inst], channel: C) -> Self {
         let mut program = Program {
             mem: vec![0; 256],
             inst: inst,
@@ -156,7 +155,7 @@ where
         program
     }
 
-    pub fn exec(mut self) -> Program<C> {
+    pub fn exec(&mut self) {
         loop {
             let it = self.inst.get(self.ip).expect("ip overflow");
 
@@ -202,7 +201,6 @@ where
             }
             self.ip += 1;
         }
-        self
     }
 }
 
@@ -236,8 +234,8 @@ impl Channel for First {
 
 fn first(input: &str) -> Result<i64> {
     let inst = parse(input)?;
-    let mut p = Program::from_inst(inst.clone(), First::new());
-    p = p.exec();
+    let mut p = Program::from_inst(&inst, First::new());
+    p.exec();
     Ok(p.channel.sent)
 }
 
@@ -248,7 +246,7 @@ struct Second {
     recv: u64,
     sender: Sender<Action>,
     receiver: Receiver<Action>,
-    blocked: Arc<AtomicBool>,
+    blocked: Arc<Mutex<bool>>,
 }
 
 impl Second {
@@ -256,7 +254,7 @@ impl Second {
         id: u8,
         sender: Sender<Action>,
         receiver: Receiver<Action>,
-        blocked: Arc<AtomicBool>,
+        blocked: Arc<Mutex<bool>>,
     ) -> Second {
         Second {
             id,
@@ -280,15 +278,22 @@ impl Channel for Second {
 
     fn snd(&mut self, val: i64) {
         self.sent += 1;
-        self.blocked.store(false, Ordering::SeqCst);
+        let mut blocked = self.blocked.lock().unwrap();
+        *blocked = false;
         let _ = self.sender.send(Store(val));
     }
 
     fn rcv(&mut self, _: i64) -> Action {
-        if self.receiver.is_empty() {
-            if self.blocked.swap(true, Ordering::SeqCst) {
-                self.snd_term();
-                return Terminate;
+        {
+            let mut blocked = self.blocked.lock().unwrap();
+
+            if self.receiver.is_empty() {
+                if *blocked {
+                    self.snd_term();
+                    return Terminate;
+                } else {
+                    *blocked = true;
+                }
             }
         }
 
@@ -299,10 +304,7 @@ impl Channel for Second {
                 }
                 action
             }
-            _ => {
-                self.snd_term();
-                Terminate
-            }
+            _ => Terminate,
         }
     }
 }
@@ -313,18 +315,16 @@ fn second(input: &str) -> Result<u64> {
     let (tx0, rx0) = unbounded();
     let (tx1, rx1) = unbounded();
 
-    let s0 = Arc::new(AtomicBool::new(false));
+    let s0 = Arc::new(Mutex::new(false));
     let s1 = s0.clone();
 
-    let p0 = Program::from_inst(inst.clone(), Second::new(0, tx0, rx1, s0));
-    let p1 = Program::from_inst(inst.clone(), Second::new(1, tx1, rx0, s1));
+    let mut p0 = Program::from_inst(&inst, Second::new(0, tx0, rx1, s0));
+    let mut p1 = Program::from_inst(&inst, Second::new(1, tx1, rx0, s1));
 
-    let h0 = thread::spawn(move || p0.exec());
-
-    let h1 = thread::spawn(move || p1.exec());
-
-    let _ = h0.join();
-    let p1 = h1.join().expect("error in thread p1");
+    scope(|scope| {
+        scope.spawn(|| p0.exec());
+        scope.spawn(|| p1.exec());
+    });
 
     Ok(p1.channel.sent)
 }
