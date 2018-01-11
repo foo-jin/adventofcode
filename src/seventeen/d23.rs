@@ -53,16 +53,16 @@ enum Inst {
 impl Inst {
     fn parse(line: &str) -> Result<Inst> {
         let mut it = line.split_whitespace();
-        let inst = it.next().ok_or(err_msg("no instruction"))?;
+        let inst = it.next().ok_or_else(|| err_msg("no instruction"))?;
         let result = match inst {
             "jnz" => {
-                let cond = RegVal::parse(it.next().ok_or(err_msg("no register"))?);
-                let arg = RegVal::parse(it.next().ok_or(err_msg("no argument"))?);
+                let cond = RegVal::parse(it.next().ok_or_else(|| err_msg("no register"))?);
+                let arg = RegVal::parse(it.next().ok_or_else(|| err_msg("no argument"))?);
                 Jnz(cond, arg)
             }
             inst => {
-                let reg = Reg::parse(it.next().ok_or(err_msg("no register"))?);
-                let arg = RegVal::parse(it.next().ok_or(err_msg("no argument"))?);
+                let reg = Reg::parse(it.next().ok_or_else(|| err_msg("no register"))?);
+                let arg = RegVal::parse(it.next().ok_or_else(|| err_msg("no argument"))?);
                 match inst {
                     "set" => Set(reg, arg),
                     "sub" => Sub(reg, arg),

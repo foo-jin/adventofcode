@@ -6,7 +6,7 @@ fn parse(input: &str) -> Result<Vec<u32>> {
     input
         .trim()
         .chars()
-        .map(|c| c.to_digit(10).ok_or(err_msg("unexpected token")))
+        .map(|c| c.to_digit(10).ok_or_else(|| err_msg("unexpected token")))
         .collect::<Result<Vec<_>>>()
 }
 

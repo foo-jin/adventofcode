@@ -85,7 +85,7 @@ fn dance(routine: &[Dancemove], reps: usize, n: usize) -> String {
             }
         }
 
-        result = shift(offset, &order);
+        result = shift(offset, order);
 
         if !seen.contains(&result) {
             seen.push(result.clone());

@@ -314,7 +314,7 @@ fn second(input: &str) -> Result<u64> {
     let (tx1, rx1) = unbounded();
 
     let s0 = Arc::new(Mutex::new(false));
-    let s1 = s0.clone();
+    let s1 = Arc::clone(&s0);
 
     let mut p0 = Program::from_inst(&inst, Second::new(0, tx0, rx1, s0));
     let mut p1 = Program::from_inst(&inst, Second::new(1, tx1, rx0, s1));

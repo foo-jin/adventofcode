@@ -198,12 +198,12 @@ impl Rule {
         let mut it = s.split(" => ").map(|s| s.replace("/", "\n"));
 
         let variations = {
-            let s = it.next().ok_or(err_msg("no source pattern present"))?;
+            let s = it.next().ok_or_else(|| err_msg("no source pattern present"))?;
             Pattern::parse(&s)?.permute()?
         };
 
         let out = {
-            let s = it.next().ok_or(err_msg("no target pattern present"))?;
+            let s = it.next().ok_or_else(|| err_msg("no target pattern present"))?;
             Pattern::parse(&s)?
         };
 

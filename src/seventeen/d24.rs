@@ -10,11 +10,11 @@ fn parse_connectors(s: &str) -> Result<Vec<Connector>> {
         .map(|s| {
             let mut it = s.split('/');
             let first = it.next()
-                .ok_or(err_msg("unexpected end of input"))?
+                .ok_or_else(|| err_msg("unexpected end of input"))?
                 .parse()?;
 
             let second = it.next()
-                .ok_or(err_msg("unexpected end of input"))?
+                .ok_or_else(|| err_msg("unexpected end of input"))?
                 .parse()?;
 
             Ok((first, second))
