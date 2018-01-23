@@ -3,6 +3,4 @@ test seventeen::d17::tests::bench_p2   ... bench: 341,715,421 ns/iter (+/- 83,88
 test seventeen::d20::tests::bench_p2   ... bench: 245,355,215 ns/iter (+/- 4,019,649)
 test seventeen::d21::tests::bench_both ... bench: 853,885,239 ns/iter (+/- 373,795,336)
 test seventeen::d22::tests::bench_p2   ... bench: 1,313,272,097 ns/iter (+/- 350,398,024)
-test seventeen::d24::tests::bench_p1   ... bench: 1,091,802,307 ns/iter (+/- 280,027,680)
-test seventeen::d24::tests::bench_p2   ... bench: 1,111,866,826 ns/iter (+/- 250,726,127)
 test seventeen::d25::tests::bench_p1   ... bench: 317,931,314 ns/iter (+/- 80,231,617)

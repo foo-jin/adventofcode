@@ -63,41 +63,38 @@ impl Bridge {
     }
 }
 
-fn backtrack<F>(measure: &F, xs: &[Connector], used: &mut Vec<Connector>, bridge: Bridge) -> Bridge
+fn optimal_bridge<F>(measure: F, xs: &mut [Connector]) -> Bridge
 where
     F: Fn(Bridge, Bridge) -> Bridge,
 {
-    let mut max = bridge;
-
-    for &(pin, pout) in xs {
-        if !used.contains(&(pin, pout)) {
-            if let Some(bridge) = bridge.extend((pin, pout)) {
-                used.push((pin, pout));
-                max = measure(max, backtrack(measure, xs, used, bridge));
-                used.pop();
+    fn backtrack<G>(measure: &G, xs: &mut [Connector], i: usize, mut max: Bridge) -> Bridge
+    where
+        G: Fn(Bridge, Bridge) -> Bridge,
+    {
+        let bridge = max;
+        for j in i..xs.len() {
+            xs.swap(i, j);
+            if let Some(bridge) = bridge.extend(xs[i]) {
+                max = measure(max, backtrack(measure, xs, i + 1, bridge));
             }
+            xs.swap(j, i);
         }
+
+        max
     }
 
-    max
-}
-
-fn setup<F>(measure: F, xs: &[Connector]) -> Bridge
-where
-    F: Fn(Bridge, Bridge) -> Bridge,
-{
-    backtrack(&measure, xs, &mut vec![], Bridge::new())
+    backtrack(&measure, xs, 0, Bridge::new())
 }
 
 fn first(input: &str) -> Result<u32> {
-    let connectors = parse_connectors(input)?;
-    let bridge = setup(Bridge::stronger, &connectors);
+    let mut connectors = parse_connectors(input)?;
+    let bridge = optimal_bridge(Bridge::stronger, &mut connectors);
     Ok(bridge.str)
 }
 
 fn second(input: &str) -> Result<u32> {
-    let connectors = parse_connectors(input)?;
-    let bridge = setup(Bridge::max, &connectors);
+    let mut connectors = parse_connectors(input)?;
+    let bridge = optimal_bridge(Bridge::max, &mut connectors);
     Ok(bridge.str)
 }
 
