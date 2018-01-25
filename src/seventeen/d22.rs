@@ -1,3 +1,5 @@
+use std::iter;
+
 use fnv::FnvHashMap;
 
 use super::Result;
@@ -6,7 +8,7 @@ use self::State::{Clean, Flagged, Infected, Weakened};
 
 type Coord = (isize, isize);
 
-#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum Direction {
     Up,
     Down,
@@ -59,6 +61,7 @@ impl State {
 
     fn parse_grid(s: &str) -> Result<FnvHashMap<Coord, State>> {
         let mut grid = FnvHashMap::default();
+        
         for (y, line) in s.lines().enumerate() {
             let offset = (line.len() / 2) as isize;
             for (x, c) in line.chars().enumerate() {
@@ -100,6 +103,7 @@ where
         let pos = (0, 0);
         let dir = Up;
         let count = 0;
+
         Carrier {
             pos,
             dir,
@@ -111,37 +115,34 @@ where
 
     fn forward(&mut self) {
         let (x, y) = self.pos;
-        let pos = match self.dir {
+
+        self.pos = match self.dir {
             Up => (x, y - 1),
             Down => (x, y + 1),
             Right => (x + 1, y),
             Left => (x - 1, y),
         };
 
-        self.grid.entry(pos).or_insert(Clean);
-        self.pos = pos
+        self.grid.entry(self.pos).or_insert(Clean);
     }
 
-    fn update(&mut self, n: usize) {
-        for _ in 0..n {
-            let state = self.grid[&self.pos];
+    fn update(&mut self) {
+        let state = self.grid.get_mut(&self.pos).unwrap();
 
-            self.dir = match state {
-                Clean => self.dir.left(),
-                Infected => self.dir.right(),
-                Flagged => self.dir.rev(),
-                Weakened => self.dir,
-            };
-
-            let new = (self.progressor)(state);
-
-            if new.is_infected() {
-                self.count += 1;
-            }
-
-            self.grid.insert(self.pos, new);
-            self.forward();
+        match state {
+            Clean => self.dir = self.dir.left(),
+            Infected => self.dir = self.dir.right(),
+            Flagged => self.dir = self.dir.rev(),
+            Weakened => (),
         }
+
+        *state = (self.progressor)(*state);
+
+        if state.is_infected() {
+            self.count += 1;
+        }
+
+        self.forward();
     }
 }
 
@@ -151,7 +152,10 @@ where
 {
     let grid = State::parse_grid(input)?;
     let mut carrier = Carrier::new(grid, next);
-    carrier.update(n);
+
+    for _ in 0..n {
+        carrier.update();
+    }
 
     Ok(carrier.count)
 }
@@ -172,7 +176,15 @@ fn second(input: &str, n: usize) -> Result<usize> {
         Infected => Flagged,
         Flagged => Clean,
     };
-    exec(input, n, next)
+
+    let grid = State::parse_grid(input)?;
+    let mut carrier = Carrier::new(grid, next);
+
+    for _ in 0..n {
+        carrier.update();
+    }
+
+    Ok(carrier.count)
 }
 
 pub fn run(input: &str) -> Result<usize> {

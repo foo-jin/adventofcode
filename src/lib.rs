@@ -5,6 +5,7 @@
 #![feature(iterator_step_by)]
 #![feature(range_contains)]
 #![feature(type_ascription)]
+#![feature(nll)]
 
 extern crate bit_vec;
 extern crate crossbeam;
