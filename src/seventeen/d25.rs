@@ -80,14 +80,14 @@ impl Program {
     fn new(state: State, steps: usize, inst: Instructions) -> Program {
         Program {
             cursor: 50,
-            tape: VecDeque::from(vec![0; 100]),
+            tape: VecDeque::from(vec![0; 500]),
             state,
             steps,
             inst,
         }
     }
 
-    fn parse(s: &str) -> Result<Program> {
+    fn from_str(s: &str) -> Result<Program> {
         let mut it = s.trim().split("\n\n");
         let mut metadata = it.next()
             .unwrap()
@@ -104,6 +104,7 @@ impl Program {
             .parse()?;
 
         let mut inst: Instructions = FnvHashMap::default();
+
         for block in it {
             let mut sections = block.split("If").map(str::trim);
             let state = State::parse(sections.next().unwrap().trim_matches(&FILTER[..]))?;
@@ -158,7 +159,7 @@ impl Program {
 }
 
 fn first(input: &str) -> Result<usize> {
-    let mut prog = Program::parse(input)?;
+    let mut prog = Program::from_str(input)?;
     Ok(prog.eval())
 }
 
