@@ -1,9 +1,10 @@
 use fnv::FnvHashMap;
 
 use super::Result;
+
 use self::Edge::{Corner, Letter, Line};
 use self::Direction::{East, North, South, West};
-use self::Rotation::{Right, Left};
+use self::Rotation::{Left, Right};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Edge {
@@ -61,7 +62,7 @@ impl Direction {
         }
     }
 
-    fn turn(&self, r: Rotation) -> Direction {
+    fn turn(&self, r: &Rotation) -> Direction {
         match r {
             Right => self.right(),
             Left => self.left(),
@@ -104,6 +105,7 @@ impl Path {
     fn parse(input: &str) -> Result<Path> {
         let mut network = FnvHashMap::default();
         let mut init = Node(0, 0);
+        
         for (y, line) in input.lines().enumerate() {
             for (x, c) in line.chars()
                 .enumerate()
@@ -130,7 +132,7 @@ impl Path {
         Ok(Path::new(network, init))
     }
 
-    fn neigh(&self, r: Rotation) -> Node {
+    fn neigh(&self, r: &Rotation) -> Node {
         self.current.neigh(self.direction.turn(r))
     }
 
@@ -149,12 +151,12 @@ impl Iterator for Path {
         };
 
         if result.is_corner() {
-            let k = self.neigh(Left);
+            let k = self.neigh(&Left);
 
             self.direction = if self.network.contains_key(&k) {
-                self.direction.turn(Left)
+                self.direction.turn(&Left)
             } else {
-                self.direction.turn(Right)
+                self.direction.turn(&Right)
             };
         }
 
