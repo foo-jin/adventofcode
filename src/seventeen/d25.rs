@@ -80,7 +80,7 @@ impl Program {
     fn new(state: State, steps: usize, inst: Instructions) -> Program {
         Program {
             cursor: 50,
-            tape: VecDeque::from(vec![0; 500]),
+            tape: VecDeque::from(vec![0; 2 * steps]),
             state,
             steps,
             inst,
