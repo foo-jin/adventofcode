@@ -5,15 +5,14 @@ fn first(steps: usize) -> u32 {
     buf.push(0);
     let mut i = 0;
 
-    for k in 1..=2017 {
+    for k in 1..2018 {
         let n = k;
         i = ((i + steps) % n) + 1;
 
         buf.insert(i, k as u32);
     }
 
-    let n = buf.len();
-    buf[i + 1 % n]
+    buf[i + 1]
 }
 
 
@@ -21,9 +20,8 @@ fn second(steps: u32, limit: u32) -> u32 {
     let mut i = 0;
     let mut result = 0;
 
-    for k in 1..=limit {
-        let n = k;
-        i = ((i + steps) % n) + 1;
+    for k in 1..limit {
+        i = (i + steps) % k + 1;
 
         if i == 1 {
             result = k;
