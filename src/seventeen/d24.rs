@@ -24,25 +24,17 @@ fn parse_connectors(s: &str) -> Result<Vec<Connector>> {
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
 struct Bridge {
-    len: u32,
-    str: u32,
+    length: u32,
+    strength: u32,
     pins: u32,
 }
 
 impl Bridge {
     fn new() -> Bridge {
         Bridge {
-            len: 0,
-            str: 0,
+            length: 0,
+            strength: 0,
             pins: 0,
-        }
-    }
-
-    fn stronger(b1: Bridge, b2: Bridge) -> Bridge {
-        if b1.str >= b2.str {
-            b1
-        } else {
-            b2
         }
     }
 
@@ -53,21 +45,19 @@ impl Bridge {
             _ => return None,
         };
 
-        let result = Bridge {
-            len: self.len + 1,
-            str: self.str + pin + pout,
+        Some(Bridge {
+            length: self.length + 1,
+            strength: self.strength + pin + pout,
             pins,
-        };
-
-        Some(result)
+        })
     }
 }
 
-fn optimal_bridge<F>(measure: F, xs: &mut [Connector]) -> Bridge
+fn optimal_bridge<F>(quality: F, xs: &mut [Connector]) -> Bridge
 where
     F: Fn(Bridge, Bridge) -> Bridge,
 {
-    fn backtrack<G>(measure: &G, xs: &mut [Connector], i: usize, mut max: Bridge) -> Bridge
+    fn backtrack<G>(quality: &G, xs: &mut [Connector], i: usize, mut max: Bridge) -> Bridge
     where
         G: Fn(Bridge, Bridge) -> Bridge,
     {
@@ -75,7 +65,7 @@ where
         for j in i..xs.len() {
             xs.swap(i, j);
             if let Some(bridge) = bridge.extend(xs[i]) {
-                max = measure(max, backtrack(measure, xs, i + 1, bridge));
+                max = quality(max, backtrack(quality, xs, i + 1, bridge));
             }
             xs.swap(j, i);
         }
@@ -83,19 +73,20 @@ where
         max
     }
 
-    backtrack(&measure, xs, 0, Bridge::new())
+    backtrack(&quality, xs, 0, Bridge::new())
 }
 
 fn first(input: &str) -> Result<u32> {
     let mut connectors = parse_connectors(input)?;
-    let bridge = optimal_bridge(Bridge::stronger, &mut connectors);
-    Ok(bridge.str)
+    let stronger = |b1: Bridge, b2: Bridge| if b1.strength > b2.strength { b1 } else { b2 };
+    let bridge = optimal_bridge(stronger, &mut connectors);
+    Ok(bridge.strength)
 }
 
 fn second(input: &str) -> Result<u32> {
     let mut connectors = parse_connectors(input)?;
     let bridge = optimal_bridge(Bridge::max, &mut connectors);
-    Ok(bridge.str)
+    Ok(bridge.strength)
 }
 
 pub fn run(input: &str) -> Result<u32> {
