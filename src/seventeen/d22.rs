@@ -1,5 +1,3 @@
-use std::iter;
-
 use fnv::FnvHashMap;
 
 use super::Result;
@@ -49,7 +47,7 @@ enum State {
 }
 
 impl State {
-    fn parse(c: char) -> Result<State> {
+    fn from_char(c: char) -> Result<State> {
         let result = match c {
             '.' => Clean,
             '#' => Infected,
@@ -61,14 +59,14 @@ impl State {
 
     fn parse_grid(s: &str) -> Result<FnvHashMap<Coord, State>> {
         let mut grid = FnvHashMap::default();
-        
+
         for (y, line) in s.lines().enumerate() {
             let offset = (line.len() / 2) as isize;
             for (x, c) in line.chars().enumerate() {
                 let x = x as isize - offset;
                 let y = y as isize - offset;
                 let p = (x, y);
-                let state = State::parse(c)?;
+                let state = State::from_char(c)?;
                 grid.insert(p, state);
             }
         }
@@ -127,19 +125,21 @@ where
     }
 
     fn update(&mut self) {
-        let state = self.grid.get_mut(&self.pos).unwrap();
+        {
+            let state = self.grid.get_mut(&self.pos).unwrap();
 
-        match state {
-            Clean => self.dir = self.dir.left(),
-            Infected => self.dir = self.dir.right(),
-            Flagged => self.dir = self.dir.rev(),
-            Weakened => (),
-        }
+            match state {
+                Clean => self.dir = self.dir.left(),
+                Infected => self.dir = self.dir.right(),
+                Flagged => self.dir = self.dir.rev(),
+                Weakened => (),
+            }
 
-        *state = (self.progressor)(*state);
+            *state = (self.progressor)(*state);
 
-        if state.is_infected() {
-            self.count += 1;
+            if state.is_infected() {
+                self.count += 1;
+            }
         }
 
         self.forward();

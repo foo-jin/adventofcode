@@ -1,9 +1,10 @@
 use std::ops::AddAssign;
 use std::cmp::Ordering;
+use std::collections::HashMap;
 
 use super::Result;
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Vector {
     x: i64,
     y: i64,
@@ -49,7 +50,7 @@ impl PartialOrd for Vector {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct Particle {
     pos: Vector,
     vel: Vector,
@@ -88,7 +89,7 @@ fn first(input: &str) -> Result<usize> {
     let result = particles
         .iter()
         .enumerate()
-        .min_by(|(_, &x), (_, &y)| x.acc.cmp(&y.acc))
+        .min_by(|(_, x), (_, y)| x.acc.cmp(&y.acc))
         .map(|(i, _)| i)
         .unwrap();
 
@@ -99,8 +100,12 @@ fn second(input: &str) -> Result<usize> {
     let mut particles = parse(input)?;
 
     for _ in 0..1000 {
-        let aux = particles.clone();
-        particles.retain(|p| !aux.iter().any(|other| p != other && p.pos == other.pos));
+        let mut seen = HashMap::new();
+        for p in &particles {
+            *seen.entry(p.pos).or_insert(0) += 1;
+        }
+
+        particles.retain(|p| seen[&p.pos] < 2);
 
         for p in &mut particles {
             p.update()
