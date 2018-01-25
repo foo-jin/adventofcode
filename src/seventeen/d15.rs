@@ -4,6 +4,27 @@ const A: u64 = 16_807;
 const B: u64 = 48_271;
 const DIV: u64 = 2_147_483_647;
 
+struct Generator {
+    val: u64,
+    mul: u64,
+}
+
+impl Generator {
+    fn new(val: u64, mul: u64) -> Self {
+        Generator { val, mul }
+    }
+}
+
+impl Iterator for Generator {
+    type Item = u64;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.val *= self.mul;
+        self.val %= DIV;
+
+        Some(self.val)
+    }
+}
+
 fn parse(s: &str) -> Result<(u64, u64)> {
     let nums: Vec<u64> = s.trim()
         .lines()
@@ -21,44 +42,21 @@ fn parse(s: &str) -> Result<(u64, u64)> {
 }
 
 fn first(input: &str) -> Result<u32> {
-    let (mut a, mut b) = parse(input)?;
-    let mut matches = 0;
+    let (a, b) = parse(input)?;
+    let a = Generator::new(a, A);
+    let b = Generator::new(b, B);
+    let matches = a.zip(b).take(40_000_000).filter(|&(a, b)| a as u16 == b as u16).count();
 
-    for _ in 0..40_000_000 {
-        a = (a * A) % DIV;
-        b = (b * B) % DIV;
-
-        if a as u16 == b as u16 {
-            matches += 1;
-        }
-    }
-
-    Ok(matches)
+    Ok(matches as u32)
 }
 
 pub fn second(input: &str) -> Result<u32> {
-    let (mut a, mut b) = parse(input)?;
-    let mut matches = 0;
+    let (a, b) = parse(input)?;
+    let a = Generator::new(a, A).filter(|a| a % 4 == 0);
+    let b = Generator::new(b, B).filter(|b| b % 8 == 0);
+    let matches = a.zip(b).take(5_000_000).filter(|&(a, b)| a as u16 == b as u16).count();
 
-    for _ in 0..5_000_000 {
-        a = (a * A) % DIV;
-
-        while a % 4 != 0 {
-            a = (a * A) % DIV;
-        }
-
-        b = (b * B) % DIV;
-
-        while b % 8 != 0 {
-            b = (b * B) % DIV;
-        }
-
-        if a as u16 == b as u16 {
-            matches += 1;
-        }
-    }
-
-    Ok(matches)
+    Ok(matches as u32)
 }
 
 #[cfg(test)]
