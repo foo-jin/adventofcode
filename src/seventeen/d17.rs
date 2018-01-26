@@ -20,7 +20,7 @@ fn second(steps: u32, limit: u32) -> u32 {
     let mut i = 0;
     let mut result = 0;
 
-    for k in 1..limit {
+    for k in 1..=limit {
         i = (i + steps) % k + 1;
 
         if i == 1 {
