@@ -4,12 +4,12 @@ use crossbeam::scope;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 
 use super::Result;
-use self::Action::*;
+use self::Action::{Store, Terminate, Nothing};
 use self::Inst::{Add, Jgz, Mod, Mul, Rcv, Set, Snd};
 
-type Memory = Vec<i64>;
+type Memory = [i64; 256];
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy, Debug)]
 struct Reg(u8);
 
 impl Reg {
@@ -18,7 +18,7 @@ impl Reg {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy, Debug)]
 enum RegVal {
     Reg(u8),
     Val(i64),
@@ -26,7 +26,7 @@ enum RegVal {
 
 impl RegVal {
     fn parse(input: &str) -> RegVal {
-        use self::RegVal::*;
+        use self::RegVal::{Val, Reg};
 
         if let Ok(v) = input.parse::<i64>() {
             Val(v)
@@ -46,7 +46,7 @@ impl RegVal {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy, Debug)]
 enum Inst {
     Set(Reg, RegVal),
     Mul(Reg, RegVal),
@@ -142,7 +142,7 @@ where
 {
     fn from_inst(inst: &'a [Inst], channel: C) -> Self {
         let mut program = Program {
-            mem: vec![0; 256],
+            mem: [0; 256],
             inst: inst,
             ip: 0,
             channel: channel,
@@ -157,9 +157,9 @@ where
 
     pub fn exec(&mut self) {
         loop {
-            let it = self.inst.get(self.ip).expect("ip overflow");
+            let it = self.inst[self.ip];
 
-            match *it {
+            match it {
                 Set(Reg(reg), ref arg) => {
                     self.mem[reg as usize] = arg.eval(&self.mem);
                 }
@@ -255,7 +255,7 @@ impl Second {
         sender: Sender<Action>,
         receiver: Receiver<Action>,
         blocked: Arc<Mutex<bool>>,
-    ) -> Second {
+    ) -> Self {
         Second {
             id,
             sent: 0,
@@ -264,10 +264,6 @@ impl Second {
             receiver,
             blocked,
         }
-    }
-
-    fn snd_term(&self) {
-        let _ = self.sender.send(Terminate);
     }
 }
 
@@ -289,7 +285,7 @@ impl Channel for Second {
                 if !*blocked {
                     *blocked = true;
                 } else {
-                    self.snd_term();
+                    let _ = self.sender.send(Terminate);
                     return Terminate;
                 }
             }
