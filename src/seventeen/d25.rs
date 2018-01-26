@@ -79,7 +79,7 @@ struct Program {
 impl Program {
     fn new(state: State, steps: usize, inst: Instructions) -> Program {
         Program {
-            cursor: 50,
+            cursor: steps,
             tape: VecDeque::from(vec![0; 2 * steps]),
             state,
             steps,
