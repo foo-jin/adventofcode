@@ -84,21 +84,16 @@ fn parse(input: &str) -> Result<Vec<Particle>> {
     input.lines().map(Particle::parse).collect()
 }
 
-fn first(input: &str) -> Result<usize> {
-    let particles = parse(input)?;
-    let result = particles
+fn first(particles: &[Particle]) -> usize {
+    particles
         .iter()
         .enumerate()
         .min_by(|(_, x), (_, y)| x.acc.cmp(&y.acc))
         .map(|(i, _)| i)
-        .unwrap();
-
-    Ok(result)
+        .unwrap()
 }
 
-fn second(input: &str) -> Result<usize> {
-    let mut particles = parse(input)?;
-
+fn second(mut particles: Vec<Particle>) -> usize {
     for _ in 0..1000 {
         let mut seen = HashMap::new();
         for p in &particles {
@@ -112,28 +107,46 @@ fn second(input: &str) -> Result<usize> {
         }
     }
 
-    Ok(particles.len())
+    particles.len()
 }
 
-pub fn run(input: &str) -> Result<usize> {
-    second(input)
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let particles = parse(&input)?;
+    let first = first(&particles);
+    let second = second(particles);
+
+    println!(
+        "Day 20:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     #[test]
     fn test_first() {
-        let input = "p=< 3,0,0>, v=< 2,0,0>, a=<-1,0,0>\np=< 4,0,0>, v=< 0,0,0>, a=<-2,0,0>";
-        check(first(input), 0);
+        let particles = parse(
+            "p=< 3,0,0>, v=< 2,0,0>, a=<-1,0,0>\n\
+             p=< 4,0,0>, v=< 0,0,0>, a=<-2,0,0>",
+        ).unwrap();
+        assert_eq!(first(&particles), 0);
     }
 
     #[test]
     fn test_second() {
-        let input = "p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>\np=<-4,0,0>, v=< 2,0,0>, a=< 0,0,0>\np=<-2,0,0>, v=< 1,0,0>, a=< 0,0,0>\np=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>";
-        check(second(input), 1);
+        let particles = parse(
+            "p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>\n\
+             p=<-4,0,0>, v=< 2,0,0>, a=< 0,0,0>\n\
+             p=<-2,0,0>, v=< 1,0,0>, a=< 0,0,0>\n\
+             p=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>",
+        ).unwrap();
+        assert_eq!(second(particles), 1);
     }
 
     use test::Bencher;
@@ -141,11 +154,13 @@ mod tests {
 
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL), 119))
+        let particles = parse(FULL).unwrap();
+        b.iter(|| assert_eq!(first(&particles), 119))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(second(FULL), 471))
+        let particles = parse(FULL).unwrap();
+        b.iter(|| assert_eq!(second(particles.clone()), 471))
     }
 }

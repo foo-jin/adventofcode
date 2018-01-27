@@ -1,3 +1,34 @@
+use std::fmt;
+
+use super::Result;
+
+pub struct HexSlice<'a>(&'a [u8]);
+
+impl<'a> HexSlice<'a> {
+    pub fn new<T>(data: &'a T) -> HexSlice<'a>
+    where
+        T: ?Sized + AsRef<[u8]> + 'a,
+    {
+        HexSlice(data.as_ref())
+    }
+}
+
+impl<'a> fmt::Display for HexSlice<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for byte in self.0 {
+            write!(f, "{:02x}", byte)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<'a> fmt::Debug for HexSlice<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "\"{}\"", self)
+    }
+}
+
 fn reverse<T>(d: &mut [T], pos: usize, length: usize) {
     let len = d.len();
 
@@ -15,21 +46,18 @@ pub fn knothash(input: &str) -> Vec<u8> {
         .map(|l| *l as usize)
         .collect();
 
-    let sparse = {
-        let mut sparse: Vec<u8> = (0..=255).collect();
 
-        let mut pos = 0;
-        let mut skip = 0..;
+    let mut sparse: Vec<u8> = (0..=255).collect();
 
-        for _ in 0..64 {
-            for (l, skip) in lengths.iter().zip(&mut skip) {
-                reverse(&mut sparse, pos, *l);
-                pos = (pos + skip + *l) % sparse.len();
-            }
+    let mut pos = 0;
+    let mut skip = 0..;
+
+    for _ in 0..64 {
+        for (l, skip) in lengths.iter().zip(&mut skip) {
+            reverse(&mut sparse, pos, *l);
+            pos = (pos + skip + *l) % sparse.len();
         }
-
-        sparse
-    };
+    }
 
     sparse
         .chunks(16)
@@ -37,38 +65,21 @@ pub fn knothash(input: &str) -> Vec<u8> {
         .collect()
 }
 
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let second = knothash(&input);
+
+    println!(
+        "Day 10:\n\
+         Part 2: {}\n",
+        HexSlice::new(&second)
+    );
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str;
-    use std::fmt;
-
-    pub struct HexSlice<'a>(&'a [u8]);
-
-    impl<'a> HexSlice<'a> {
-        pub fn new<T>(data: &'a T) -> HexSlice<'a>
-        where
-            T: ?Sized + AsRef<[u8]> + 'a,
-        {
-            HexSlice(data.as_ref())
-        }
-    }
-
-    impl<'a> fmt::Display for HexSlice<'a> {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            for byte in self.0 {
-                write!(f, "{:02x}", byte)?;
-            }
-
-            Ok(())
-        }
-    }
-
-    impl<'a> fmt::Debug for HexSlice<'a> {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "\"{}\"", self)
-        }
-    }
 
     #[test]
     fn test_reverse() {

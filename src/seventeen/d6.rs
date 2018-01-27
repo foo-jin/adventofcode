@@ -2,29 +2,24 @@ use fnv::FnvHashMap;
 
 use super::Result;
 
-fn parse(s: &str) -> Result<Vec<u32>> {
+fn parse_memory(s: &str) -> Result<Vec<u32>> {
     s.trim()
         .split_whitespace()
         .map(|s| s.parse().map_err(Into::into))
         .collect::<Result<_>>()
 }
 
-pub fn run(input: &str) -> Result<(u32, u32)> {
-    let mut input = parse(input)?;
-    let mut seen = FnvHashMap::default();
-    let mut result = (0, 0);
+fn redistribute(input: &mut [u32]) -> (u32, u32) {
+    let mut seen: FnvHashMap<Vec<u32>, u32> = FnvHashMap::default();
     let n = input.len();
 
     for i in 0.. {
-        let mut clone = input.clone();
-        if let Some(x) = seen.insert(clone, i) {
-            result = (i, i - x);
-            break;
+        if let Some(x) = seen.insert(input.iter().cloned().collect(), i) {
+            return (i, i - x);
         }
 
-        let (mut key, el) = input
+        let (mut key, &el) = input
             .iter()
-            .cloned()
             .enumerate()
             .max_by_key(|&(i, v)| (v, -(i as i32)))
             .unwrap();
@@ -37,18 +32,31 @@ pub fn run(input: &str) -> Result<(u32, u32)> {
             key += 1;
         }
     }
+    unreachable!()
+}
 
-    Ok(result)
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let mut memory = parse_memory(&input)?;
+    let (first, second) = redistribute(&mut memory);
+
+    println!(
+        "Day 6:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     #[test]
     fn test_both() {
-        check(run("0\t2\t7\t0"), (5, 4));
+        let mut input = [0, 2, 7, 0];
+        assert_eq!(redistribute(&mut input), (5, 4));
     }
 
     use test::Bencher;
@@ -56,6 +64,7 @@ mod tests {
 
     #[bench]
     fn bench_both(b: &mut Bencher) {
-        b.iter(|| check(run(FULL), (12841, 8038)))
+        let mut input = parse_memory(FULL).unwrap();
+        b.iter(|| assert_eq!(redistribute(&mut input), (12841, 8038)))
     }
 }

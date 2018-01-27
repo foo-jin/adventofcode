@@ -55,16 +55,14 @@ impl Pattern {
         Ok(Pattern::new(pixels))
     }
 
-    fn split(&self) -> Result<Vec<Pattern>> {
-        let mut result = Vec::new();
+    fn split(&self) -> Vec<Pattern> {
+        let mut patterns = Vec::new();
         let pix = &self.pixels;
 
-        let size = if self.size % 2 == 0 {
-            2
-        } else if self.size % 3 == 0 {
-            3
-        } else {
-            bail!("unexpected size")
+        let size = match self.size {
+            x if x % 2 == 0 => 2,
+            x if x % 3 == 0 => 3,
+            x => panic!("unexpected size: {}", x),
         };
 
         let n = self.size / size;
@@ -84,13 +82,14 @@ impl Pattern {
                     temp.push(it.take(size).cloned().collect());
                 }
 
-                result.push(Pattern::new(temp));
+                patterns.push(Pattern::new(temp));
             }
         }
-        Ok(result)
+
+        patterns
     }
 
-    fn join(squares: &[Pattern]) -> Result<Pattern> {
+    fn join(squares: &[Pattern]) -> Pattern {
         let n = {
             let sq = (squares.len() as f64).sqrt();
             sq as usize
@@ -110,7 +109,7 @@ impl Pattern {
             }
         }
 
-        Ok(Pattern::new(result))
+        Pattern::new(result)
     }
 
     fn rotate(&self) -> Result<Pattern> {
@@ -198,12 +197,14 @@ impl Rule {
         let mut it = s.split(" => ").map(|s| s.replace("/", "\n"));
 
         let variations = {
-            let s = it.next().ok_or_else(|| err_msg("no source pattern present"))?;
+            let s = it.next()
+                .ok_or_else(|| err_msg("no source pattern present"))?;
             Pattern::parse(&s)?.permute()?
         };
 
         let out = {
-            let s = it.next().ok_or_else(|| err_msg("no target pattern present"))?;
+            let s = it.next()
+                .ok_or_else(|| err_msg("no target pattern present"))?;
             Pattern::parse(&s)?
         };
 
@@ -219,6 +220,7 @@ impl Rule {
     }
 }
 
+#[derive(Clone)]
 struct RuleSet {
     rules: Vec<Rule>,
 }
@@ -229,10 +231,7 @@ impl RuleSet {
     }
 
     fn parse(s: &str) -> Result<RuleSet> {
-        let rules = s.trim()
-            .lines()
-            .map(Rule::parse)
-            .collect::<Result<_>>()?;
+        let rules = s.trim().lines().map(Rule::parse).collect::<Result<_>>()?;
         Ok(RuleSet::new(rules))
     }
 
@@ -249,6 +248,7 @@ impl RuleSet {
     }
 }
 
+#[derive(Clone)]
 struct Grid {
     pattern: Pattern,
     rules: RuleSet,
@@ -261,19 +261,18 @@ impl Grid {
         Grid { pattern, rules }
     }
 
-    fn parse(s: &str) -> Result<Grid> {
+    fn from_str(s: &str) -> Result<Grid> {
         let rules = RuleSet::parse(s)?;
         Ok(Grid::new(rules))
     }
 
-    fn enhance(&mut self) -> Result<()> {
+    fn enhance(&mut self) {
         let next: Vec<Pattern> = self.pattern
-            .split()?
+            .split()
             .into_par_iter()
             .map(|p| self.rules.apply(&p))
             .collect();
-        self.pattern = Pattern::join(next.as_slice())?;
-        Ok(())
+        self.pattern = Pattern::join(next.as_slice());
     }
 
     fn count_on(&self) -> usize {
@@ -281,44 +280,51 @@ impl Grid {
     }
 }
 
-fn exec(input: &str, n: usize) -> Result<usize> {
-    let mut grid = Grid::parse(input)?;
+fn evolve(mut grid: Grid, n: usize) -> usize {
     for _ in 0..n {
-        grid.enhance()?;
+        grid.enhance();
     }
-    Ok(grid.count_on())
+    grid.count_on()
 }
 
-pub fn run(input: &str) -> Result<usize> {
-    exec(input, 18)
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let grid = Grid::from_str(&input)?;
+    let second = evolve(grid, 18);
+
+    println!(
+        "Day 21:\n\
+         Part 2: {}\n",
+        second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     #[test]
     fn test_pattern() {
-        let result = Pattern::parse(".#.\n..#\n###");
+        let result = Pattern::parse(".#.\n..#\n###").unwrap();
         let expected = Pattern::new(vec![
             vec![Off, On, Off],
             vec![Off, Off, On],
             vec![On, On, On],
         ]);
-        check(result, expected);
+        assert_eq!(result, expected);
     }
 
     #[test]
     fn test_rotate() {
         let init = Pattern::parse(".#.\n..#\n###").unwrap();
-        let result = init.rotate();
+        let result = init.rotate().unwrap();
         let expected = Pattern::new(vec![
             vec![On, Off, Off],
             vec![On, Off, On],
             vec![On, On, Off],
         ]);
-        check(result, expected);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -332,7 +338,7 @@ mod tests {
             Pattern::new(vec![vec![Off, Off], vec![On, Off]]),
             Pattern::new(vec![vec![Off, Off], vec![Off, On]]),
         ];
-        check(result, expected);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -345,15 +351,18 @@ mod tests {
         ];
         let result = Pattern::join(input.as_slice());
         let expected = Pattern::parse("#..#\n....\n....\n#..#").unwrap();
-        check(result, expected);
+        assert_eq!(result, expected);
     }
 
     #[test]
     fn test_first() {
-        let input = "../.# => ##./#../...\n.#./..#/### => #..#/..../..../#..#";
-        let result = exec(input, 2);
+        let input = Grid::from_str(
+            "../.# => ##./#../...\n\
+             .#./..#/### => #..#/..../..../#..#",
+        ).unwrap();
+        let result = evolve(input, 2);
         let expected = 12;
-        check(result, expected);
+        assert_eq!(result, expected);
     }
 
     use test::Bencher;
@@ -361,6 +370,7 @@ mod tests {
 
     #[bench]
     fn bench_both(b: &mut Bencher) {
-        b.iter(|| check(exec(FULL, 18), 3_018_423));
+        let grid = Grid::from_str(FULL).unwrap();
+        b.iter(|| assert_eq!(evolve(grid.clone(), 18), 3_018_423));
     }
 }

@@ -172,7 +172,7 @@ impl Program {
     }
 }
 
-fn first(input: &str) -> Result<u32> {
+fn debug_processor(input: &str) -> Result<u32> {
     let inst = parse_inst(input)?;
     let mut program = Program::from_inst(inst);
     program.exec();
@@ -180,7 +180,7 @@ fn first(input: &str) -> Result<u32> {
     Ok(program.count.mul)
 }
 
-fn second(input: &str) -> Result<u64> {
+fn optimize_processor(input: &str) -> Result<u64> {
     let mut b = input.split_whitespace().nth(2).unwrap().parse()?;
     b = b * 100 + 100_000;
     let mut h = 0;
@@ -198,8 +198,18 @@ fn second(input: &str) -> Result<u64> {
     Ok(h)
 }
 
-pub fn run(input: &str) -> Result<u64> {
-    second(input)
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let first = debug_processor(&input)?;
+    let second = optimize_processor(&input)?;
+
+    println!(
+        "Day 23:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[allow(dead_code)]
@@ -213,11 +223,11 @@ mod tests {
 
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL), 5929))
+        b.iter(|| check(debug_processor(FULL), 5929))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(second(FULL), 907))
+        b.iter(|| check(optimize_processor(FULL), 907))
     }
 }

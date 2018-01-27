@@ -1,42 +1,46 @@
 use fnv::FnvHashSet;
 
-pub fn check_password(input: &str) -> u32 {
-    let mut result = 0;
+use super::Result;
 
-    'outer: for l in input.lines() {
-        let mut seen = FnvHashSet::default();
-
-        for s in l.split_whitespace() {
-            if !seen.insert(s) {
-                continue 'outer;
-            }
-        }
-
-        result += 1;
-    }
-
-    result
+fn check_password(input: &str) -> u32 {
+    input
+        .trim()
+        .lines()
+        .filter(|l| {
+            let mut seen = FnvHashSet::default();
+            l.split_whitespace().all(|s| seen.insert(s))
+        })
+        .count() as u32
 }
 
-pub fn check_anagram(input: &str) -> u32 {
-    let mut result = 0;
+fn check_anagram(input: &str) -> u32 {
+    input
+        .trim()
+        .lines()
+        .filter(|l| {
+            let mut seen = FnvHashSet::default();
 
-    'outer: for l in input.trim().lines() {
-        let mut seen = FnvHashSet::default();
+            l.split_whitespace().all(|s| {
+                let mut chars: Vec<char> = s.chars().collect();
+                chars.sort_unstable();
+                seen.insert(chars)
+            })
+        })
+        .count() as u32
+}
 
-        for s in l.split_whitespace() {
-            let mut chars = s.chars().collect::<Vec<char>>();
-            chars.sort_unstable();
+pub fn solve() -> Result<()> {
+    let passphrases = super::get_input()?;
+    let first = check_password(&passphrases);
+    let second = check_anagram(&passphrases);
 
-            if !seen.insert(chars) {
-                continue 'outer;
-            }
-        }
-
-        result += 1;
-    }
-
-    result
+    println!(
+        "Day 4:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]

@@ -1,8 +1,10 @@
 use fnv::FnvHashMap;
 
-pub fn run(input: &str) -> (i32, i32) {
+use super::Result;
+
+fn eval(input: &str) -> (i32, i32) {
     let mut env = FnvHashMap::default();
-    let mut second = 0;
+    let mut max = 0;
 
     for l in input.trim().lines() {
         let mut tokens = l.split_whitespace();
@@ -14,7 +16,7 @@ pub fn run(input: &str) -> (i32, i32) {
         tokens.next();
 
         let regc = tokens.next().unwrap();
-        let comp = tokens.next().unwrap();
+        let cmp = tokens.next().unwrap();
         let valc: i32 = tokens.next().unwrap().parse().unwrap();
 
         let clone_env = env.clone();
@@ -25,17 +27,17 @@ pub fn run(input: &str) -> (i32, i32) {
         let &regvalc = clone_env.get(regc).unwrap_or(&0);
         env.insert(regc, regvalc);
 
-        let resultc = match comp {
+        let cmp = match cmp {
             ">" => regvalc > valc,
             "<" => regvalc < valc,
             ">=" => regvalc >= valc,
             "<=" => regvalc <= valc,
             "==" => regvalc == valc,
             "!=" => regvalc != valc,
-            op => panic!("unexpected bool operator: {}", op),
+            op => panic!("unexpected operator: {}", op),
         };
 
-        if resultc {
+        if cmp {
             let result = match op {
                 "inc" => regval + val,
                 "dec" => regval - val,
@@ -44,15 +46,28 @@ pub fn run(input: &str) -> (i32, i32) {
 
             env.insert(reg, result);
 
-            if result > second {
-                second = result;
+            if result > max {
+                max = result;
             }
         }
     }
 
     let first = env.values().max().unwrap();
-
+    let second = max;
     (*first, second)
+}
+
+pub fn solve() -> Result<()> {
+    let program = super::get_input()?;
+    let (first, second) = eval(&program);
+
+    println!(
+        "Day 8:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
@@ -63,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_both() {
-        assert_eq!(run(IN), (1, 10));
+        assert_eq!(eval(IN), (1, 10));
     }
 
     use test::Bencher;
@@ -71,6 +86,6 @@ mod tests {
 
     #[bench]
     fn bench_both(b: &mut Bencher) {
-        b.iter(|| assert_eq!(run(FULL), (4163, 5347)))
+        b.iter(|| assert_eq!(eval(FULL), (4163, 5347)))
     }
 }

@@ -4,7 +4,7 @@ use crossbeam::scope;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 
 use super::Result;
-use self::Action::{Store, Terminate, Nothing};
+use self::Action::{Nothing, Store, Terminate};
 use self::Inst::{Add, Jgz, Mod, Mul, Rcv, Set, Snd};
 
 type Memory = [i64; 256];
@@ -26,7 +26,7 @@ enum RegVal {
 
 impl RegVal {
     fn parse(input: &str) -> RegVal {
-        use self::RegVal::{Val, Reg};
+        use self::RegVal::{Reg, Val};
 
         if let Ok(v) = input.parse::<i64>() {
             Val(v)
@@ -204,17 +204,17 @@ where
     }
 }
 
-struct First {
+struct Duet {
     sent: i64,
 }
 
-impl First {
-    fn new() -> First {
-        First { sent: 0 }
+impl Duet {
+    fn new() -> Duet {
+        Duet { sent: 0 }
     }
 }
 
-impl Channel for First {
+impl Channel for Duet {
     fn id(&mut self) -> Option<u8> {
         None
     }
@@ -232,15 +232,14 @@ impl Channel for First {
     }
 }
 
-fn first(input: &str) -> Result<i64> {
-    let inst = parse(input)?;
-    let mut p = Program::from_inst(&inst, First::new());
+fn duet(inst: &[Inst]) -> i64 {
+    let mut p = Program::from_inst(inst, Duet::new());
     p.exec();
-    Ok(p.channel.sent)
+    p.channel.sent
 }
 
 #[derive(Debug)]
-struct Second {
+struct ThreadDuet {
     id: u8,
     sent: u64,
     recv: u64,
@@ -249,14 +248,14 @@ struct Second {
     blocked: Arc<Mutex<bool>>,
 }
 
-impl Second {
+impl ThreadDuet {
     fn new(
         id: u8,
         sender: Sender<Action>,
         receiver: Receiver<Action>,
         blocked: Arc<Mutex<bool>>,
     ) -> Self {
-        Second {
+        ThreadDuet {
             id,
             sent: 0,
             recv: 0,
@@ -267,7 +266,7 @@ impl Second {
     }
 }
 
-impl Channel for Second {
+impl Channel for ThreadDuet {
     fn id(&mut self) -> Option<u8> {
         Some(self.id)
     }
@@ -303,45 +302,72 @@ impl Channel for Second {
     }
 }
 
-fn second(input: &str) -> Result<u64> {
-    let inst = parse(input)?;
-
+fn thread_duet(inst: &[Inst]) -> u64 {
     let (tx0, rx0) = unbounded();
     let (tx1, rx1) = unbounded();
 
     let s0 = Arc::new(Mutex::new(false));
     let s1 = Arc::clone(&s0);
 
-    let mut p0 = Program::from_inst(&inst, Second::new(0, tx0, rx1, s0));
-    let mut p1 = Program::from_inst(&inst, Second::new(1, tx1, rx0, s1));
+    let mut p0 = Program::from_inst(inst, ThreadDuet::new(0, tx0, rx1, s0));
+    let mut p1 = Program::from_inst(inst, ThreadDuet::new(1, tx1, rx0, s1));
 
     scope(|scope| {
         scope.spawn(|| p0.exec());
         scope.spawn(|| p1.exec());
     });
 
-    Ok(p1.channel.sent)
+    p1.channel.sent
 }
 
-pub fn run(input: &str) -> Result<u64> {
-    second(input)
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let inst = parse(&input)?;
+    let first = duet(&inst);
+    let second = thread_duet(&inst);
+
+    println!(
+        "Day 18:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     #[test]
     fn test_first() {
-        let input = "set a 1\nadd a 2\nmul a a\nmod a 5\nsnd a\nset a 0\nrcv a\njgz a -1\nset a 1\njgz a -2";
-        check(first(input), 4)
+        let inst = parse(
+            "set a 1\n\
+             add a 2\n\
+             mul a a\n\
+             mod a 5\n\
+             snd a\n\
+             set a 0\n\
+             rcv a\n\
+             jgz a -1\n\
+             set a 1\n\
+             jgz a -2",
+        ).unwrap();
+        assert_eq!(duet(&inst), 4)
     }
 
     #[test]
     fn test_second() {
-        let input = "snd 1\nsnd 2\nsnd p\nrcv a\nrcv b\nrcv c\nrcv d";
-        check(second(input), 3);
+        let inst = parse(
+            "snd 1\n\
+             snd 2\n\
+             snd p\n\
+             rcv a\n\
+             rcv b\n\
+             rcv c\n\
+             rcv d",
+        ).unwrap();
+        assert_eq!(thread_duet(&inst), 3);
     }
 
     use test::Bencher;
@@ -349,11 +375,13 @@ mod tests {
 
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL), 3188))
+        let inst = parse(FULL).unwrap();
+        b.iter(|| assert_eq!(duet(&inst), 3188))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(second(FULL), 7112))
+        let inst = parse(FULL).unwrap();
+        b.iter(|| assert_eq!(thread_duet(&inst), 7112))
     }
 }

@@ -6,25 +6,10 @@ use bit_vec::BitVec;
 use super::d10::knothash;
 use super::Result;
 
-pub fn first(input: &str) -> Result<u32> {
-    let mut squares = 0;
+type Point = (i32, i32);
+type Grid = FnvHashSet<Point>;
 
-    for line in 0..128 {
-        for mut b in knothash(&format!("{}-{}", input, line)) {
-            while b > 0 {
-                if b % 2 == 1 {
-                    squares += 1;
-                }
-
-                b >>= 1;
-            }
-        }
-    }
-
-    Ok(squares)
-}
-
-pub fn second(input: &str) -> Result<u32> {
+fn parse_grid(input: &str) -> Grid {
     let mut grid = FnvHashSet::default();
 
     for y in 0..128 {
@@ -33,11 +18,33 @@ pub fn second(input: &str) -> Result<u32> {
         grid.extend(
             bits.into_iter()
                 .enumerate()
-                .filter(|v| v.1)
-                .map(|v| (v.0 as i32, y as i32)),
+                .filter(|(_, b)| *b)
+                .map(|(i, _)| (i as i32, y as i32)),
         );
     }
 
+    grid
+}
+
+fn squares_used(input: &str) -> u32 {
+    let mut squares = 0;
+
+    for line in 0..128 {
+        for mut b in knothash(&format!("{}-{}", input, line)) {
+            while b > 0 {
+                if b & 1 == 1 {
+                    squares += 1;
+                }
+
+                b >>= 1;
+            }
+        }
+    }
+
+    squares
+}
+
+fn regions(mut grid: Grid) -> u32 {
     let mut regions = 0;
     let mut queue = VecDeque::new();
 
@@ -53,36 +60,51 @@ pub fn second(input: &str) -> Result<u32> {
         }
     }
 
-    Ok(regions)
+    regions
+}
+
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let grid = parse_grid(&input);
+    let first = squares_used(&input);
+    let second = regions(grid);
+
+    println!(
+        "Day 14:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     #[test]
     fn test_first() {
         let input = "flqrgnkx";
-        check(first(input), 8108);
+        assert_eq!(squares_used(input), 8108);
     }
 
     #[test]
     fn test_second() {
-        let input = "flqrgnkx";
-        check(second(input), 1242);
+        let input = parse_grid("flqrgnkx");
+        assert_eq!(regions(input), 1242);
     }
 
     use test::Bencher;
     const FULL: &str = "oundnydw";
-    
+
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL), 8106))
+        b.iter(|| assert_eq!(squares_used(FULL), 8106))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(second(FULL), 1164))
+        let grid = parse_grid(FULL);
+        b.iter(|| assert_eq!(regions(grid.clone()), 1164))
     }
 }

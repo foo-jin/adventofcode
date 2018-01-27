@@ -76,39 +76,49 @@ where
     backtrack(&quality, xs, 0, Bridge::new())
 }
 
-fn first(input: &str) -> Result<u32> {
-    let mut connectors = parse_connectors(input)?;
+fn strongest_bridge(connectors: &mut [Connector]) -> u32 {
     let stronger = |b1: Bridge, b2: Bridge| if b1.strength > b2.strength { b1 } else { b2 };
-    let bridge = optimal_bridge(stronger, &mut connectors);
-    Ok(bridge.strength)
+    let bridge = optimal_bridge(stronger, connectors);
+    bridge.strength
 }
 
-fn second(input: &str) -> Result<u32> {
-    let mut connectors = parse_connectors(input)?;
-    let bridge = optimal_bridge(Bridge::max, &mut connectors);
-    Ok(bridge.strength)
+fn longest_bridge(connectors: &mut [Connector]) -> u32 {
+    let bridge = optimal_bridge(Bridge::max, connectors);
+    bridge.strength
 }
 
-pub fn run(input: &str) -> Result<u32> {
-    second(input)
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let mut connectors = parse_connectors(&input)?;
+    let first = strongest_bridge(&mut connectors);
+    let second = longest_bridge(&mut connectors);
+
+    println!(
+        "Day 24:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[allow(dead_code)]
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     const IN: &str = "0/2\n2/2\n2/3\n3/4\n3/5\n0/1\n10/1\n9/10";
 
     #[test]
     fn test_first() {
-        check(first(IN), 31);
+        let mut connectors = parse_connectors(IN).unwrap();
+        assert_eq!(strongest_bridge(&mut connectors), 31);
     }
 
     #[test]
     fn test_second() {
-        check(second(IN), 19);
+        let mut connectors = parse_connectors(IN).unwrap();
+        assert_eq!(longest_bridge(&mut connectors), 19);
     }
 
     use test::Bencher;
@@ -116,11 +126,13 @@ mod tests {
 
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL), 1906))
+        let mut connectors = parse_connectors(FULL).unwrap();
+        b.iter(|| assert_eq!(strongest_bridge(&mut connectors), 1906))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(second(FULL), 1824))
+        let mut connectors = parse_connectors(FULL).unwrap();
+        b.iter(|| assert_eq!(longest_bridge(&mut connectors), 1824))
     }
 }

@@ -58,11 +58,10 @@ fn parse_routine(s: &str) -> Result<Vec<Dancemove>> {
         .collect::<Result<_>>()
 }
 
-fn dance(routine: &[Dancemove], reps: usize, n: usize) -> String {
-    let order = &mut ABC[..n];
-    let n = n as i32;
+fn dance(routine: &[Dancemove], reps: usize) -> String {
+    let order = &mut ABC;
+    let n = order.len() as i32;
     let mut offset = 0;
-
     let mut seen = vec![shift(offset, order)];
     let mut result = String::new();
 
@@ -98,36 +97,43 @@ fn dance(routine: &[Dancemove], reps: usize, n: usize) -> String {
     result
 }
 
-fn first(input: &str) -> Result<String> {
-    let routine = parse_routine(input)?;
-    Ok(dance(&routine, 1, 16))
-}
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let routine = parse_routine(&input)?;
+    let first = dance(&routine, 1);
+    let second = dance(&routine, 1_000_000_000);
 
-fn second(input: &str) -> Result<String> {
-    let routine = parse_routine(input)?;
-    Ok(dance(&routine, 1_000_000_000, 16))
-}
-
-pub fn run(input: &str) -> Result<String> {
-    second(input)
+    println!(
+        "Day 16:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     const FULL: &str = include_str!("../../data/d16-test");
 
     #[test]
     fn test_first() {
-        check(first(FULL), "ociedpjbmfnkhlga".to_owned())
+        let routine = parse_routine(FULL).unwrap();
+        assert_eq!(dance(&routine, 1), "ociedpjbmfnkhlga".to_owned())
     }
 
     use test::Bencher;
 
     #[bench]
-    fn bench_both(b: &mut Bencher) {
-        b.iter(|| check(second(FULL), "gnflbkojhicpmead".to_owned()))
+    fn bench_p2(b: &mut Bencher) {
+        let routine = parse_routine(FULL).unwrap();
+        b.iter(|| {
+            assert_eq!(
+                dance(&routine, 1_000_000_000),
+                "gnflbkojhicpmead".to_owned()
+            )
+        })
     }
 }

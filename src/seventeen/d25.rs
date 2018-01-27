@@ -163,8 +163,16 @@ fn first(input: &str) -> Result<usize> {
     Ok(prog.eval())
 }
 
-pub fn run(input: &str) -> Result<usize> {
-    first(input)
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let first = first(&input)?;
+
+    println!(
+        "Day 25:\n\
+         Part 1: {}\n",
+        first
+    );
+    Ok(())
 }
 
 #[allow(dead_code)]

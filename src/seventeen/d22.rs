@@ -6,6 +6,25 @@ use self::State::{Clean, Flagged, Infected, Weakened};
 
 type Coord = (isize, isize);
 
+type Grid = FnvHashMap<Coord, State>;
+
+fn parse_grid(s: &str) -> Result<FnvHashMap<Coord, State>> {
+    let mut grid = FnvHashMap::default();
+
+    for (y, line) in s.lines().enumerate() {
+        let offset = (line.len() / 2) as isize;
+        for (x, c) in line.chars().enumerate() {
+            let x = x as isize - offset;
+            let y = y as isize - offset;
+            let p = (x, y);
+            let state = State::from_char(c)?;
+            grid.insert(p, state);
+        }
+    }
+
+    Ok(grid)
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum Direction {
     Up,
@@ -55,23 +74,6 @@ impl State {
         };
 
         Ok(result)
-    }
-
-    fn parse_grid(s: &str) -> Result<FnvHashMap<Coord, State>> {
-        let mut grid = FnvHashMap::default();
-
-        for (y, line) in s.lines().enumerate() {
-            let offset = (line.len() / 2) as isize;
-            for (x, c) in line.chars().enumerate() {
-                let x = x as isize - offset;
-                let y = y as isize - offset;
-                let p = (x, y);
-                let state = State::from_char(c)?;
-                grid.insert(p, state);
-            }
-        }
-
-        Ok(grid)
     }
 
     fn is_infected(&self) -> bool {
@@ -146,85 +148,95 @@ where
     }
 }
 
-fn exec<F>(input: &str, n: usize, next: F) -> Result<usize>
+fn exec<F>(grid: Grid, n: usize, transition: F) -> usize
 where
     F: Fn(State) -> State,
 {
-    let grid = State::parse_grid(input)?;
-    let mut carrier = Carrier::new(grid, next);
-
+    let mut carrier = Carrier::new(grid, transition);
     for _ in 0..n {
         carrier.update();
     }
 
-    Ok(carrier.count)
+    carrier.count
 }
 
-fn first(input: &str, n: usize) -> Result<usize> {
-    let next = |state| match state {
+fn infection(grid: Grid, n: usize) -> usize {
+    let evolve = |state| match state {
         Clean => Infected,
         Infected => Clean,
         _ => panic!("unexpected state"),
     };
-    exec(input, n, next)
+    exec(grid, n, evolve)
 }
 
-fn second(input: &str, n: usize) -> Result<usize> {
-    let next = |state| match state {
+fn evolved_infection(grid: Grid, n: usize) -> usize {
+    let evolve = |state| match state {
         Clean => Weakened,
         Weakened => Infected,
         Infected => Flagged,
         Flagged => Clean,
     };
 
-    let grid = State::parse_grid(input)?;
-    let mut carrier = Carrier::new(grid, next);
-
+    let mut carrier = Carrier::new(grid, evolve);
     for _ in 0..n {
         carrier.update();
     }
 
-    Ok(carrier.count)
+    carrier.count
 }
 
-pub fn run(input: &str) -> Result<usize> {
-    second(input, 10_000_000)
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let grid = parse_grid(&input)?;
+    let first = infection(grid.clone(), 10_000);
+    let second = evolved_infection(grid, 10_000_000);
+
+    println!(
+        "Day 22:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[allow(dead_code)]
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     const IN: &str = "..#\n#..\n...";
 
     #[test]
     fn test_first1() {
-        let result = first(IN, 7);
+        let grid = parse_grid(IN).unwrap();
+        let result = infection(grid, 7);
         let expected = 5;
-        check(result, expected);
+        assert_eq!(result, expected);
     }
 
     #[test]
     fn test_first2() {
-        let result = first(IN, 70);
+        let grid = parse_grid(IN).unwrap();
+        let result = infection(grid, 70);
         let expected = 41;
-        check(result, expected);
+        assert_eq!(result, expected);
     }
 
     #[test]
     fn test_first3() {
-        let result = first(IN, 10_000);
+        let grid = parse_grid(IN).unwrap();
+        let result = infection(grid, 10_000);
         let expected = 5587;
-        check(result, expected);
+        assert_eq!(result, expected);
     }
 
     #[test]
     fn test_second1() {
-        let result = second(IN, 100);
+        let grid = parse_grid(IN).unwrap();
+        let result = evolved_infection(grid, 100);
         let expected = 26;
-        check(result, expected);
+        assert_eq!(result, expected);
     }
 
     use test::Bencher;
@@ -232,11 +244,13 @@ mod tests {
 
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL, 10_000), 5433))
+        let grid = parse_grid(FULL).unwrap();
+        b.iter(|| assert_eq!(infection(grid.clone(), 10_000), 5433))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(second(FULL, 10_000_000), 2_512_599))
+        let grid = parse_grid(FULL).unwrap();
+        b.iter(|| assert_eq!(evolved_infection(grid.clone(), 10_000_000), 2_512_599))
     }
 }

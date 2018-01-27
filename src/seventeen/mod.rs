@@ -27,6 +27,7 @@ pub mod d24;
 pub mod d25;
 
 use std::fmt::Debug;
+use std::io::{self, Read};
 use std::result;
 
 use failure::Error;
@@ -51,4 +52,10 @@ where
             panic!("test failed");
         }
     }
+}
+
+pub fn get_input() -> Result<String> {
+    let mut buffer = String::new();
+    io::stdin().read_to_string(&mut buffer)?;
+    Ok(buffer)
 }

@@ -1,4 +1,5 @@
-use self::Direction::*;
+use super::Result;
+use self::Direction::{N, NE, NW, S, SE, SW};
 
 #[derive(Clone, Copy)]
 enum Direction {
@@ -90,7 +91,7 @@ impl Point {
     }
 }
 
-pub fn run(input: &str) -> (u32, u32) {
+fn hexgrid(input: &str) -> (u32, u32) {
     let mut max = 0;
     let last = input
         .trim()
@@ -106,28 +107,41 @@ pub fn run(input: &str) -> (u32, u32) {
     (last, max)
 }
 
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let (first, second) = hexgrid(&input);
+
+    println!(
+        "Day 11:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_both1() {
-        assert_eq!(run("ne,ne,ne"), (3, 3));
+        assert_eq!(hexgrid("ne,ne,ne"), (3, 3));
     }
 
     #[test]
     fn test_both2() {
-        assert_eq!(run("ne,ne,sw,sw"), (0, 2));
+        assert_eq!(hexgrid("ne,ne,sw,sw"), (0, 2));
     }
 
     #[test]
     fn test_both3() {
-        assert_eq!(run("ne,ne,s,s"), (2, 2));
+        assert_eq!(hexgrid("ne,ne,s,s"), (2, 2));
     }
 
     #[test]
     fn test_both4() {
-        assert_eq!(run("se,sw,se,sw,sw"), (3, 3));
+        assert_eq!(hexgrid("se,sw,se,sw,sw"), (3, 3));
     }
 
     use test::Bencher;
@@ -135,6 +149,6 @@ mod tests {
 
     #[bench]
     fn bench_both(b: &mut Bencher) {
-        b.iter(|| assert_eq!(run(FULL), (824, 1548)))
+        b.iter(|| assert_eq!(hexgrid(FULL), (824, 1548)))
     }
 }

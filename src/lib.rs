@@ -6,8 +6,10 @@
 #![feature(range_contains)]
 #![feature(type_ascription)]
 #![feature(nll)]
+#![feature(conservative_impl_trait)]
 
 extern crate bit_vec;
+extern crate clap;
 extern crate crossbeam;
 extern crate crossbeam_channel;
 #[macro_use]

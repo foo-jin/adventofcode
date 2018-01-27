@@ -7,7 +7,7 @@ struct Layer {
 }
 
 impl Layer {
-    fn parse(s: &str) -> Result<Layer> {
+    fn from_str(s: &str) -> Result<Layer> {
         let mut it = s.split(": ");
         let depth = it.next().unwrap().parse()?;
         let range = it.next().unwrap().parse()?;
@@ -17,15 +17,11 @@ impl Layer {
 }
 
 fn parse_layers(s: &str) -> Result<Vec<Layer>> {
-    s.trim()
-        .lines()
-        .map(Layer::parse)
-        .collect::<Result<_>>()
+    s.trim().lines().map(Layer::from_str).collect()
 }
 
-fn first(input: &str) -> Result<u32> {
-    let layers = parse_layers(input)?;
-    let severity = layers
+fn severity_without_delay(layers: &[Layer]) -> u32 {
+    layers
         .iter()
         .map(|layer| {
             if layer.depth % (2 * (layer.range - 1)) == 0 {
@@ -34,51 +30,64 @@ fn first(input: &str) -> Result<u32> {
                 0
             }
         })
-        .sum();
-
-    Ok(severity)
+        .sum()
 }
 
-pub fn second(input: &str) -> Result<u32> {
-    let layers = parse_layers(input)?;
-    let wait = (0..)
+fn delay(layers: &[Layer]) -> u32 {
+    (0..)
         .find(|delay| {
             !layers
                 .iter()
                 .any(|layer| (delay + layer.depth) % (2 * (layer.range - 1)) == 0)
         })
-        .unwrap();
+        .unwrap()
+}
 
-    Ok(wait)
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let layers = parse_layers(&input)?;
+    let first = severity_without_delay(&layers);
+    let second = delay(&layers);
+
+    println!(
+        "Day 13:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     const IN: &str = "0: 3\n1: 2\n4: 4\n6: 4";
 
     #[test]
     fn test_first() {
-        check(first(IN), 24);
+        let layers = parse_layers(IN).unwrap();
+        assert_eq!(severity_without_delay(&layers), 24);
     }
 
     #[test]
     fn test_second() {
-        check(second(IN), 10);
+        let layers = parse_layers(IN).unwrap();
+        assert_eq!(delay(&layers), 10);
     }
 
     use test::Bencher;
     const FULL: &str = include_str!("../../data/d13-test");
-    
+
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL), 788))
+        let layers = parse_layers(FULL).unwrap();
+        b.iter(|| assert_eq!(severity_without_delay(&layers), 788))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(second(FULL), 3_905_748))
+        let layers = parse_layers(FULL).unwrap();
+        b.iter(|| assert_eq!(delay(&layers), 3_905_748))
     }
 }

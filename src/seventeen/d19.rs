@@ -102,7 +102,7 @@ impl Path {
         }
     }
 
-    fn parse(input: &str) -> Result<Path> {
+    fn from_str(input: &str) -> Result<Path> {
         let mut network = FnvHashMap::default();
         let mut init = Node(0, 0);
         
@@ -165,35 +165,41 @@ impl Iterator for Path {
     }
 }
 
-fn first(input: &str) -> Result<String> {
-    let result = Path::parse(input)?.filter_map(Edge::get_letter).collect();
-
-    Ok(result)
+fn get_letters(path: &[Edge]) -> String {
+    path.into_iter().filter_map(|e| e.get_letter()).collect()
 }
 
-fn second(input: &str) -> Result<usize> {
-    Ok(Path::parse(input)?.count())
-}
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let path: Vec<Edge> = Path::from_str(&input)?.collect();
+    let first = get_letters(&path);
+    let second = path.len();
 
-pub fn run(input: &str) -> Result<usize> {
-    second(input)
+    println!(
+        "Day 19:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     use test::Bencher;
     const FULL: &str = include_str!("../../data/d19-test");
 
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL), "ABCDEF".to_owned()))
+        let path: Vec<Edge> = Path::from_str(FULL).unwrap().collect();
+        b.iter(|| assert_eq!(get_letters(&path), "ABCDEF".to_owned()))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(second(FULL), 38))
+        let path: Vec<_> = Path::from_str(FULL).unwrap().collect();
+        b.iter(|| assert_eq!(path.len(), 38))
     }
 }

@@ -14,7 +14,7 @@ struct Tree<'a> {
 }
 
 impl<'a> Tree<'a> {
-    fn parse(s: &str) -> Result<Tree> {
+    fn from_str(s: &'a str) -> Result<Self> {
         let tree: FnvHashMap<Name, Attr> = s.trim()
             .lines()
             .map(|l| {
@@ -75,34 +75,36 @@ impl<'a> Tree<'a> {
     }
 }
 
-fn first(input: &str) -> Result<&str> {
-    let tree = Tree::parse(input)?;
-    Ok(tree.root)
-}
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let tree = Tree::from_str(&input)?;
+    let first = tree.root;
+    let second = tree.solve();
 
-fn second(input: &str) -> Result<u32> {
-    let tree = Tree::parse(input)?;
-    Ok(tree.solve())
-}
-
-pub fn run(input: &str) -> Result<u32> {
-    second(input)
+    println!(
+        "Day 7:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use seventeen::check;
     use super::*;
     const IN: &str = "pbga (66)\nxhth (57)\nebii (61)\nhavc (66)\nktlj (57)\nfwft (72) -> ktlj, cntj, xhth\nqoyq (66)\npadx (45) -> pbga, havc, qoyq\ntknk (41) -> ugml, padx, fwft\njptl (61)\nugml (68) -> gyxo, ebii, jptl\ngyxo (61)\ncntj (57)";
 
     #[test]
     fn test_rec_circus() {
-        check(first(IN), "tknk");
+        let tree = Tree::from_str(IN).unwrap();
+        assert_eq!(tree.root, "tknk");
     }
 
     #[test]
     fn test_balance() {
-        check(second(IN), 60);
+        let tree = Tree::from_str(IN).unwrap();
+        assert_eq!(tree.solve(), 60);
     }
 
     use test::Bencher;
@@ -110,11 +112,13 @@ mod tests {
 
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL), "fbgguv"))
+        let tree = Tree::from_str(FULL).unwrap();
+        b.iter(|| assert_eq!(tree.root, "fbgguv"))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(second(FULL), 1864))
+        let tree = Tree::from_str(FULL).unwrap();
+        b.iter(|| assert_eq!(tree.solve(), 1864))
     }
 }

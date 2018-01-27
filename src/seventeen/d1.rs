@@ -7,80 +7,80 @@ fn parse(input: &str) -> Result<Vec<u32>> {
         .trim()
         .chars()
         .map(|c| c.to_digit(10).ok_or_else(|| err_msg("unexpected token")))
-        .collect::<Result<Vec<_>>>()
+        .collect()
 }
 
-pub fn reverse_captcha(input: &str) -> Result<u32> {
-    let input = parse(input)?;
-    let n = input.len();
-    let mut result = 0;
-
-    for i in 0..n {
-        if input[i] == input[(i + 1) % n] {
-            result += input[i];
-        }
-    }
-
-    Ok(result)
+fn reverse_captcha(xs: &[u32]) -> u32 {
+    xs.iter()
+        .zip(xs.iter().cycle().skip(1))
+        .filter_map(|(a, b)| if a == b { Some(a) } else { None })
+        .sum()
 }
 
-pub fn reverse_captcha_half(input: &str) -> Result<u32> {
-    let input = parse(input)?;
-    let n = input.len();
-    let mut result = 0;
+fn reverse_captcha_half(xs: &[u32]) -> u32 {
+    xs.iter()
+        .zip(xs.iter().cycle().skip(xs.len() / 2))
+        .filter_map(|(a, b)| if a == b { Some(a) } else { None })
+        .sum()
+}
 
-    for i in 0..n {
-        if input[i] == input[(i + (n / 2)) % n] {
-            result += input[i];
-        }
-    }
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let parsed = parse(&input)?;
+    let first = reverse_captcha(&parsed);
+    let second = reverse_captcha_half(&parsed);
 
-    Ok(result)
+    println!(
+        "Day 1:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     #[test]
     fn test_reverse_captcha1122() {
-        check(reverse_captcha("1122"), 3);
+        assert_eq!(reverse_captcha(&[1, 1, 2, 2]), 3);
     }
 
     #[test]
     fn test_reverse_captcha1111() {
-        check(reverse_captcha("1111"), 4);
+        assert_eq!(reverse_captcha(&[1, 1, 1, 1]), 4);
     }
 
     #[test]
     fn test_reverse_captcha1234() {
-        check(reverse_captcha("1234"), 0);
+        assert_eq!(reverse_captcha(&[1, 2, 3, 4]), 0);
     }
 
     #[test]
     fn test_reverse_captcha_long() {
-        check(reverse_captcha("91212129"), 9);
+        assert_eq!(reverse_captcha(&[9, 1, 2, 1, 2, 1, 2, 9]), 9);
     }
 
     #[test]
     fn test_rev_captcha_half1212() {
-        check(reverse_captcha_half("1212"), 6);
+        assert_eq!(reverse_captcha_half(&[1, 2, 1, 2]), 6);
     }
 
     #[test]
     fn test_rev_captcha_half1221() {
-        check(reverse_captcha_half("1221"), 0);
+        assert_eq!(reverse_captcha_half(&[1, 2, 2, 1]), 0);
     }
 
     #[test]
     fn test_rev_captcha_half_long1() {
-        check(reverse_captcha_half("123123"), 12);
+        assert_eq!(reverse_captcha_half(&[1, 2, 3, 1, 2, 3]), 12);
     }
 
     #[test]
     fn test_rev_captcha_half_long2() {
-        check(reverse_captcha_half("12131415"), 4);
+        assert_eq!(reverse_captcha_half(&[1, 2, 1, 3, 1, 4, 1, 5]), 4);
     }
 
     use test::Bencher;
@@ -88,11 +88,13 @@ mod tests {
 
     #[bench]
     fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(reverse_captcha(FULL), 1049))
+        let input = parse(FULL).unwrap();
+        b.iter(|| assert_eq!(reverse_captcha(&input), 1049))
     }
 
     #[bench]
     fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(reverse_captcha_half(FULL), 1508))
+        let input = parse(FULL).unwrap();
+        b.iter(|| assert_eq!(reverse_captcha_half(&input), 1508))
     }
 }

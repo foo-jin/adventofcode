@@ -1,10 +1,10 @@
 use super::Result;
 
-pub fn run(input: &str) -> Result<(u32, u32)> {
+fn process_stream(input: &str) -> Result<(u32, u32)> {
+    let mut chars = input.trim().chars();
     let mut nesting = 0;
     let mut score = 0;
     let mut count = 0;
-    let mut chars = input.trim().chars();
 
     while let Some(c) = chars.next() {
         match c {
@@ -33,6 +33,19 @@ pub fn run(input: &str) -> Result<(u32, u32)> {
     Ok((score, count))
 }
 
+pub fn solve() -> Result<()> {
+    let stream = super::get_input()?;
+    let (first, second) = process_stream(&stream)?;
+
+    println!(
+        "Day 9:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -40,37 +53,40 @@ mod tests {
 
     #[test]
     fn test_both1() {
-        check(run("{}<>"), (1, 0));
+        check(process_stream("{}<>"), (1, 0));
     }
 
     #[test]
     fn test_both2() {
-        check(run("{{{}}}<random characters>"), (6, 17));
+        check(process_stream("{{{}}}<random characters>"), (6, 17));
     }
 
     #[test]
     fn test_both3() {
-        check(run("{{},{}}<{o\"i!a,<{i<a>"), (5, 10));
+        check(process_stream("{{},{}}<{o\"i!a,<{i<a>"), (5, 10));
     }
 
     #[test]
     fn test_both4() {
-        check(run("{{{},{},{{}}}}<<<<>"), (16, 3));
+        check(process_stream("{{{},{},{{}}}}<<<<>"), (16, 3));
     }
 
     #[test]
     fn test_both5() {
-        check(run("{<a>,<a>,<a>,<a>}<{!>}>"), (1, 6));
+        check(process_stream("{<a>,<a>,<a>,<a>}<{!>}>"), (1, 6));
     }
 
     #[test]
     fn test_both6() {
-        check(run("{{<ab>},{<ab>},{<ab>},{<ab>}}<!!>"), (9, 8));
+        check(process_stream("{{<ab>},{<ab>},{<ab>},{<ab>}}<!!>"), (9, 8));
     }
 
     #[test]
     fn test_both7() {
-        check(run("{{<a!>},{<a!>},{<a!>},{<ab>}}<!!!>>"), (3, 17));
+        check(
+            process_stream("{{<a!>},{<a!>},{<a!>},{<ab>}}<!!!>>"),
+            (3, 17),
+        );
     }
 
     use test::Bencher;
@@ -78,6 +94,6 @@ mod tests {
 
     #[bench]
     fn bench_both(b: &mut Bencher) {
-        b.iter(|| check(run(FULL), (12505, 6671)))
+        b.iter(|| check(process_stream(FULL), (12505, 6671)))
     }
 }

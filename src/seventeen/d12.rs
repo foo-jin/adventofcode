@@ -2,35 +2,39 @@ use fnv::{FnvHashMap, FnvHashSet};
 
 use super::Result;
 
-pub fn run(input: &str) -> Result<(u32, u32)> {
-    let mut graph = FnvHashMap::default();
-    let mut len = 0;
+type Graph = FnvHashMap<u32, Vec<u32>>;
 
-    for l in input.trim().lines() {
-        len += 1;
-        let mut it = l.split("<->");
-        let key: u32 = it.next().expect("left").trim().parse()?;
-        let right: Vec<u32> = it.next()
-            .expect("right")
-            .trim()
-            .split(", ")
-            .map(|s| s.parse().map_err(Into::into))
-            .collect::<Result<_>>()?;
+fn parse_graph(input: &str) -> Result<Graph> {
+    input
+        .trim()
+        .lines()
+        .map(|l| {
+            let mut it = l.split("<->");
+            let program = it.next().expect("left").trim().parse()?;
+            let neighbors: Vec<u32> = it.next()
+                .expect("right")
+                .trim()
+                .split(", ")
+                .map(|s| s.parse().map_err(Into::into))
+                .collect::<Result<_>>()?;
 
-        graph.insert(key, right);
-    }
+            Ok((program, neighbors))
+        })
+        .collect()
+}
 
+fn process_pipegraph(mut graph: Graph) -> (u32, u32) {
     let mut size = 0;
     let mut count = 0;
+    let n = graph.keys().len() as u32;
 
-    for i in 0..len {
+    for i in 0..n {
         if !graph.contains_key(&i) {
             continue;
         }
 
         let mut stack = vec![i];
         let mut connected = FnvHashSet::default();
-
         while let Some(cur) = stack.pop() {
             connected.insert(cur);
 
@@ -46,19 +50,39 @@ pub fn run(input: &str) -> Result<(u32, u32)> {
         count += 1;
     }
 
-    Ok((size, count))
+    (size, count)
+}
+
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let graph = parse_graph(&input)?;
+    let (first, second) = process_pipegraph(graph);
+
+    println!(
+        "Day 12:\n\
+         Part 1: {}\n\
+         Part 2: {}\n",
+        first, second
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
 
     #[test]
     fn test_both() {
-        let input =
-            "0 <-> 2\n1 <-> 1\n2 <-> 0, 3, 4\n3 <-> 2, 4\n4 <-> 2, 3, 6\n5 <-> 6\n6 <-> 4, 5";
-        check(run(input), (6, 2));
+        let graph = parse_graph(
+            "0 <-> 2\n\
+             1 <-> 1\n\
+             2 <-> 0, 3, 4\n\
+             3 <-> 2, 4\n\
+             4 <-> 2, 3, 6\n\
+             5 <-> 6\n\
+             6 <-> 4, 5",
+        ).unwrap();
+        assert_eq!(process_pipegraph(graph), (6, 2));
     }
 
     use test::Bencher;
@@ -66,6 +90,7 @@ mod tests {
 
     #[bench]
     fn bench_both(b: &mut Bencher) {
-        b.iter(|| check(run(FULL), (128, 209)))
+        let graph = parse_graph(FULL).unwrap();
+        b.iter(|| assert_eq!(process_pipegraph(graph.clone()), (128, 209)))
     }
 }
