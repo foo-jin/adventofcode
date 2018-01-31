@@ -5,7 +5,7 @@ use seventeen::Result;
 use self::Rotation::{Left, Right};
 use self::Direction::{East, North, South, West};
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 enum Direction {
     North,
     South,
@@ -101,7 +101,7 @@ impl Position {
         self.direction = self.direction.turn(r);
     }
 
-    fn exec(mut self, (rotation, distance): Move) -> Position {
+    fn exec(&mut self, (rotation, distance): Move) -> Position {
         self.turn(rotation);
         let location = self.travel(distance);
         let direction = self.direction;
@@ -166,11 +166,11 @@ fn parse_instructions(input: &str) -> Result<Vec<Move>> {
 
 pub fn find_hq(input: &str) -> Result<u32> {
     let instructions = parse_instructions(input)?;
-    let mut position = Position::new();
-
-    for mv in instructions {
-        position = position.exec(mv);
-    }
+    let position = instructions
+        .into_iter()
+        .fold(Position::new(), |mut pos: Position, mv| {
+            pos.exec(mv)
+        });
 
     Ok(position.location.distance_from_start())
 }
@@ -195,7 +195,6 @@ pub fn find_cycle(input: &str) -> Result<u32> {
 
     bail!("no cycle present in input");
 }
-
 
 #[cfg(test)]
 mod tests {

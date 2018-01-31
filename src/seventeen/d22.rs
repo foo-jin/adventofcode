@@ -153,10 +153,7 @@ where
     F: Fn(State) -> State,
 {
     let mut carrier = Carrier::new(grid, transition);
-    for _ in 0..n {
-        carrier.update();
-    }
-
+    (0..n).for_each(|_| carrier.update());
     carrier.count
 }
 
@@ -166,6 +163,7 @@ fn infection(grid: Grid, n: usize) -> usize {
         Infected => Clean,
         _ => panic!("unexpected state"),
     };
+    
     exec(grid, n, evolve)
 }
 
@@ -177,12 +175,7 @@ fn evolved_infection(grid: Grid, n: usize) -> usize {
         Flagged => Clean,
     };
 
-    let mut carrier = Carrier::new(grid, evolve);
-    for _ in 0..n {
-        carrier.update();
-    }
-
-    carrier.count
+    exec(grid, n, evolve)
 }
 
 pub fn solve() -> Result<()> {

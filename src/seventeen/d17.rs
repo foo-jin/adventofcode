@@ -6,8 +6,7 @@ fn spinlock(steps: usize) -> u32 {
     let mut i = 0;
 
     for k in 1..2018 {
-        let n = k;
-        i = ((i + steps) % n) + 1;
+        i = ((i + steps) % k) + 1;
 
         buf.insert(i, k as u32);
     }

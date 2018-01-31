@@ -39,13 +39,11 @@ fn divsum(lines: &[Vec<u32>]) -> u32 {
     let mut result = 0;
 
     for l in lines {
-        for v in l.iter()
+        l.iter()
             .enumerate()
             .flat_map(|(i, val)| iter::repeat(val).zip(l.iter().skip(i + 1)))
             .filter_map(divides)
-        {
-            result += v;
-        }
+            .for_each(|v| result += v);
     }
 
     result

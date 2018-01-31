@@ -68,21 +68,20 @@ impl Pattern {
         let n = self.size / size;
 
         for y in 0..n {
-            let mut it = vec![];
-
-            for i in 0..size {
-                let offset = i + (y * size);
-                it.push(pix[offset].iter());
-            }
+            let mut iters: Vec<_> = (0..size)
+                .map(|i| {
+                    let offset = i + (y * size);
+                    pix[offset].iter()
+                })
+                .collect();
 
             for _ in 0..n {
-                let mut temp: Vec<Vec<Pixel>> = Vec::with_capacity(size);
+                let pat: Vec<Vec<Pixel>> = iters
+                    .iter_mut()
+                    .map(|it| it.take(size).cloned().collect())
+                    .collect();
 
-                for it in &mut it {
-                    temp.push(it.take(size).cloned().collect());
-                }
-
-                patterns.push(Pattern::new(temp));
+                patterns.push(Pattern::new(pat));
             }
         }
 
@@ -139,11 +138,7 @@ impl Pattern {
     fn hflip(&self) -> Pattern {
         let mut pix = self.pixels.clone();
         let n = self.size;
-
-        for v in &mut pix {
-            v.swap(0, n - 1);
-        }
-
+        pix.iter_mut().for_each(|v| v.swap(0, n - 1));
         Pattern::new(pix)
     }
 
@@ -281,9 +276,7 @@ impl Grid {
 }
 
 fn evolve(mut grid: Grid, n: usize) -> usize {
-    for _ in 0..n {
-        grid.enhance();
-    }
+    (0..n).for_each(|_| grid.enhance());
     grid.count_on()
 }
 

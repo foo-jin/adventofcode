@@ -150,10 +150,7 @@ impl Program {
     }
 
     fn eval(&mut self) -> usize {
-        for _ in 0..self.steps {
-            self.step();
-        }
-
+        (0..self.steps).for_each(|_| self.step());
         self.checksum()
     }
 }

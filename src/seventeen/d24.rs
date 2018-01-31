@@ -64,9 +64,11 @@ where
         let bridge = max;
         for j in i..xs.len() {
             xs.swap(i, j);
+
             if let Some(bridge) = bridge.extend(xs[i]) {
                 max = quality(max, backtrack(quality, xs, i + 1, bridge));
             }
+            
             xs.swap(j, i);
         }
 

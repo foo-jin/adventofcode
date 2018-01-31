@@ -27,10 +27,7 @@ fn main() {
     let day: u8 = matches.value_of("day").unwrap().parse().unwrap();
 
     if let Err(e) = run(day) {
-        for cause in e.causes() {
-            println!("{}", cause);
-        }
-
+        e.causes().for_each(|cause| println!("{}", cause));
         println!("{}", e.backtrace());
     }
 }

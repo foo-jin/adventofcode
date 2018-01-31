@@ -101,10 +101,7 @@ fn second(mut particles: Vec<Particle>) -> usize {
         }
 
         particles.retain(|p| seen[&p.pos] < 2);
-
-        for p in &mut particles {
-            p.update()
-        }
+        particles.iter_mut().for_each(|p| p.update());
     }
 
     particles.len()

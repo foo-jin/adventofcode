@@ -44,10 +44,7 @@ where
             assert_eq!(result, expected);
         }
         Err(e) => {
-            for cause in e.causes() {
-                println!("{:?}", cause);
-            }
-
+            e.causes().for_each(|cause| println!("{:?}", cause));
             println!("{:?}", e.backtrace());
             panic!("test failed");
         }
