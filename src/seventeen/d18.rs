@@ -59,44 +59,36 @@ enum Inst {
 
 fn parse(input: &str) -> Result<Vec<Inst>> {
     let mut out = Vec::new();
-
     for mut words in input.trim().lines().map(str::split_whitespace) {
         let inst = words.next().expect("no instruction");
-        match inst {
+        let inst = match inst {
             "jgz" => {
                 let cond = RegVal::parse(words.next().expect("no register"));
                 let arg = RegVal::parse(words.next().expect("no argument"));
-                out.push(Inst::Jgz(cond, arg));
+                Inst::Jgz(cond, arg)
             }
             "snd" => {
                 let arg = RegVal::parse(words.next().expect("no argument"));
-                out.push(Inst::Snd(arg));
+                Inst::Snd(arg)
             }
             "rcv" => {
                 let reg = Reg::parse(words.next().expect("no argument"));
-                out.push(Inst::Rcv(reg));
+                Inst::Rcv(reg)
             }
             bin => {
                 let reg = Reg::parse(words.next().expect("no register"));
                 let arg = RegVal::parse(words.next().expect("no argument"));
-
                 match bin {
-                    "set" => {
-                        out.push(Inst::Set(reg, arg));
-                    }
-                    "mul" => {
-                        out.push(Inst::Mul(reg, arg));
-                    }
-                    "add" => {
-                        out.push(Inst::Add(reg, arg));
-                    }
-                    "mod" => {
-                        out.push(Inst::Mod(reg, arg));
-                    }
+                    "set" => Inst::Set(reg, arg),
+                    "mul" => Inst::Mul(reg, arg),
+                    "add" => Inst::Add(reg, arg),
+                    "mod" => Inst::Mod(reg, arg),
                     _ => bail!("unkown instruction: {}", bin),
                 }
             }
-        }
+        };
+
+        out.push(inst);
     }
 
     Ok(out)
