@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use fnv::FnvHashSet;
 use bit_vec::BitVec;
 
-use super::d10::knothash;
+use super::day10::knothash;
 use super::Result;
 
 type Point = (i32, i32);
