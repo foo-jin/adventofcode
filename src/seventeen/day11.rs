@@ -91,7 +91,7 @@ impl Point {
     }
 }
 
-fn hexgrid(input: &str) -> (u32, u32) {
+pub fn hexgrid(input: &str) -> (u32, u32) {
     let mut max = 0;
     let last = input
         .trim()
@@ -142,13 +142,5 @@ mod tests {
     #[test]
     fn test_both4() {
         assert_eq!(hexgrid("se,sw,se,sw,sw"), (3, 3));
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d11-test");
-
-    #[bench]
-    fn bench_both(b: &mut Bencher) {
-        b.iter(|| assert_eq!(hexgrid(FULL), (824, 1548)))
     }
 }

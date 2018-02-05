@@ -151,11 +151,11 @@ impl Iterator for SumSpiral {
     }
 }
 
-fn nthspiral(n: usize) -> u32 {
+pub fn nthspiral(n: usize) -> u32 {
     Spiral::new().nth(n - 1).unwrap().distance_from_start()
 }
 
-fn firstlarger(n: u32) -> u32 {
+pub fn firstlarger(n: u32) -> u32 {
     let mut result = 0;
     for v in SumSpiral::new() {
         if v > n {
@@ -167,8 +167,8 @@ fn firstlarger(n: u32) -> u32 {
 }
 
 pub fn solve() -> Result<()> {
-    let first = nthspiral(265149);
-    let second = firstlarger(265149);
+    let first = nthspiral(265_149);
+    let second = firstlarger(265_149);
 
     println!(
         "Day 3:\n\
@@ -251,17 +251,5 @@ mod tests {
     #[test]
     fn test_firstlarger747() {
         assert_eq!(firstlarger(747), 806);
-    }
-
-    use test::Bencher;
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        b.iter(|| assert_eq!(nthspiral(265149), 438))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        b.iter(|| assert_eq!(firstlarger(265149), 266330))
     }
 }

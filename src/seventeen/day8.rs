@@ -2,12 +2,12 @@ use fnv::FnvHashMap;
 
 use super::Result;
 
-fn eval(input: &str) -> (i32, i32) {
+pub fn eval(input: &str) -> (i32, i32) {
     let mut env = FnvHashMap::default();
     let mut max = 0;
 
-    for l in input.trim().lines() {
-        let mut tokens = l.split_whitespace();
+    for line in input.trim().lines() {
+        let mut tokens = line.split_whitespace();
 
         let reg = tokens.next().unwrap();
         let op = tokens.next().unwrap();
@@ -17,15 +17,10 @@ fn eval(input: &str) -> (i32, i32) {
 
         let regc = tokens.next().unwrap();
         let cmp = tokens.next().unwrap();
-        let valc: i32 = tokens.next().unwrap().parse().unwrap();
+        let valc = tokens.next().unwrap().parse().unwrap();
 
-        let clone_env = env.clone();
-
-        let &regval = clone_env.get(reg).unwrap_or(&0);
-        env.insert(reg, regval);
-
-        let &regvalc = clone_env.get(regc).unwrap_or(&0);
-        env.insert(regc, regvalc);
+        let regval = *env.entry(reg).or_insert(0);
+        let regvalc = *env.entry(regc).or_insert(0);
 
         let cmp = match cmp {
             ">" => regvalc > valc,
@@ -52,9 +47,9 @@ fn eval(input: &str) -> (i32, i32) {
         }
     }
 
-    let first = env.values().max().unwrap();
+    let first = *env.values().max().unwrap();
     let second = max;
-    (*first, second)
+    (first, second)
 }
 
 pub fn solve() -> Result<()> {
@@ -79,13 +74,5 @@ mod tests {
     #[test]
     fn test_both() {
         assert_eq!(eval(IN), (1, 10));
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d8-test");
-
-    #[bench]
-    fn bench_both(b: &mut Bencher) {
-        b.iter(|| assert_eq!(eval(FULL), (4163, 5347)))
     }
 }

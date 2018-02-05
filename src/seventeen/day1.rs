@@ -2,7 +2,7 @@ use failure::*;
 
 use super::Result;
 
-fn parse(input: &str) -> Result<Vec<u32>> {
+pub fn parse(input: &str) -> Result<Vec<u32>> {
     input
         .trim()
         .chars()
@@ -10,14 +10,14 @@ fn parse(input: &str) -> Result<Vec<u32>> {
         .collect()
 }
 
-fn reverse_captcha(xs: &[u32]) -> u32 {
+pub fn reverse_captcha(xs: &[u32]) -> u32 {
     xs.iter()
         .zip(xs.iter().cycle().skip(1))
         .filter_map(|(a, b)| if a == b { Some(a) } else { None })
         .sum()
 }
 
-fn reverse_captcha_half(xs: &[u32]) -> u32 {
+pub fn reverse_captcha_half(xs: &[u32]) -> u32 {
     xs.iter()
         .zip(xs.iter().cycle().skip(xs.len() / 2))
         .filter_map(|(a, b)| if a == b { Some(a) } else { None })
@@ -81,20 +81,5 @@ mod tests {
     #[test]
     fn test_rev_captcha_half_long2() {
         assert_eq!(reverse_captcha_half(&[1, 2, 1, 3, 1, 4, 1, 5]), 4);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d1-test");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let input = parse(FULL).unwrap();
-        b.iter(|| assert_eq!(reverse_captcha(&input), 1049))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let input = parse(FULL).unwrap();
-        b.iter(|| assert_eq!(reverse_captcha_half(&input), 1508))
     }
 }

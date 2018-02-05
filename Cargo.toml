@@ -1,6 +1,6 @@
 [package]
 name = "adventofcode"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Frank <frank.049@hotmail.com>"]
 
 [dependencies]
@@ -17,8 +17,9 @@ clap = "2.29.2"
 version = "^3"
 features = ["nightly"]
 
-[profile.release]
-debug = true
+[dev-dependencies]
+criterion = "0.1.2"
 
-[profile.bench]
-debug = true
+[[bench]]
+name = "benches"
+harness = false

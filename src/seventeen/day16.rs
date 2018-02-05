@@ -6,7 +6,7 @@ const ABC: [char; 16] = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'
 ];
 
-enum Dancemove {
+pub enum Dancemove {
     S(i32),
     X(i32, i32),
     P(char, char),
@@ -51,14 +51,14 @@ fn shift(offset: i32, order: &[char]) -> String {
     result
 }
 
-fn parse_routine(s: &str) -> Result<Vec<Dancemove>> {
+pub fn parse_routine(s: &str) -> Result<Vec<Dancemove>> {
     s.trim()
         .split(',')
         .map(Dancemove::parse)
         .collect::<Result<_>>()
 }
 
-fn dance(routine: &[Dancemove], reps: usize) -> String {
+pub fn dance(routine: &[Dancemove], reps: usize) -> String {
     let order = &mut ABC;
     let n = order.len() as i32;
     let mut offset = 0;
@@ -122,18 +122,5 @@ mod tests {
     fn test_first() {
         let routine = parse_routine(FULL).unwrap();
         assert_eq!(dance(&routine, 1), "ociedpjbmfnkhlga".to_owned())
-    }
-
-    use test::Bencher;
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let routine = parse_routine(FULL).unwrap();
-        b.iter(|| {
-            assert_eq!(
-                dance(&routine, 1_000_000_000),
-                "gnflbkojhicpmead".to_owned()
-            )
-        })
     }
 }

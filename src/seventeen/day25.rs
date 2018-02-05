@@ -155,7 +155,7 @@ impl Program {
     }
 }
 
-fn first(input: &str) -> Result<usize> {
+pub fn first(input: &str) -> Result<usize> {
     let mut prog = Program::from_str(input)?;
     Ok(prog.eval())
 }
@@ -185,13 +185,5 @@ mod tests {
         let result = first(IN);
         let expected = 3;
         check(result, expected);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d25-full");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(first(FULL), 2870))
     }
 }

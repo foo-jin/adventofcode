@@ -15,7 +15,7 @@ fn main() {
                 .help("The d of the calendar to solve")
                 .validator(|s| {
                     s.parse::<u8>()
-                        .or(Err("day must be an integer".to_string()))
+                        .or_else(|_| Err("day must be an integer".to_string()))
                         .and_then(|v| match v {
                             1...25 => Ok(()),
                             _ => Err("day must be in the range [1, 25]".to_string()),

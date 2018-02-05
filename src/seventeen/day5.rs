@@ -1,13 +1,13 @@
 use super::Result;
 
-fn parse_buffer(s: &str) -> Result<Vec<i32>> {
+pub fn parse_buffer(s: &str) -> Result<Vec<i32>> {
     s.trim()
         .lines()
         .map(|s| s.parse().map_err(Into::into))
         .collect::<Result<_>>()
 }
 
-fn buffer_jump(lines: &mut [i32]) -> u32 {
+pub fn buffer_jump(lines: &mut [i32]) -> u32 {
     let n = lines.len() as i32;
     let (mut i, mut j) = (0, 0);
 
@@ -21,7 +21,7 @@ fn buffer_jump(lines: &mut [i32]) -> u32 {
     j
 }
 
-fn buffer_jump_extreme(lines: &mut [i32]) -> u32 {
+pub fn buffer_jump_extreme(lines: &mut [i32]) -> u32 {
     let n = lines.len() as i32;
     let (mut i, mut j) = (0, 0);
 
@@ -64,20 +64,5 @@ mod tests {
     fn test_second() {
         let mut input = [0, 3, 0, 1, -3];
         assert_eq!(buffer_jump_extreme(&mut input), 10);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d5-test");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let mut input = parse_buffer(FULL).unwrap();
-        b.iter(|| assert_eq!(buffer_jump(&mut input), 373_543))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let mut input = parse_buffer(FULL).unwrap();
-        b.iter(|| assert_eq!(buffer_jump_extreme(&mut input), 27_502_966))
     }
 }

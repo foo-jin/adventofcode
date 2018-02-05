@@ -4,7 +4,7 @@ use super::Result;
 
 type Connector = (u32, u32);
 
-fn parse_connectors(s: &str) -> Result<Vec<Connector>> {
+pub fn parse_connectors(s: &str) -> Result<Vec<Connector>> {
     s.trim()
         .lines()
         .map(|s| {
@@ -78,13 +78,13 @@ where
     backtrack(&quality, xs, 0, Bridge::new())
 }
 
-fn strongest_bridge(connectors: &mut [Connector]) -> u32 {
+pub fn strongest_bridge(connectors: &mut [Connector]) -> u32 {
     let stronger = |b1: Bridge, b2: Bridge| if b1.strength > b2.strength { b1 } else { b2 };
     let bridge = optimal_bridge(stronger, connectors);
     bridge.strength
 }
 
-fn longest_bridge(connectors: &mut [Connector]) -> u32 {
+pub fn longest_bridge(connectors: &mut [Connector]) -> u32 {
     let bridge = optimal_bridge(Bridge::max, connectors);
     bridge.strength
 }
@@ -121,20 +121,5 @@ mod tests {
     fn test_second() {
         let mut connectors = parse_connectors(IN).unwrap();
         assert_eq!(longest_bridge(&mut connectors), 19);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d24-test");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let mut connectors = parse_connectors(FULL).unwrap();
-        b.iter(|| assert_eq!(strongest_bridge(&mut connectors), 1906))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let mut connectors = parse_connectors(FULL).unwrap();
-        b.iter(|| assert_eq!(longest_bridge(&mut connectors), 1824))
     }
 }

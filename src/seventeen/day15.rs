@@ -49,13 +49,13 @@ fn parse(s: &str) -> Result<(u64, u64)> {
     Ok((nums[0], nums[1]))
 }
 
-fn first(a: u64, b: u64) -> u32 {
+pub fn first(a: u64, b: u64) -> u32 {
     let a = Generator::new(a, A, 1);
     let b = Generator::new(b, B, 1);
     a.zip(b).take(40_000_000).filter(|&(a, b)| a == b).count() as u32
 }
 
-fn second(a: u64, b: u64) -> u32 {
+pub fn second(a: u64, b: u64) -> u32 {
     let a = Generator::new(a, A, 4);
     let b = Generator::new(b, B, 8);
     a.zip(b).take(5_000_000).filter(|&(a, b)| a == b).count() as u32
@@ -86,17 +86,5 @@ mod tests {
     #[test]
     fn test_second() {
         assert_eq!(second(65, 8921), 309);
-    }
-
-    use test::Bencher;
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        b.iter(|| assert_eq!(first(634, 301), 573))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        b.iter(|| assert_eq!(second(634, 301), 294))
     }
 }

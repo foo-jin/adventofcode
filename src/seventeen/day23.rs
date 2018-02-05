@@ -172,7 +172,7 @@ impl Program {
     }
 }
 
-fn debug_processor(input: &str) -> Result<u32> {
+pub fn debug_processor(input: &str) -> Result<u32> {
     let inst = parse_inst(input)?;
     let mut program = Program::from_inst(inst);
     program.exec();
@@ -180,7 +180,7 @@ fn debug_processor(input: &str) -> Result<u32> {
     Ok(program.count.mul)
 }
 
-fn optimize_processor(input: &str) -> Result<u64> {
+pub fn optimize_processor(input: &str) -> Result<u64> {
     let mut b = input.split_whitespace().nth(2).unwrap().parse()?;
     b = b * 100 + 100_000;
     let mut h = 0;
@@ -218,16 +218,15 @@ mod tests {
     use super::*;
     use seventeen::check;
 
-    use test::Bencher;
     const FULL: &str = include_str!("../../data/d23-test");
 
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check(debug_processor(FULL), 5929))
+    #[test]
+    fn test_p1() {
+        check(debug_processor(FULL), 5929)
     }
 
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        b.iter(|| check(optimize_processor(FULL), 907))
+    #[test]
+    fn test_p2() {
+        check(optimize_processor(FULL), 907)
     }
 }

@@ -2,7 +2,7 @@ use fnv::FnvHashSet;
 
 use super::Result;
 
-fn check_password(input: &str) -> u32 {
+pub fn check_password(input: &str) -> u32 {
     input
         .trim()
         .lines()
@@ -13,7 +13,7 @@ fn check_password(input: &str) -> u32 {
         .count() as u32
 }
 
-fn check_anagram(input: &str) -> u32 {
+pub fn check_anagram(input: &str) -> u32 {
     input
         .trim()
         .lines()
@@ -85,18 +85,5 @@ mod tests {
     #[test]
     fn test_check_anagram5() {
         assert_eq!(check_anagram("oiii ioii iioi iiio"), 0);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d4-test");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        b.iter(|| assert_eq!(check_password(FULL), 466))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        b.iter(|| assert_eq!(check_anagram(FULL), 251))
     }
 }

@@ -231,20 +231,16 @@ impl RuleSet {
     }
 
     fn apply(&self, pat: &Pattern) -> Pattern {
-        let mut result = None;
-        for rule in &self.rules {
-            let out = rule.try(pat);
-            if out.is_some() {
-                result = out;
-                break;
-            }
-        }
-        result.expect("no applicable rule present")
+        self.rules
+            .iter()
+            .filter_map(|r| r.try(pat))
+            .next()
+            .expect("no applicable rule present")
     }
 }
 
 #[derive(Clone)]
-struct Grid {
+pub struct Grid {
     pattern: Pattern,
     rules: RuleSet,
 }
@@ -256,7 +252,7 @@ impl Grid {
         Grid { pattern, rules }
     }
 
-    fn from_str(s: &str) -> Result<Grid> {
+    pub fn from_str(s: &str) -> Result<Grid> {
         let rules = RuleSet::parse(s)?;
         Ok(Grid::new(rules))
     }
@@ -275,7 +271,7 @@ impl Grid {
     }
 }
 
-fn evolve(mut grid: Grid, n: usize) -> usize {
+pub fn evolve(mut grid: Grid, n: usize) -> usize {
     (0..n).for_each(|_| grid.enhance());
     grid.count_on()
 }
@@ -356,14 +352,5 @@ mod tests {
         let result = evolve(input, 2);
         let expected = 12;
         assert_eq!(result, expected);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d21-test");
-
-    #[bench]
-    fn bench_both(b: &mut Bencher) {
-        let grid = Grid::from_str(FULL).unwrap();
-        b.iter(|| assert_eq!(evolve(grid.clone(), 18), 3_018_423));
     }
 }

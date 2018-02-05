@@ -51,7 +51,7 @@ impl PartialOrd for Vector {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct Particle {
+pub struct Particle {
     pos: Vector,
     vel: Vector,
     acc: Vector,
@@ -80,11 +80,11 @@ impl Particle {
     }
 }
 
-fn parse(input: &str) -> Result<Vec<Particle>> {
+pub fn parse(input: &str) -> Result<Vec<Particle>> {
     input.lines().map(Particle::parse).collect()
 }
 
-fn first(particles: &[Particle]) -> usize {
+pub fn first(particles: &[Particle]) -> usize {
     particles
         .iter()
         .enumerate()
@@ -93,7 +93,7 @@ fn first(particles: &[Particle]) -> usize {
         .unwrap()
 }
 
-fn second(mut particles: Vec<Particle>) -> usize {
+pub fn second(mut particles: Vec<Particle>) -> usize {
     for _ in 0..1000 {
         let mut seen = HashMap::new();
         for p in &particles {
@@ -144,20 +144,5 @@ mod tests {
              p=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>",
         ).unwrap();
         assert_eq!(second(particles), 1);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d20-test");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let particles = parse(FULL).unwrap();
-        b.iter(|| assert_eq!(first(&particles), 119))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let particles = parse(FULL).unwrap();
-        b.iter(|| assert_eq!(second(particles.clone()), 471))
     }
 }

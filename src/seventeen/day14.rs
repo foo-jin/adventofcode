@@ -9,7 +9,7 @@ use super::Result;
 type Point = (i32, i32);
 type Grid = FnvHashSet<Point>;
 
-fn parse_grid(input: &str) -> Grid {
+pub fn parse_grid(input: &str) -> Grid {
     let mut grid = FnvHashSet::default();
 
     for y in 0..128 {
@@ -26,7 +26,7 @@ fn parse_grid(input: &str) -> Grid {
     grid
 }
 
-fn squares_used(input: &str) -> u32 {
+pub fn squares_used(input: &str) -> u32 {
     let mut squares = 0;
 
     for line in 0..128 {
@@ -44,7 +44,7 @@ fn squares_used(input: &str) -> u32 {
     squares
 }
 
-fn regions(mut grid: Grid) -> u32 {
+pub fn regions(mut grid: Grid) -> u32 {
     let mut regions = 0;
     let mut queue = VecDeque::new();
 
@@ -92,19 +92,5 @@ mod tests {
     fn test_second() {
         let input = parse_grid("flqrgnkx");
         assert_eq!(regions(input), 1242);
-    }
-
-    use test::Bencher;
-    const FULL: &str = "oundnydw";
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        b.iter(|| assert_eq!(squares_used(FULL), 8106))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let grid = parse_grid(FULL);
-        b.iter(|| assert_eq!(regions(grid.clone()), 1164))
     }
 }

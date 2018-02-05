@@ -1,7 +1,7 @@
 use super::Result;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
-struct Layer {
+pub struct Layer {
     depth: u32,
     range: u32,
 }
@@ -16,11 +16,11 @@ impl Layer {
     }
 }
 
-fn parse_layers(s: &str) -> Result<Vec<Layer>> {
+pub fn parse_layers(s: &str) -> Result<Vec<Layer>> {
     s.trim().lines().map(Layer::from_str).collect()
 }
 
-fn severity_without_delay(layers: &[Layer]) -> u32 {
+pub fn default_severity(layers: &[Layer]) -> u32 {
     layers
         .iter()
         .map(|layer| {
@@ -33,7 +33,7 @@ fn severity_without_delay(layers: &[Layer]) -> u32 {
         .sum()
 }
 
-fn delay(layers: &[Layer]) -> u32 {
+pub fn delay(layers: &[Layer]) -> u32 {
     (0..)
         .find(|delay| {
             !layers
@@ -46,7 +46,7 @@ fn delay(layers: &[Layer]) -> u32 {
 pub fn solve() -> Result<()> {
     let input = super::get_input()?;
     let layers = parse_layers(&input)?;
-    let first = severity_without_delay(&layers);
+    let first = default_severity(&layers);
     let second = delay(&layers);
 
     println!(
@@ -67,27 +67,12 @@ mod tests {
     #[test]
     fn test_first() {
         let layers = parse_layers(IN).unwrap();
-        assert_eq!(severity_without_delay(&layers), 24);
+        assert_eq!(default_severity(&layers), 24);
     }
 
     #[test]
     fn test_second() {
         let layers = parse_layers(IN).unwrap();
         assert_eq!(delay(&layers), 10);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d13-test");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let layers = parse_layers(FULL).unwrap();
-        b.iter(|| assert_eq!(severity_without_delay(&layers), 788))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let layers = parse_layers(FULL).unwrap();
-        b.iter(|| assert_eq!(delay(&layers), 3_905_748))
     }
 }

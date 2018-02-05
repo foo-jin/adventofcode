@@ -1,6 +1,6 @@
 use super::Result;
 
-fn spinlock(steps: usize) -> u32 {
+pub fn spinlock(steps: usize) -> u32 {
     let mut buf = Vec::with_capacity(2018);
     buf.push(0);
     let mut i = 0;
@@ -15,7 +15,7 @@ fn spinlock(steps: usize) -> u32 {
 }
 
 
-fn angry_spinlock(steps: u32, limit: u32) -> u32 {
+pub fn angry_spinlock(steps: u32, limit: u32) -> u32 {
     let mut i = 0;
     let mut result = 0;
 
@@ -57,19 +57,5 @@ mod tests {
     #[test]
     fn test_second() {
         assert_eq!(angry_spinlock(3, 9), 9);
-    }
-
-    use test::Bencher;
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let input = 354;
-        b.iter(|| assert_eq!(spinlock(input), 2000))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let input = 354;
-        b.iter(|| assert_eq!(angry_spinlock(input, 50_000_000), 10_242_889))
     }
 }

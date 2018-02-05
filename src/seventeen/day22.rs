@@ -8,7 +8,7 @@ type Coord = (isize, isize);
 
 type Grid = FnvHashMap<Coord, State>;
 
-fn parse_grid(s: &str) -> Result<FnvHashMap<Coord, State>> {
+pub fn parse_grid(s: &str) -> Result<FnvHashMap<Coord, State>> {
     let mut grid = FnvHashMap::default();
 
     for (y, line) in s.lines().enumerate() {
@@ -58,7 +58,7 @@ impl Direction {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
-enum State {
+pub enum State {
     Clean,
     Weakened,
     Infected,
@@ -157,7 +157,7 @@ where
     carrier.count
 }
 
-fn infection(grid: Grid, n: usize) -> usize {
+pub fn infection(grid: Grid, n: usize) -> usize {
     let evolve = |state| match state {
         Clean => Infected,
         Infected => Clean,
@@ -167,7 +167,7 @@ fn infection(grid: Grid, n: usize) -> usize {
     exec(grid, n, evolve)
 }
 
-fn evolved_infection(grid: Grid, n: usize) -> usize {
+pub fn evolved_infection(grid: Grid, n: usize) -> usize {
     let evolve = |state| match state {
         Clean => Weakened,
         Weakened => Infected,
@@ -193,7 +193,6 @@ pub fn solve() -> Result<()> {
     Ok(())
 }
 
-#[allow(dead_code)]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -230,20 +229,5 @@ mod tests {
         let result = evolved_infection(grid, 100);
         let expected = 26;
         assert_eq!(result, expected);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d22-test");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let grid = parse_grid(FULL).unwrap();
-        b.iter(|| assert_eq!(infection(grid.clone(), 10_000), 5433))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let grid = parse_grid(FULL).unwrap();
-        b.iter(|| assert_eq!(evolved_infection(grid.clone(), 10_000_000), 2_512_599))
     }
 }

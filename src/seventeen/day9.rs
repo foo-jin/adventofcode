@@ -1,6 +1,6 @@
 use super::Result;
 
-fn process_stream(input: &str) -> Result<(u32, u32)> {
+pub fn process_stream(input: &str) -> Result<(u32, u32)> {
     let mut chars = input.trim().chars();
     let mut nesting = 0;
     let mut score = 0;
@@ -87,13 +87,5 @@ mod tests {
             process_stream("{{<a!>},{<a!>},{<a!>},{<ab>}}<!!!>>"),
             (3, 17),
         );
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d9-test");
-
-    #[bench]
-    fn bench_both(b: &mut Bencher) {
-        b.iter(|| check(process_stream(FULL), (12505, 6671)))
     }
 }

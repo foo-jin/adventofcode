@@ -2,7 +2,7 @@ use std::iter;
 
 use super::Result;
 
-fn parse(input: &str) -> Result<Vec<Vec<u32>>> {
+pub fn parse(input: &str) -> Result<Vec<Vec<u32>>> {
     input
         .trim()
         .lines()
@@ -14,7 +14,7 @@ fn parse(input: &str) -> Result<Vec<Vec<u32>>> {
         .collect()
 }
 
-fn checksum(lines: &[Vec<u32>]) -> u32 {
+pub fn checksum(lines: &[Vec<u32>]) -> u32 {
     lines
         .iter()
         .map(|l| {
@@ -25,7 +25,7 @@ fn checksum(lines: &[Vec<u32>]) -> u32 {
         .sum()
 }
 
-fn divides((x, y): (&u32, &u32)) -> Option<u32> {
+pub fn divides((x, y): (&u32, &u32)) -> Option<u32> {
     if x % y == 0 {
         Some(x / y)
     } else if y % x == 0 {
@@ -35,7 +35,7 @@ fn divides((x, y): (&u32, &u32)) -> Option<u32> {
     }
 }
 
-fn divsum(lines: &[Vec<u32>]) -> u32 {
+pub fn divsum(lines: &[Vec<u32>]) -> u32 {
     let mut result = 0;
 
     for l in lines {
@@ -78,20 +78,5 @@ mod tests {
     fn test_divsum() {
         let input = [vec![5, 9, 2, 8], vec![9, 4, 7, 3], vec![3, 8, 6, 5]];
         assert_eq!(divsum(&input), 9);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d2-test");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let input = parse(FULL).unwrap();
-        b.iter(|| assert_eq!(checksum(&input), 45351))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let input = parse(FULL).unwrap();
-        b.iter(|| assert_eq!(divsum(&input), 275))
     }
 }

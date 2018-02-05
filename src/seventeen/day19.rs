@@ -7,7 +7,7 @@ use self::Direction::{East, North, South, West};
 use self::Rotation::{Left, Right};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum Edge {
+pub enum Edge {
     Line,
     Corner,
     Letter(char),
@@ -87,7 +87,7 @@ impl Node {
     }
 }
 
-struct Path {
+pub struct Path {
     network: FnvHashMap<Node, Edge>,
     current: Node,
     direction: Direction,
@@ -102,10 +102,10 @@ impl Path {
         }
     }
 
-    fn from_str(input: &str) -> Result<Path> {
+    pub fn from_str(input: &str) -> Result<Path> {
         let mut network = FnvHashMap::default();
         let mut init = Node(0, 0);
-        
+
         for (y, line) in input.lines().enumerate() {
             for (x, c) in line.chars()
                 .enumerate()
@@ -165,15 +165,15 @@ impl Iterator for Path {
     }
 }
 
-fn get_letters(path: &[Edge]) -> String {
-    path.into_iter().filter_map(|e| e.get_letter()).collect()
+pub fn get_letters(path: impl Iterator<Item = Edge>) -> String {
+    path.filter_map(|e| e.get_letter()).collect()
 }
 
 pub fn solve() -> Result<()> {
     let input = super::get_input()?;
     let path: Vec<Edge> = Path::from_str(&input)?.collect();
-    let first = get_letters(&path);
     let second = path.len();
+    let first = get_letters(path.into_iter());
 
     println!(
         "Day 19:\n\
@@ -188,18 +188,17 @@ pub fn solve() -> Result<()> {
 mod tests {
     use super::*;
 
-    use test::Bencher;
     const FULL: &str = include_str!("../../data/d19-test");
 
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let path: Vec<Edge> = Path::from_str(FULL).unwrap().collect();
-        b.iter(|| assert_eq!(get_letters(&path), "ABCDEF".to_owned()))
+    #[test]
+    fn test_p1() {
+        let path = Path::from_str(FULL).unwrap();
+        assert_eq!(get_letters(path), "ABCDEF".to_owned())
     }
 
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let path: Vec<_> = Path::from_str(FULL).unwrap().collect();
-        b.iter(|| assert_eq!(path.len(), 38))
+    #[test]
+    fn test_p2() {
+        let path = Path::from_str(FULL).unwrap();
+        assert_eq!(path.count(), 38)
     }
 }

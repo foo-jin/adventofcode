@@ -4,7 +4,7 @@ use super::Result;
 
 type Graph = FnvHashMap<u32, Vec<u32>>;
 
-fn parse_graph(input: &str) -> Result<Graph> {
+pub fn parse_graph(input: &str) -> Result<Graph> {
     input
         .trim()
         .lines()
@@ -23,7 +23,7 @@ fn parse_graph(input: &str) -> Result<Graph> {
         .collect()
 }
 
-fn process_pipegraph(mut graph: Graph) -> (u32, u32) {
+pub fn process_pipegraph(mut graph: Graph) -> (u32, u32) {
     let mut size = 0;
     let mut count = 0;
     let n = graph.keys().len() as u32;
@@ -83,14 +83,5 @@ mod tests {
              6 <-> 4, 5",
         ).unwrap();
         assert_eq!(process_pipegraph(graph), (6, 2));
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d12-test");
-
-    #[bench]
-    fn bench_both(b: &mut Bencher) {
-        let graph = parse_graph(FULL).unwrap();
-        b.iter(|| assert_eq!(process_pipegraph(graph.clone()), (128, 209)))
     }
 }

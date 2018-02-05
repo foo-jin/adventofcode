@@ -46,7 +46,6 @@ pub fn knothash(input: &str) -> Vec<u8> {
         .map(|l| *l as usize)
         .collect();
 
-
     let mut sparse: Vec<u8> = (0..=255).collect();
 
     let mut pos = 0;
@@ -77,6 +76,12 @@ pub fn solve() -> Result<()> {
     Ok(())
 }
 
+pub fn check_knothash(input: &str, expected: &str) {
+    let out = knothash(input);
+    let result = HexSlice::new(&out).to_string();
+    assert_eq!(result.as_str(), expected);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -90,12 +95,6 @@ mod tests {
         let mut d = vec![1, 2, 3, 4, 5, 6];
         reverse(&mut d, 1, 6);
         assert_eq!(vec![2, 1, 6, 5, 4, 3], d);
-    }
-
-    fn check_knothash(input: &str, expected: &str) {
-        let out = knothash(input);
-        let result = HexSlice::new(&out).to_string();
-        assert_eq!(result.as_str(), expected);
     }
 
     #[test]
@@ -116,13 +115,5 @@ mod tests {
     #[test]
     fn test_knothash4() {
         check_knothash("1,2,4", "63960835bcdc130f0b66d7ff4f6a5a8e");
-    }
-
-    use test::Bencher;
-    const FULL: &str = "199,0,255,136,174,254,227,16,51,85,1,2,22,17,7,192";
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        b.iter(|| check_knothash(FULL, "a9d0e68649d0174c8756a59ba21d4dc6"))
     }
 }
