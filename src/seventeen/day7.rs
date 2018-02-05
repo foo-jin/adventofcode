@@ -3,22 +3,22 @@ use fnv::FnvHashMap;
 use failure::*;
 
 use super::Result;
-use parsing::d7;
+use parsing::day7;
 
 type Name<'a> = &'a str;
 type Attr<'a> = (u32, Vec<&'a str>);
 
-struct Tree<'a> {
-    root: Name<'a>,
+pub struct Tree<'a> {
+    pub root: Name<'a>,
     tree: FnvHashMap<Name<'a>, Attr<'a>>,
 }
 
 impl<'a> Tree<'a> {
-    fn from_str(s: &'a str) -> Result<Self> {
+    pub fn from_str(s: &'a str) -> Result<Self> {
         let tree: FnvHashMap<Name, Attr> = s.trim()
             .lines()
             .map(|l| {
-                d7::line(l.as_bytes())
+                day7::line(l.as_bytes())
                     .to_result()
                     .map(|(n, w, c)| (n, (w, c)))
                     .map_err(Into::into)
@@ -69,7 +69,7 @@ impl<'a> Tree<'a> {
         }
     }
 
-    fn solve(&self) -> u32 {
+    pub fn solve(&self) -> u32 {
         self.fix_tree(None, self.root)
             .expect("No defect found in tree")
     }
@@ -93,7 +93,19 @@ pub fn solve() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    const IN: &str = "pbga (66)\nxhth (57)\nebii (61)\nhavc (66)\nktlj (57)\nfwft (72) -> ktlj, cntj, xhth\nqoyq (66)\npadx (45) -> pbga, havc, qoyq\ntknk (41) -> ugml, padx, fwft\njptl (61)\nugml (68) -> gyxo, ebii, jptl\ngyxo (61)\ncntj (57)";
+    const IN: &str = "pbga (66)\n\
+                      xhth (57)\n\
+                      ebii (61)\n\
+                      havc (66)\n\
+                      ktlj (57)\n\
+                      fwft (72) -> ktlj, cntj, xhth\n\
+                      qoyq (66)\n\
+                      padx (45) -> pbga, havc, qoyq\n\
+                      tknk (41) -> ugml, padx, fwft\n\
+                      jptl (61)\n\
+                      ugml (68) -> gyxo, ebii, jptl\n\
+                      gyxo (61)\n\
+                      cntj (57)";
 
     #[test]
     fn test_rec_circus() {
@@ -105,20 +117,5 @@ mod tests {
     fn test_balance() {
         let tree = Tree::from_str(IN).unwrap();
         assert_eq!(tree.solve(), 60);
-    }
-
-    use test::Bencher;
-    const FULL: &str = include_str!("../../data/d7-test");
-
-    #[bench]
-    fn bench_p1(b: &mut Bencher) {
-        let tree = Tree::from_str(FULL).unwrap();
-        b.iter(|| assert_eq!(tree.root, "fbgguv"))
-    }
-
-    #[bench]
-    fn bench_p2(b: &mut Bencher) {
-        let tree = Tree::from_str(FULL).unwrap();
-        b.iter(|| assert_eq!(tree.solve(), 1864))
     }
 }

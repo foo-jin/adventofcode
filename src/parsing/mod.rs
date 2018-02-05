@@ -1,1 +1,1 @@
-pub mod d7;
+pub mod day7;
