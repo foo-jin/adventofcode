@@ -432,55 +432,55 @@ mod day25 {
     }
 }
 
-macro_rules! bench {
-    ($($module:tt),*) => {
-        $(
-            $module::bench_p1, $module::bench_p2,
-        )*
+macro_rules! bench_both {
+    ($name:ident, $($module:tt),*) => {
+        criterion_group!(
+            $name
+            $(
+                , $module::bench_both
+            )*
+        );
     };
 }
 
-criterion_group!(
+macro_rules! bench {
+    ($name:ident, $($module:tt),*) => {
+        criterion_group!(
+            $name
+            $(
+                , $module::bench_p1, $module::bench_p2
+            )*
+        );
+    };
+}
+
+bench!(
     benches,
-    day1::bench_p1,
-    day1::bench_p2,
-    day2::bench_p1,
-    day2::bench_p2,
-    day3::bench_p1,
-    day3::bench_p2,
-    day4::bench_p1,
-    day4::bench_p2,
-    day5::bench_p1,
-    day5::bench_p2,
-    day6::bench_both,
-    day7::bench_p1,
-    day7::bench_p2,
-    day8::bench_both,
-    day9::bench_both,
+    day1,
+    day2,
+    day3,
+    day4,
+    day5,
+    day7,
+    day13,
+    day14,
+    day15,
+    day17,
+    day18,
+    day20,
+    day22,
+    day23,
+    day24
+);
+
+bench_both!(boths, day6, day8, day9, day11, day12, day21);
+
+criterion_group!(
+    rest,
     day10::bench_p2,
-    day11::bench_both,
-    day12::bench_both,
-    day13::bench_p1,
-    day13::bench_p2,
-    day14::bench_p1,
-    day14::bench_p2,
-    day15::bench_p1,
-    day15::bench_p2,
     day16::bench_p2,
-    day17::bench_p1,
-    day17::bench_p2,
-    day18::bench_p1,
-    day18::bench_p2,
     day19::bench_p1,
-    day20::bench_p1,
-    day20::bench_p2,
-    day21::bench_both,
-    day22::bench_p1,
-    day22::bench_p2,
-    day23::bench_p1,
-    day23::bench_p2,
-    day24::bench_p1,
-    day24::bench_p2,
     day25::bench_p1
 );
-criterion_main!(benches);
+
+criterion_main!(benches, boths, rest);
