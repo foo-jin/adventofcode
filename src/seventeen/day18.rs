@@ -361,4 +361,12 @@ mod tests {
         ).unwrap();
         assert_eq!(thread_duet(&inst), 3);
     }
+
+    const FULL: &str = include_str!("../../data/d18-test");
+
+    #[test]
+    fn test_second_full() {
+        let inst = parse(FULL).unwrap();
+        assert_eq!(thread_duet(&inst), 7112)
+    }
 }
