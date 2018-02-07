@@ -436,9 +436,7 @@ macro_rules! bench_both {
     ($name:ident, $($module:tt),*) => {
         criterion_group!(
             $name
-            $(
-                , $module::bench_both
-            )*
+            $(, $module::bench_both)*
         );
     };
 }
@@ -447,15 +445,14 @@ macro_rules! bench {
     ($name:ident, $($module:tt),*) => {
         criterion_group!(
             $name
-            $(
-                , $module::bench_p1, $module::bench_p2
-            )*
+            $(, $module::bench_p1, $module::bench_p2)*
         );
     };
 }
 
 bench!(
     benches,
+    day18,
     day1,
     day2,
     day3,

@@ -20,6 +20,7 @@ extern crate itertools;
 extern crate nom;
 extern crate rayon;
 extern crate test;
+extern crate parking_lot;
 
 pub mod sixteen;
 pub mod seventeen;

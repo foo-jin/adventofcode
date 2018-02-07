@@ -12,6 +12,7 @@ crossbeam = "0.3.0"
 crossbeam-channel = "0.1.2"
 fnv = "1.0.6"
 clap = "2.29.2"
+parking_lot = "0.5.3"
 
 [dependencies.nom]
 version = "^3"

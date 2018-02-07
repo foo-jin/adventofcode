@@ -1,7 +1,8 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use crossbeam::scope;
 use crossbeam_channel::{unbounded, Receiver, Sender};
+use parking_lot::Mutex;
 
 use super::Result;
 use self::Action::{Nothing, Store, Terminate};
@@ -187,7 +188,7 @@ where
                     match self.channel.rcv(val) {
                         Store(val) => self.mem[reg as usize] = val,
                         Nothing => (),
-                        Terminate => break,
+                        Terminate => return,
                     }
                 }
             }
@@ -207,10 +208,6 @@ impl Duet {
 }
 
 impl Channel for Duet {
-    fn id(&mut self) -> Option<u8> {
-        None
-    }
-
     fn snd(&mut self, val: i64) {
         self.sent = val
     }
@@ -265,19 +262,20 @@ impl Channel for ThreadDuet {
 
     fn snd(&mut self, val: i64) {
         self.sent += 1;
-        *self.blocked.lock().unwrap() = false;
+        let mut blocked = self.blocked.lock();
+        *blocked = false;
         let _ = self.sender.send(Store(val));
     }
 
     fn rcv(&mut self, _: i64) -> Action {
         {
-            let mut blocked = self.blocked.lock().unwrap();
+            let mut blocked = self.blocked.lock();
             if self.receiver.is_empty() {
-                if !*blocked {
-                    *blocked = true;
-                } else {
+                if *blocked {
                     let _ = self.sender.send(Terminate);
                     return Terminate;
+                } else {
+                    *blocked = true;
                 }
             }
         }
