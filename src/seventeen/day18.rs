@@ -227,11 +227,9 @@ pub fn duet(inst: &[Inst]) -> i64 {
     p.channel.sent
 }
 
-#[derive(Debug)]
 struct ThreadDuet {
     id: u8,
     sent: u64,
-    recv: u64,
     sender: Sender<Action>,
     receiver: Receiver<Action>,
     blocked: Arc<Mutex<bool>>,
@@ -247,7 +245,6 @@ impl ThreadDuet {
         ThreadDuet {
             id,
             sent: 0,
-            recv: 0,
             sender,
             receiver,
             blocked,
@@ -281,12 +278,7 @@ impl Channel for ThreadDuet {
         }
 
         match self.receiver.recv() {
-            Ok(action) => {
-                if action.is_store() {
-                    self.recv += 1;
-                }
-                action
-            }
+            Ok(action) => action,
             _ => Terminate,
         }
     }
