@@ -452,7 +452,6 @@ macro_rules! bench {
 
 bench!(
     benches,
-    day18,
     day1,
     day2,
     day3,
