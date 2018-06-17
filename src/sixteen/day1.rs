@@ -1,6 +1,6 @@
-use fnv::FnvHashSet;
-
+use fnv::FnvHashSet as HashSet;
 use seventeen::Result;
+use failure::err_msg;
 
 use self::Direction::{East, North, South, West};
 use self::Rotation::{Left, Right};
@@ -121,19 +121,20 @@ impl<'a> Iterator for Line {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
+        use std::cmp::Ordering::*;
         let Point { x: x1, y: y1 } = self.current;
         let Point { x: x2, y: y2 } = self.end;
+        let x = &mut self.current.x;
+        let y = &mut self.current.y;
 
-        if x1 < x2 {
-            self.current.x += 1;
-        } else if x1 > x2 {
-            self.current.x -= 1;
-        } else if y1 < y2 {
-            self.current.y += 1;
-        } else if y1 > y2 {
-            self.current.y -= 1;
-        } else {
-            return None;
+        match x1.cmp(&x2) {
+            Less => *x += 1,
+            Greater => *x -= 1,
+            Equal => match y1.cmp(&y2) {
+                Less => *y += 1,
+                Greater => *y -= 1,
+                Equal => return None,
+            },
         }
 
         Some(self.current)
@@ -177,7 +178,7 @@ pub fn find_cycle(input: &str) -> Result<u32> {
     let instructions = parse_instructions(input)?;
 
     let mut current = Position::new();
-    let mut visited = FnvHashSet::default();
+    let mut visited = HashSet::default();
 
     for mv in instructions {
         let prev = current.location;
@@ -191,13 +192,13 @@ pub fn find_cycle(input: &str) -> Result<u32> {
         }
     }
 
-    bail!("no cycle present in input");
+    Err(err_msg("no cycle present in input"))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seventeen::check;
+    use ::check;
 
     #[test]
     fn test_find_hq1() {
