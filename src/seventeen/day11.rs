@@ -1,5 +1,5 @@
-use super::Result;
 use self::Direction::{N, NE, NW, S, SE, SW};
+use super::Result;
 
 #[derive(Clone, Copy)]
 enum Direction {
@@ -111,12 +111,7 @@ pub fn solve() -> Result<()> {
     let input = super::get_input()?;
     let (first, second) = hexgrid(&input);
 
-    println!(
-        "Day 11:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 11:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

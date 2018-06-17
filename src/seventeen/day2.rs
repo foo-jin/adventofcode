@@ -55,12 +55,7 @@ pub fn solve() -> Result<()> {
     let first = checksum(&parsed);
     let second = divsum(&parsed);
 
-    println!(
-        "Day 2:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 2:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

@@ -34,12 +34,7 @@ pub fn solve() -> Result<()> {
     let first = check_password(&passphrases);
     let second = check_anagram(&passphrases);
 
-    println!(
-        "Day 4:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 4:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

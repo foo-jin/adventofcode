@@ -4,3 +4,4 @@ Cargo.lock
 /oprofile_data
 callgrind.*
 .criterion
+\.undodir/

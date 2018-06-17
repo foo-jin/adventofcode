@@ -36,12 +36,7 @@ pub fn solve() -> Result<()> {
     let first = spinlock(steps);
     let second = angry_spinlock(steps as u32, 50_000_000);
 
-    println!(
-        "Day 17:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 17:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

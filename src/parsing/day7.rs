@@ -30,36 +30,35 @@ named!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom::IResult::Done;
 
     #[test]
     fn name_sample() {
-        assert_eq!(name(&b"pbga (66)"[..]), Done(&b" (66)"[..], "pbga"));
+        assert_eq!(name(&b"pbga (66)"[..]), Ok((&b" (66)"[..], "pbga")));
     }
 
     #[test]
     fn weight_sample() {
-        assert_eq!(weight(&b"(66)"[..]), Done(&b""[..], 66u32));
+        assert_eq!(weight(&b"(66)"[..]), Ok((&b""[..], 66u32)));
     }
 
     #[test]
     fn children_sample() {
         assert_eq!(
             children(&b"ktlj, cntj, xhth"[..]),
-            Done(&b""[..], vec!["ktlj", "cntj", "xhth"])
+            Ok((&b""[..], vec!["ktlj", "cntj", "xhth"]))
         );
     }
 
     #[test]
     fn no_children_sample() {
-        assert_eq!(children(&b""[..]), Done(&b""[..], vec![]));
+        assert_eq!(children(&b""[..]), Ok((&b""[..], vec![])));
     }
 
     #[test]
     fn line_with_children() {
         assert_eq!(
             line(&b"fwft (72) -> ktlj, cntj, xhth"[..]),
-            Done(&b""[..], ("fwft", 72, vec!["ktlj", "cntj", "xhth"]))
+            Ok((&b""[..], ("fwft", 72, vec!["ktlj", "cntj", "xhth"])))
         );
     }
 
@@ -67,7 +66,7 @@ mod tests {
     fn line_without_children() {
         assert_eq!(
             line(&b"pbga (66)"[..]),
-            Done(&b""[..], ("pbga", 66, vec![]))
+            Ok((&b""[..], ("pbga", 66, vec![])))
         );
     }
 }

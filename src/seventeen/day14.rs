@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
-use fnv::FnvHashSet;
 use bit_vec::BitVec;
+use fnv::FnvHashSet;
 
 use super::day10::knothash;
 use super::Result;
@@ -69,12 +69,7 @@ pub fn solve() -> Result<()> {
     let first = squares_used(&input);
     let second = regions(grid);
 
-    println!(
-        "Day 14:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 14:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

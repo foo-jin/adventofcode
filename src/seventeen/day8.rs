@@ -56,12 +56,7 @@ pub fn solve() -> Result<()> {
     let program = super::get_input()?;
     let (first, second) = eval(&program);
 
-    println!(
-        "Day 8:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 8:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

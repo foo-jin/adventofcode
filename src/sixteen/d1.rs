@@ -2,8 +2,8 @@ use fnv::FnvHashSet;
 
 use seventeen::Result;
 
-use self::Rotation::{Left, Right};
 use self::Direction::{East, North, South, West};
+use self::Rotation::{Left, Right};
 
 #[derive(Clone, Copy, Debug)]
 enum Direction {
@@ -168,9 +168,7 @@ pub fn find_hq(input: &str) -> Result<u32> {
     let instructions = parse_instructions(input)?;
     let position = instructions
         .into_iter()
-        .fold(Position::new(), |mut pos: Position, mv| {
-            pos.exec(mv)
-        });
+        .fold(Position::new(), |mut pos: Position, mv| pos.exec(mv));
 
     Ok(position.location.distance_from_start())
 }

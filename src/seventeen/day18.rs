@@ -4,9 +4,9 @@ use crossbeam::scope;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use parking_lot::Mutex;
 
-use super::Result;
 use self::Action::{Nothing, Store, Terminate};
 use self::Inst::{Add, Jgz, Mod, Mul, Rcv, Set, Snd};
+use super::Result;
 
 type Memory = [i64; 256];
 
@@ -136,9 +136,9 @@ where
     fn from_inst(inst: &'a [Inst], channel: C) -> Self {
         let mut program = Program {
             mem: [0; 256],
-            inst: inst,
+            inst,
             ip: 0,
-            channel: channel,
+            channel,
         };
 
         if let Some(id) = program.channel.id() {
@@ -278,7 +278,7 @@ impl Channel for ThreadDuet {
         }
 
         match self.receiver.recv() {
-            Ok(action) => action,
+            Some(action) => action,
             _ => Terminate,
         }
     }
@@ -308,12 +308,7 @@ pub fn solve() -> Result<()> {
     let first = duet(&inst);
     let second = thread_duet(&inst);
 
-    println!(
-        "Day 18:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 18:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 
@@ -324,31 +319,15 @@ mod tests {
     #[test]
     fn test_first() {
         let inst = parse(
-            "set a 1\n\
-             add a 2\n\
-             mul a a\n\
-             mod a 5\n\
-             snd a\n\
-             set a 0\n\
-             rcv a\n\
-             jgz a -1\n\
-             set a 1\n\
-             jgz a -2",
+            "set a 1\nadd a 2\nmul a a\nmod a 5\nsnd a\nset a 0\nrcv a\njgz a -1\nset a 1\njgz a \
+             -2",
         ).unwrap();
         assert_eq!(duet(&inst), 4)
     }
 
     #[test]
     fn test_second() {
-        let inst = parse(
-            "snd 1\n\
-             snd 2\n\
-             snd p\n\
-             rcv a\n\
-             rcv b\n\
-             rcv c\n\
-             rcv d",
-        ).unwrap();
+        let inst = parse("snd 1\nsnd 2\nsnd p\nrcv a\nrcv b\nrcv c\nrcv d").unwrap();
         assert_eq!(thread_duet(&inst), 3);
     }
 

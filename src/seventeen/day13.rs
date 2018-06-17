@@ -49,12 +49,7 @@ pub fn solve() -> Result<()> {
     let first = default_severity(&layers);
     let second = delay(&layers);
 
-    println!(
-        "Day 13:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 13:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

@@ -170,12 +170,7 @@ pub fn solve() -> Result<()> {
     let first = nthspiral(265_149);
     let second = firstlarger(265_149);
 
-    println!(
-        "Day 3:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 3:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

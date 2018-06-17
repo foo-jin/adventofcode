@@ -3,7 +3,7 @@ use super::Result;
 use self::Dancemove::{P, S, X};
 
 const ABC: [char; 16] = [
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
 ];
 
 pub enum Dancemove {
@@ -103,12 +103,7 @@ pub fn solve() -> Result<()> {
     let first = dance(&routine, 1);
     let second = dance(&routine, 1_000_000_000);
 
-    println!(
-        "Day 16:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 16:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

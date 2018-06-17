@@ -1,8 +1,8 @@
 use fnv::FnvHashMap;
 
-use super::Result;
 use self::Direction::{Down, Left, Right, Up};
 use self::State::{Clean, Flagged, Infected, Weakened};
+use super::Result;
 
 type Coord = (isize, isize);
 
@@ -163,7 +163,7 @@ pub fn infection(grid: Grid, n: usize) -> usize {
         Infected => Clean,
         _ => panic!("unexpected state"),
     };
-    
+
     exec(grid, n, evolve)
 }
 
@@ -184,12 +184,7 @@ pub fn solve() -> Result<()> {
     let first = infection(grid.clone(), 10_000);
     let second = evolved_infection(grid, 10_000_000);
 
-    println!(
-        "Day 22:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 22:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

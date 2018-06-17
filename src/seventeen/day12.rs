@@ -11,7 +11,8 @@ pub fn parse_graph(input: &str) -> Result<Graph> {
         .map(|l| {
             let mut it = l.split("<->");
             let program = it.next().expect("left").trim().parse()?;
-            let neighbors: Vec<u32> = it.next()
+            let neighbors: Vec<u32> = it
+                .next()
                 .expect("right")
                 .trim()
                 .split(", ")
@@ -58,12 +59,7 @@ pub fn solve() -> Result<()> {
     let graph = parse_graph(&input)?;
     let (first, second) = process_pipegraph(graph);
 
-    println!(
-        "Day 12:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 12:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 
@@ -74,13 +70,7 @@ mod tests {
     #[test]
     fn test_both() {
         let graph = parse_graph(
-            "0 <-> 2\n\
-             1 <-> 1\n\
-             2 <-> 0, 3, 4\n\
-             3 <-> 2, 4\n\
-             4 <-> 2, 3, 6\n\
-             5 <-> 6\n\
-             6 <-> 4, 5",
+            "0 <-> 2\n1 <-> 1\n2 <-> 0, 3, 4\n3 <-> 2, 4\n4 <-> 2, 3, 6\n5 <-> 6\n6 <-> 4, 5",
         ).unwrap();
         assert_eq!(process_pipegraph(graph), (6, 2));
     }

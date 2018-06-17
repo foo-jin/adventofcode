@@ -5,8 +5,8 @@ extern crate criterion;
 use criterion::Criterion;
 
 mod day1 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day1::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d1-test");
 
@@ -26,8 +26,8 @@ mod day1 {
 }
 
 mod day2 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day2::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d2-test");
 
@@ -43,8 +43,8 @@ mod day2 {
 }
 
 mod day3 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day3::*;
+    use criterion::Criterion;
 
     pub fn bench_p1(c: &mut Criterion) {
         c.bench_function("d3 p1", |b| b.iter(|| assert_eq!(nthspiral(265_149), 438)));
@@ -58,8 +58,8 @@ mod day3 {
 }
 
 mod day4 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day4::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d4-test");
 
@@ -75,8 +75,8 @@ mod day4 {
 }
 
 mod day5 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day5::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d5-test");
 
@@ -100,8 +100,8 @@ mod day5 {
 }
 
 mod day6 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day6::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d6-test");
 
@@ -114,8 +114,8 @@ mod day6 {
 }
 
 mod day7 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day7::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d7-test");
 
@@ -131,8 +131,8 @@ mod day7 {
 }
 
 mod day8 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day8::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d8-test");
 
@@ -144,8 +144,8 @@ mod day8 {
 }
 
 mod day9 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day9::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d9-test");
 
@@ -157,8 +157,8 @@ mod day9 {
 }
 
 mod day10 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day10::*;
+    use criterion::Criterion;
 
     const FULL: &str = "199,0,255,136,174,254,227,16,51,85,1,2,22,17,7,192";
 
@@ -170,8 +170,8 @@ mod day10 {
 }
 
 mod day11 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day11::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d11-test");
 
@@ -183,8 +183,8 @@ mod day11 {
 }
 
 mod day12 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day12::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d12-test");
 
@@ -197,8 +197,8 @@ mod day12 {
 }
 
 mod day13 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day13::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d13-test");
 
@@ -218,8 +218,8 @@ mod day13 {
 }
 
 mod day14 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day14::*;
+    use criterion::Criterion;
 
     const FULL: &str = "oundnydw";
 
@@ -238,8 +238,8 @@ mod day14 {
 }
 
 mod day15 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day15::*;
+    use criterion::Criterion;
 
     pub fn bench_p1(c: &mut Criterion) {
         c.bench_function("d15 p1", |b| b.iter(|| assert_eq!(first(634, 301), 573)));
@@ -251,8 +251,8 @@ mod day15 {
 }
 
 mod day16 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day16::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d16-test");
 
@@ -270,8 +270,8 @@ mod day16 {
 }
 
 mod day17 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day17::*;
+    use criterion::Criterion;
 
     pub fn bench_p1(c: &mut Criterion) {
         let input = 354;
@@ -287,8 +287,8 @@ mod day17 {
 }
 
 mod day18 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day18::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d18-test");
 
@@ -308,8 +308,8 @@ mod day18 {
 }
 
 mod day19 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day19::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d19-test");
 
@@ -326,8 +326,8 @@ mod day19 {
 }
 
 mod day20 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day20::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d20-test");
 
@@ -347,8 +347,8 @@ mod day20 {
 }
 
 mod day21 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day21::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d21-test");
 
@@ -361,8 +361,8 @@ mod day21 {
 }
 
 mod day22 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day22::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d22-test");
 
@@ -382,8 +382,8 @@ mod day22 {
 }
 
 mod day23 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day23::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d23-test");
 
@@ -401,8 +401,8 @@ mod day23 {
 }
 
 mod day24 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day24::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d24-test");
 
@@ -422,8 +422,8 @@ mod day24 {
 }
 
 mod day25 {
-    use criterion::Criterion;
     use adventofcode::seventeen::day25::*;
+    use criterion::Criterion;
 
     const FULL: &str = include_str!("../data/d25-full");
 
@@ -451,22 +451,8 @@ macro_rules! bench {
 }
 
 bench!(
-    benches,
-    day1,
-    day2,
-    day3,
-    day4,
-    day5,
-    day7,
-    day13,
-    day14,
-    day15,
-    day17,
-    day18,
-    day20,
-    day22,
-    day23,
-    day24
+    benches, day1, day2, day3, day4, day5, day7, day13, day14, day15, day17, day18, day20, day22,
+    day23, day24
 );
 
 bench_both!(boths, day6, day8, day9, day11, day12, day21);

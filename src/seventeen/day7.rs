@@ -1,6 +1,6 @@
-use fnv::FnvHashMap;
+use fnv::FnvHashMap as HashMap;
 
-use failure::*;
+use failure::err_msg;
 
 use super::Result;
 use parsing::day7;
@@ -10,18 +10,18 @@ type Attr<'a> = (u32, Vec<&'a str>);
 
 pub struct Tree<'a> {
     pub root: Name<'a>,
-    tree: FnvHashMap<Name<'a>, Attr<'a>>,
+    tree: HashMap<Name<'a>, Attr<'a>>,
 }
 
 impl<'a> Tree<'a> {
     pub fn from_str(s: &'a str) -> Result<Self> {
-        let tree: FnvHashMap<Name, Attr> = s.trim()
+        let tree: HashMap<Name, Attr> = s
+            .trim()
             .lines()
             .map(|l| {
                 day7::line(l.as_bytes())
-                    .to_result()
-                    .map(|(n, w, c)| (n, (w, c)))
-                    .map_err(Into::into)
+                    .map(|(_, (n, w, c))| (n, (w, c)))
+                    .map_err(|_| err_msg("failed to parse tree"))
             })
             .collect::<Result<_>>()?;
 
@@ -31,7 +31,8 @@ impl<'a> Tree<'a> {
             "child missing from tree"
         );
 
-        let root = tree.iter()
+        let root = tree
+            .iter()
             .find(|(n, _)| tree.iter().all(|(_, &(_, ref c))| !c.contains(n)))
             .ok_or_else(|| err_msg("unable to find root in tree"))
             .map(|(&n, _)| n)?;
@@ -81,31 +82,16 @@ pub fn solve() -> Result<()> {
     let first = tree.root;
     let second = tree.solve();
 
-    println!(
-        "Day 7:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 7:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    const IN: &str = "pbga (66)\n\
-                      xhth (57)\n\
-                      ebii (61)\n\
-                      havc (66)\n\
-                      ktlj (57)\n\
-                      fwft (72) -> ktlj, cntj, xhth\n\
-                      qoyq (66)\n\
-                      padx (45) -> pbga, havc, qoyq\n\
-                      tknk (41) -> ugml, padx, fwft\n\
-                      jptl (61)\n\
-                      ugml (68) -> gyxo, ebii, jptl\n\
-                      gyxo (61)\n\
-                      cntj (57)";
+    const IN: &str = "pbga (66)\nxhth (57)\nebii (61)\nhavc (66)\nktlj (57)\nfwft (72) -> ktlj, \
+                      cntj, xhth\nqoyq (66)\npadx (45) -> pbga, havc, qoyq\ntknk (41) -> ugml, \
+                      padx, fwft\njptl (61)\nugml (68) -> gyxo, ebii, jptl\ngyxo (61)\ncntj (57)";
 
     #[test]
     fn test_rec_circus() {

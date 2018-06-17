@@ -30,12 +30,7 @@ pub fn solve() -> Result<()> {
     let first = reverse_captcha(&parsed);
     let second = reverse_captcha_half(&parsed);
 
-    println!(
-        "Day 1:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 1:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

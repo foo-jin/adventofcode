@@ -37,12 +37,7 @@ pub fn solve() -> Result<()> {
     let stream = super::get_input()?;
     let (first, second) = process_stream(&stream)?;
 
-    println!(
-        "Day 9:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 9:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

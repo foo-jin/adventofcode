@@ -1,8 +1,8 @@
 use failure::*;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-use super::Result;
 use self::Pixel::{Off, On};
+use super::Result;
 
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
 enum Pixel {
@@ -192,13 +192,15 @@ impl Rule {
         let mut it = s.split(" => ").map(|s| s.replace("/", "\n"));
 
         let variations = {
-            let s = it.next()
+            let s = it
+                .next()
                 .ok_or_else(|| err_msg("no source pattern present"))?;
             Pattern::parse(&s)?.permute()?
         };
 
         let out = {
-            let s = it.next()
+            let s = it
+                .next()
                 .ok_or_else(|| err_msg("no target pattern present"))?;
             Pattern::parse(&s)?
         };
@@ -258,7 +260,8 @@ impl Grid {
     }
 
     fn enhance(&mut self) {
-        let next: Vec<Pattern> = self.pattern
+        let next: Vec<Pattern> = self
+            .pattern
             .split()
             .into_par_iter()
             .map(|p| self.rules.apply(&p))
@@ -281,11 +284,7 @@ pub fn solve() -> Result<()> {
     let grid = Grid::from_str(&input)?;
     let second = evolve(grid, 18);
 
-    println!(
-        "Day 21:\n\
-         Part 2: {}\n",
-        second
-    );
+    println!("Day 21:\nPart 2: {}\n", second);
     Ok(())
 }
 
@@ -345,10 +344,8 @@ mod tests {
 
     #[test]
     fn test_first() {
-        let input = Grid::from_str(
-            "../.# => ##./#../...\n\
-             .#./..#/### => #..#/..../..../#..#",
-        ).unwrap();
+        let input =
+            Grid::from_str("../.# => ##./#../...\n.#./..#/### => #..#/..../..../#..#").unwrap();
         let result = evolve(input, 2);
         let expected = 12;
         assert_eq!(result, expected);

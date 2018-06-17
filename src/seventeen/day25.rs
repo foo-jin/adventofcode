@@ -1,8 +1,8 @@
 use fnv::FnvHashMap;
 use std::collections::VecDeque;
 
-use super::Result;
 use self::Direction::{Left, Right};
+use super::Result;
 
 const FILTER: [char; 6] = ['.', '-', ':', ' ', '\t', '\n'];
 
@@ -89,7 +89,8 @@ impl Program {
 
     fn from_str(s: &str) -> Result<Program> {
         let mut it = s.trim().split("\n\n");
-        let mut metadata = it.next()
+        let mut metadata = it
+            .next()
             .unwrap()
             .lines()
             .map(|l| l.trim_matches(&FILTER[..]));
@@ -164,11 +165,7 @@ pub fn solve() -> Result<()> {
     let input = super::get_input()?;
     let first = first(&input)?;
 
-    println!(
-        "Day 25:\n\
-         Part 1: {}\n",
-        first
-    );
+    println!("Day 25:\nPart 1: {}\n", first);
     Ok(())
 }
 

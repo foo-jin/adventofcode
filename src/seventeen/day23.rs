@@ -1,7 +1,7 @@
 use failure::*;
 
-use super::Result;
 use self::Inst::{Jnz, Mul, Set, Sub};
+use super::Result;
 
 type Memory = Vec<i64>;
 
@@ -131,7 +131,7 @@ impl Program {
         let mem = vec![0; 256];
         Program {
             mem,
-            inst: inst,
+            inst,
             ip: 0,
             count: Counter::new(),
         }
@@ -203,12 +203,7 @@ pub fn solve() -> Result<()> {
     let first = debug_processor(&input)?;
     let second = optimize_processor(&input)?;
 
-    println!(
-        "Day 23:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 23:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

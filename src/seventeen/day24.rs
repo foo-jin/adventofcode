@@ -9,11 +9,13 @@ pub fn parse_connectors(s: &str) -> Result<Vec<Connector>> {
         .lines()
         .map(|s| {
             let mut it = s.split('/');
-            let first = it.next()
+            let first = it
+                .next()
                 .ok_or_else(|| err_msg("unexpected end of input"))?
                 .parse()?;
 
-            let second = it.next()
+            let second = it
+                .next()
                 .ok_or_else(|| err_msg("unexpected end of input"))?
                 .parse()?;
 
@@ -68,7 +70,7 @@ where
             if let Some(bridge) = bridge.extend(xs[i]) {
                 max = quality(max, backtrack(quality, xs, i + 1, bridge));
             }
-            
+
             xs.swap(j, i);
         }
 
@@ -95,12 +97,7 @@ pub fn solve() -> Result<()> {
     let first = strongest_bridge(&mut connectors);
     let second = longest_bridge(&mut connectors);
 
-    println!(
-        "Day 24:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 24:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

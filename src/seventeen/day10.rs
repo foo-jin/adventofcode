@@ -68,11 +68,7 @@ pub fn solve() -> Result<()> {
     let input = super::get_input()?;
     let second = knothash(&input);
 
-    println!(
-        "Day 10:\n\
-         Part 2: {}\n",
-        HexSlice::new(&second)
-    );
+    println!("Day 10:\nPart 2: {}\n", HexSlice::new(&second));
     Ok(())
 }
 

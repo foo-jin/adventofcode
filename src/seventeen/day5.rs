@@ -11,7 +11,7 @@ pub fn buffer_jump(lines: &mut [i32]) -> u32 {
     let n = lines.len() as i32;
     let (mut i, mut j) = (0, 0);
 
-    while (0..n).contains(i) {
+    while (0..n).contains(&i) {
         let inst = &mut lines[i as usize];
         i += *inst;
         *inst += 1;
@@ -25,7 +25,7 @@ pub fn buffer_jump_extreme(lines: &mut [i32]) -> u32 {
     let n = lines.len() as i32;
     let (mut i, mut j) = (0, 0);
 
-    while (0..n).contains(i) {
+    while (0..n).contains(&i) {
         let el = &mut lines[i as usize];
         i += *el;
         *el += if *el >= 3 { -1 } else { 1 };
@@ -41,12 +41,7 @@ pub fn solve() -> Result<()> {
     let first = buffer_jump(&mut buffer.clone());
     let second = buffer_jump_extreme(&mut buffer);
 
-    println!(
-        "Day 5:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 5:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

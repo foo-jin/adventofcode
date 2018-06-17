@@ -34,7 +34,8 @@ impl Iterator for Generator {
 }
 
 fn parse(s: &str) -> Result<(u64, u64)> {
-    let nums: Vec<u64> = s.trim()
+    let nums: Vec<u64> = s
+        .trim()
         .lines()
         .map(|s| {
             s.trim()
@@ -67,10 +68,7 @@ pub fn solve() -> Result<()> {
     let first = first(a, b);
     let second = second(a, b);
 
-    println!("Day 15:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second);
+    println!("Day 15:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

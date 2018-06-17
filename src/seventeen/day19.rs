@@ -2,8 +2,8 @@ use fnv::FnvHashMap;
 
 use super::Result;
 
-use self::Edge::{Corner, Letter, Line};
 use self::Direction::{East, North, South, West};
+use self::Edge::{Corner, Letter, Line};
 use self::Rotation::{Left, Right};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -107,7 +107,8 @@ impl Path {
         let mut init = Node(0, 0);
 
         for (y, line) in input.lines().enumerate() {
-            for (x, c) in line.chars()
+            for (x, c) in line
+                .chars()
                 .enumerate()
                 .filter(|&(_, c)| !c.is_whitespace())
             {
@@ -175,12 +176,7 @@ pub fn solve() -> Result<()> {
     let second = path.len();
     let first = get_letters(path.into_iter());
 
-    println!(
-        "Day 19:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 19:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 

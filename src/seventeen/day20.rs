@@ -1,6 +1,6 @@
-use std::ops::AddAssign;
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::ops::AddAssign;
 
 use super::Result;
 
@@ -113,12 +113,7 @@ pub fn solve() -> Result<()> {
     let first = first(&particles);
     let second = second(particles);
 
-    println!(
-        "Day 20:\n\
-         Part 1: {}\n\
-         Part 2: {}\n",
-        first, second
-    );
+    println!("Day 20:\nPart 1: {}\nPart 2: {}\n", first, second);
     Ok(())
 }
 
@@ -129,8 +124,7 @@ mod tests {
     #[test]
     fn test_first() {
         let particles = parse(
-            "p=< 3,0,0>, v=< 2,0,0>, a=<-1,0,0>\n\
-             p=< 4,0,0>, v=< 0,0,0>, a=<-2,0,0>",
+            "p=< 3,0,0>, v=< 2,0,0>, a=<-1,0,0>\np=< 4,0,0>, v=< 0,0,0>, a=<-2,0,0>",
         ).unwrap();
         assert_eq!(first(&particles), 0);
     }
@@ -138,10 +132,8 @@ mod tests {
     #[test]
     fn test_second() {
         let particles = parse(
-            "p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>\n\
-             p=<-4,0,0>, v=< 2,0,0>, a=< 0,0,0>\n\
-             p=<-2,0,0>, v=< 1,0,0>, a=< 0,0,0>\n\
-             p=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>",
+            "p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>\np=<-4,0,0>, v=< 2,0,0>, a=< 0,0,0>\np=<-2,0,0>, \
+             v=< 1,0,0>, a=< 0,0,0>\np=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>",
         ).unwrap();
         assert_eq!(second(particles), 1);
     }
