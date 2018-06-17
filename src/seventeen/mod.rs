@@ -26,33 +26,37 @@ pub mod day7;
 pub mod day8;
 pub mod day9;
 
-use std::fmt::Debug;
-use std::io::{self, Read};
-use std::result;
+pub use super::check;
+pub use super::get_input;
+pub use super::Result;
 
-use failure::Error;
+// use std::fmt::Debug;
+// use std::io::{self, Read};
+// use std::result;
 
-pub type Result<T> = result::Result<T, Error>;
+// use failure::Error;
 
-#[allow(dead_code)]
-pub fn check<T>(result: Result<T>, expected: T)
-where
-    T: PartialEq + Eq + Debug,
-{
-    match result {
-        Ok(result) => {
-            assert_eq!(result, expected);
-        }
-        Err(e) => {
-            e.causes().for_each(|cause| println!("{:?}", cause));
-            println!("{:?}", e.backtrace());
-            panic!("test failed");
-        }
-    }
-}
+// pub type Result<T> = result::Result<T, Error>;
 
-pub fn get_input() -> Result<String> {
-    let mut buffer = String::new();
-    io::stdin().read_to_string(&mut buffer)?;
-    Ok(buffer)
-}
+// #[allow(dead_code)]
+// pub fn check<T>(result: Result<T>, expected: T)
+// where
+//     T: PartialEq + Eq + Debug,
+// {
+//     match result {
+//         Ok(result) => {
+//             assert_eq!(result, expected);
+//         }
+//         Err(e) => {
+//             e.causes().for_each(|cause| println!("{:?}", cause));
+//             println!("{:?}", e.backtrace());
+//             panic!("test failed");
+//         }
+//     }
+// }
+
+// pub fn get_input() -> Result<String> {
+//     let mut buffer = String::new();
+//     io::stdin().read_to_string(&mut buffer)?;
+//     Ok(buffer)
+// }

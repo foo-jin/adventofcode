@@ -5,3 +5,5 @@ Cargo.lock
 callgrind.*
 .criterion
 \.undodir/
+
+Session\.vim
