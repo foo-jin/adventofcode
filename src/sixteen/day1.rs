@@ -201,27 +201,27 @@ mod tests {
     use ::check;
 
     #[test]
-    fn test_find_hq1() {
+    fn find_hq1() {
         check(find_hq("R2, L3"), 5);
     }
 
     #[test]
-    fn test_find_hq2() {
+    fn find_hq2() {
         check(find_hq("R2, R2, R2"), 2);
     }
 
     #[test]
-    fn test_find_hq3() {
+    fn find_hq3() {
         check(find_hq("R5, L5, R5, R3"), 12);
     }
 
     #[test]
-    fn test_find_cycle1() {
+    fn find_cycle1() {
         check(find_cycle("R8, R4, R4, R8"), 4);
     }
 
     #[test]
-    fn test_find_cycle2() {
+    fn find_cycle2() {
         check(find_cycle("R4, R4, R1, L0, L1, R0, R4, R8"), 8);
     }
 }

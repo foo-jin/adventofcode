@@ -1,8 +1,7 @@
+use failure::err_msg;
 use fnv::FnvHashMap as HashMap;
 
-use failure::err_msg;
-
-use super::{Result, parsing};
+use super::{parsing, Result};
 
 type Name<'a> = &'a str;
 type Attr<'a> = (u32, Vec<&'a str>);
