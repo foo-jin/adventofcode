@@ -2,8 +2,7 @@ use fnv::FnvHashMap as HashMap;
 
 use failure::err_msg;
 
-use super::Result;
-use parsing::day7;
+use super::{Result, parsing};
 
 type Name<'a> = &'a str;
 type Attr<'a> = (u32, Vec<&'a str>);
@@ -19,7 +18,7 @@ impl<'a> Tree<'a> {
             .trim()
             .lines()
             .map(|l| {
-                day7::line(l.as_bytes())
+                parsing::day7::line(l.as_bytes())
                     .map(|(_, (n, w, c))| (n, (w, c)))
                     .map_err(|_| err_msg("failed to parse tree"))
             })

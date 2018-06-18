@@ -117,7 +117,7 @@ struct Line {
     end: Point,
 }
 
-impl<'a> Iterator for Line {
+impl Iterator for Line {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {

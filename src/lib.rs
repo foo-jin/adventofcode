@@ -18,7 +18,6 @@ extern crate parking_lot;
 extern crate rayon;
 extern crate test;
 
-pub mod parsing;
 pub mod seventeen;
 pub mod sixteen;
 

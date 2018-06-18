@@ -26,6 +26,8 @@ pub mod day7;
 pub mod day8;
 pub mod day9;
 
+pub mod parsing;
+
 pub use super::check;
 pub use super::get_input;
 pub use super::Result;
