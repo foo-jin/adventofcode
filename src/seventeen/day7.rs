@@ -17,8 +17,8 @@ impl<'a> Tree<'a> {
             .trim()
             .lines()
             .map(|l| {
-                parsing::day7::line(l.as_bytes())
-                    .map(|(_, (n, w, c))| (n, (w, c)))
+                parsing::day7::parse_line(l)
+                    .map(|(n, w, c)| (n, (w, c)))
                     .map_err(|_| err_msg("failed to parse tree"))
             })
             .collect::<Result<_>>()?;

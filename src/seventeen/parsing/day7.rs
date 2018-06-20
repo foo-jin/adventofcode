@@ -1,31 +1,29 @@
 use std::str;
-
-use nom::{alphanumeric, space};
-
-named!(name<&str>, map_res!(alphanumeric, str::from_utf8));
+use nom::{self, alphanumeric, space, types::CompleteStr as Input};
 
 named!(
-    weight<u32>,
+    weight(Input) -> u32,
     map_res!(
-        map_res!(
-            delimited!(char!('('), is_not!(")"), char!(')')),
-            str::from_utf8
-        ),
+            map!(delimited!(char!('('), is_not!(")"), char!(')')), |w| *w),
         str::parse
     )
 );
 
-named!(child_sep, complete!(tag!(" -> ")));
+named!(child_sep(Input) -> Input, complete!(tag!(" -> ")));
 
 named!(
-    children<Vec<&str>>,
-    separated_list_complete!(tag!(", "), name)
+    children(Input) -> Vec<&str>,
+    separated_list_complete!(tag!(", "), map!(alphanumeric, |c| *c))
 );
 
 named!(
-    pub line<(&str, u32, Vec<&str>)>,
-    do_parse!(n: name >> opt!(space) >> w: weight >> opt!(child_sep) >> c: children >> (n, w, c))
+    line(Input) -> (&str, u32, Vec<&str>),
+    do_parse!(n: alphanumeric >> opt!(space) >> w: weight >> opt!(child_sep) >> c: children >> (*n, w, c))
 );
+
+pub fn parse_line(s: &str) -> Result<(&str, u32, Vec<&str>), nom::Err<Input>> {
+    line(Input(s)).map(|(_, r)| r)
+}
 
 #[cfg(test)]
 mod tests {
@@ -33,40 +31,40 @@ mod tests {
 
     #[test]
     fn name_sample() {
-        assert_eq!(name(&b"pbga (66)"[..]), Ok((&b" (66)"[..], "pbga")));
+        assert_eq!(alphanumeric(Input("pbga (66)")), Ok((Input(" (66)"), Input("pbga"))));
     }
 
     #[test]
     fn weight_sample() {
-        assert_eq!(weight(&b"(66)"[..]), Ok((&b""[..], 66u32)));
+        assert_eq!(weight(Input("(66)")), Ok((Input(""), 66u32)));
     }
 
     #[test]
     fn children_sample() {
         assert_eq!(
-            children(&b"ktlj, cntj, xhth"[..]),
-            Ok((&b""[..], vec!["ktlj", "cntj", "xhth"]))
+            children(Input("ktlj, cntj, xhth")),
+            Ok((Input(""), vec!["ktlj", "cntj", "xhth"]))
         );
     }
 
     #[test]
     fn no_children_sample() {
-        assert_eq!(children(&b""[..]), Ok((&b""[..], vec![])));
+        assert_eq!(children(Input("")), Ok((Input(""), vec![])));
     }
 
     #[test]
     fn line_with_children() {
         assert_eq!(
-            line(&b"fwft (72) -> ktlj, cntj, xhth"[..]),
-            Ok((&b""[..], ("fwft", 72, vec!["ktlj", "cntj", "xhth"])))
+            line(Input("fwft (72) -> ktlj, cntj, xhth")),
+            Ok(("".into(), ("fwft", 72, vec!["ktlj", "cntj", "xhth"])))
         );
     }
 
     #[test]
     fn line_without_children() {
         assert_eq!(
-            line(&b"pbga (66)"[..]),
-            Ok((&b""[..], ("pbga", 66, vec![])))
+            line(Input("pbga (66)")),
+            Ok(("".into(), ("pbga", 66, vec![])))
         );
     }
 }
