@@ -21,7 +21,7 @@ fn main() -> Result<()> {
                             1...25 => Ok(()),
                             _ => Err("'day' must be in the range (1...25)".to_string()),
                         })
-                }),
+                }).takes_value(true),
         )
         .arg(
             Arg::with_name("edition")
@@ -35,7 +35,7 @@ fn main() -> Result<()> {
                             2016...2017 => Ok(()),
                             _ => Err("'year' must be in the range (2016...2017)".to_string()),
                         })
-                }),
+                }).takes_value(true),
         )
         .get_matches();
 
@@ -50,6 +50,7 @@ fn run(edition: u16, day: u8) -> Result<()> {
         2016 => {
             use sixteen::*;
             match day {
+                1 => day1::solve(),
                 _ => unimplemented!(),
             }
         }
