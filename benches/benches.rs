@@ -12,14 +12,14 @@ mod day1 {
 
     pub fn bench_p1(c: &mut Criterion) {
         let input = parse(FULL).unwrap();
-        c.bench_function("d1 p1", |b| {
+        c.bench_function("d1 p1", move |b| {
             b.iter(|| assert_eq!(reverse_captcha(&input), 1049))
         });
     }
 
     pub fn bench_p2(c: &mut Criterion) {
         let input = parse(FULL).unwrap();
-        c.bench_function("d1 p2", |b| {
+        c.bench_function("d1 p2", move |b| {
             b.iter(|| assert_eq!(reverse_captcha_half(&input), 1508))
         });
     }
@@ -33,12 +33,12 @@ mod day2 {
 
     pub fn bench_p1(c: &mut Criterion) {
         let input = parse(FULL).unwrap();
-        c.bench_function("d2 p1", |b| b.iter(|| assert_eq!(checksum(&input), 45_351)));
+        c.bench_function("d2 p1", move |b| b.iter(|| assert_eq!(checksum(&input), 45_351)));
     }
 
     pub fn bench_p2(c: &mut Criterion) {
         let input = parse(FULL).unwrap();
-        c.bench_function("d2 p2", |b| b.iter(|| assert_eq!(divsum(&input), 275)));
+        c.bench_function("d2 p2", move |b| b.iter(|| assert_eq!(divsum(&input), 275)));
     }
 }
 
@@ -107,7 +107,7 @@ mod day6 {
 
     pub fn bench_both(c: &mut Criterion) {
         let mut input = parse_memory(FULL).unwrap();
-        c.bench_function("d6 both", |b| {
+        c.bench_function("d6 both", move |b| {
             b.iter(|| assert_eq!(redistribute(&mut input), (12_841, 8038)))
         });
     }
@@ -121,12 +121,12 @@ mod day7 {
 
     pub fn bench_p1(c: &mut Criterion) {
         let tree = Tree::from_str(FULL).unwrap();
-        c.bench_function("d7 p1", |b| b.iter(|| assert_eq!(tree.root, "fbgguv")));
+        c.bench_function("d7 p1", move |b| b.iter(|| assert_eq!(tree.root, "fbgguv")));
     }
 
     pub fn bench_p2(c: &mut Criterion) {
         let tree = Tree::from_str(FULL).unwrap();
-        c.bench_function("d7 p2", |b| b.iter(|| assert_eq!(tree.solve(), 1864)));
+        c.bench_function("d7 p2", move |b| b.iter(|| assert_eq!(tree.solve(), 1864)));
     }
 }
 
@@ -275,12 +275,12 @@ mod day17 {
 
     pub fn bench_p1(c: &mut Criterion) {
         let input = 354;
-        c.bench_function("d17 p1", |b| b.iter(|| assert_eq!(spinlock(input), 2000)));
+        c.bench_function("d17 p1", move |b| b.iter(|| assert_eq!(spinlock(input), 2000)));
     }
 
     pub fn bench_p2(c: &mut Criterion) {
         let input = 354;
-        c.bench_function("d17 p2", |b| {
+        c.bench_function("d17 p2", move |b| {
             b.iter(|| assert_eq!(angry_spinlock(input, 50_000_000), 10_242_889))
         });
     }
