@@ -33,7 +33,9 @@ mod day2 {
 
     pub fn bench_p1(c: &mut Criterion) {
         let input = parse(FULL).unwrap();
-        c.bench_function("d2 p1", move |b| b.iter(|| assert_eq!(checksum(&input), 45_351)));
+        c.bench_function("d2 p1", move |b| {
+            b.iter(|| assert_eq!(checksum(&input), 45_351))
+        });
     }
 
     pub fn bench_p2(c: &mut Criterion) {
@@ -275,7 +277,9 @@ mod day17 {
 
     pub fn bench_p1(c: &mut Criterion) {
         let input = 354;
-        c.bench_function("d17 p1", move |b| b.iter(|| assert_eq!(spinlock(input), 2000)));
+        c.bench_function("d17 p1", move |b| {
+            b.iter(|| assert_eq!(spinlock(input), 2000))
+        });
     }
 
     pub fn bench_p2(c: &mut Criterion) {

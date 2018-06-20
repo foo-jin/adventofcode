@@ -1,6 +1,6 @@
+use failure::err_msg;
 use fnv::FnvHashSet as HashSet;
 use seventeen::Result;
-use failure::err_msg;
 
 use self::Direction::{East, North, South, West};
 use self::Rotation::{Left, Right};
@@ -165,24 +165,21 @@ fn parse_instructions(input: &str) -> Result<Vec<Move>> {
         .collect()
 }
 
-pub fn find_hq(input: &str) -> Result<u32> {
-    let instructions = parse_instructions(input)?;
+fn find_hq(instructions: &[Move]) -> Result<u32> {
     let position = instructions
         .into_iter()
-        .fold(Position::new(), |mut pos: Position, mv| pos.exec(mv));
+        .fold(Position::new(), |mut pos: Position, mv| pos.exec(*mv));
 
     Ok(position.location.distance_from_start())
 }
 
-pub fn find_cycle(input: &str) -> Result<u32> {
-    let instructions = parse_instructions(input)?;
-
+fn find_cycle(instructions: &[Move]) -> Result<u32> {
     let mut current = Position::new();
     let mut visited = HashSet::default();
 
     for mv in instructions {
         let prev = current.location;
-        current = current.exec(mv);
+        current = current.exec(*mv);
         let line = prev.to_line(current.location);
 
         for p in line {
@@ -195,10 +192,19 @@ pub fn find_cycle(input: &str) -> Result<u32> {
     Err(err_msg("no cycle present in input"))
 }
 
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    let instructions = parse_instructions(&input)?;
+    let part1 = find_hq(&instructions)?;
+    let part2 = find_cycle(&instructions)?;
+
+    super::print_output(1, part1, part2)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ::check;
+    use check;
 
     #[test]
     fn find_hq1() {

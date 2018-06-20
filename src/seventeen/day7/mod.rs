@@ -1,23 +1,26 @@
+mod parsing;
+
 use failure::err_msg;
 use fnv::FnvHashMap as HashMap;
 
-use super::{parsing, Result};
+use self::parsing::parse_line;
+use super::Result;
 
 type Name<'a> = &'a str;
-type Attr<'a> = (u32, Vec<&'a str>);
+type Attributes<'a> = (u32, Vec<&'a str>);
 
 pub struct Tree<'a> {
     pub root: Name<'a>,
-    tree: HashMap<Name<'a>, Attr<'a>>,
+    tree: HashMap<Name<'a>, Attributes<'a>>,
 }
 
 impl<'a> Tree<'a> {
     pub fn from_str(s: &'a str) -> Result<Self> {
-        let tree: HashMap<Name, Attr> = s
+        let tree: HashMap<Name, Attributes> = s
             .trim()
             .lines()
             .map(|l| {
-                parsing::day7::parse_line(l)
+                parse_line(l)
                     .map(|(n, w, c)| (n, (w, c)))
                     .map_err(|_| err_msg("failed to parse tree"))
             })

@@ -21,7 +21,7 @@ extern crate test;
 pub mod seventeen;
 pub mod sixteen;
 
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::io::{self, Read};
 use std::result;
 
@@ -50,4 +50,9 @@ pub fn get_input() -> Result<String> {
     let mut buffer = String::new();
     io::stdin().read_to_string(&mut buffer)?;
     Ok(buffer)
+}
+
+pub fn print_output<S: Display, T: Display>(day: u8, part1: T, part2: S) -> Result<()> {
+    println!("Day {}:\nPart 1: {}\nPart 2: {}", day, part1, part2);
+    Ok(())
 }

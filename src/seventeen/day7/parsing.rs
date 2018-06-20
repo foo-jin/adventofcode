@@ -1,5 +1,5 @@
-use std::str;
 use nom::{self, alphanumeric, space, types::CompleteStr as Input};
+use std::str;
 
 named!(
     weight(Input) -> u32,
@@ -31,7 +31,10 @@ mod tests {
 
     #[test]
     fn name_sample() {
-        assert_eq!(alphanumeric(Input("pbga (66)")), Ok((Input(" (66)"), Input("pbga"))));
+        assert_eq!(
+            alphanumeric(Input("pbga (66)")),
+            Ok((Input(" (66)"), Input("pbga")))
+        );
     }
 
     #[test]
