@@ -13,7 +13,7 @@ named!(child_sep(Input) -> Input, complete!(tag!(" -> ")));
 
 named!(
     children(Input) -> Vec<&str>,
-    separated_list_complete!(tag!(", "), map!(alphanumeric, |c| *c))
+    separated_list!(tag!(", "), map!(alphanumeric, |c| *c))
 );
 
 named!(

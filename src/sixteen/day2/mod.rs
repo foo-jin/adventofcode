@@ -2,8 +2,17 @@ mod parsing;
 
 use super::Result;
 
-fn solve() -> Result<()> {
-    let input = super::get_input()?;
+#[derive(Debug, PartialEq)]
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
 
-    unimplemented!()
+pub fn solve() -> Result<()> {
+    let input = super::get_input()?;
+    parsing::parse_line("asdf")?;
+
+    super::print_output(2, -1, -1)
 }

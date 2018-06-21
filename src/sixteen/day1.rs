@@ -208,26 +208,40 @@ mod tests {
 
     #[test]
     fn find_hq1() {
-        check(find_hq("R2, L3"), 5);
+        let input = [(Right, 2), (Left, 3)];
+        check(find_hq(&input), 5);
     }
 
     #[test]
     fn find_hq2() {
-        check(find_hq("R2, R2, R2"), 2);
+        let input = [(Right, 2), (Right, 2), (Right, 2)];
+        check(find_hq(&input), 2);
     }
 
     #[test]
     fn find_hq3() {
-        check(find_hq("R5, L5, R5, R3"), 12);
+        let input = [(Right, 5), (Left, 5), (Right, 5), (Right, 3)];
+        check(find_hq(&input), 12);
     }
 
     #[test]
     fn find_cycle1() {
-        check(find_cycle("R8, R4, R4, R8"), 4);
+        let input = [(Right, 8), (Right, 4), (Right, 4), (Right, 8)];
+        check(find_cycle(&input), 4);
     }
 
     #[test]
     fn find_cycle2() {
-        check(find_cycle("R4, R4, R1, L0, L1, R0, R4, R8"), 8);
+        let input = [
+            (Right, 4),
+            (Right, 4),
+            (Right, 1),
+            (Left, 0),
+            (Left, 1),
+            (Right, 0),
+            (Right, 4),
+            (Right, 8),
+        ];
+        check(find_cycle(&input), 8);
     }
 }
