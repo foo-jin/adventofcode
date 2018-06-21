@@ -1,5 +1,5 @@
 use super::Triangle;
-use nom::{alphanumeric, digit, line_ending, space, types::CompleteStr as Input};
+use nom::{digit, line_ending, space, types::CompleteStr as Input};
 use std::str;
 
 named!(triangle(Input) -> Triangle, count_fixed!(u16, map_res!(preceded!(space, digit), |d: Input| d.parse()), 3));

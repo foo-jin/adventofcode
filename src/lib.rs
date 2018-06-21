@@ -11,6 +11,7 @@ extern crate crossbeam_channel;
 #[macro_use]
 extern crate failure;
 extern crate fnv;
+#[macro_use]
 extern crate itertools;
 #[macro_use]
 extern crate nom;

@@ -54,6 +54,7 @@ fn run(edition: u16, day: u8) -> Result<()> {
             match day {
                 1 => day1::solve(),
                 2 => day2::solve(),
+                3 => day3::solve(),
                 _ => unimplemented!(),
             }
         }
