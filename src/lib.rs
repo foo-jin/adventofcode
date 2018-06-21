@@ -3,6 +3,7 @@
 #![feature(range_contains)]
 #![feature(type_ascription)]
 #![feature(nll)]
+#![feature(exact_chunks)]
 
 extern crate bit_vec;
 extern crate clap;
