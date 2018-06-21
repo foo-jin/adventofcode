@@ -1,5 +1,5 @@
 use super::Direction;
-use nom::types::CompleteStr as Input;
+use nom::{line_ending, types::CompleteStr as Input};
 
 named!(up(Input) -> Direction, value!(Direction::Up, char!('U')));
 named!(down(Input) -> Direction, value!(Direction::Down, char!('D')));
@@ -10,7 +10,7 @@ named!(direction(Input) -> Direction, alt!(up | down | left | right));
 
 named!(line(Input) -> Vec<Direction>, many1!(direction));
 
-named!(lines(Input) -> Vec<Vec<Direction>>, separated_list!(tag!("\n"), line));
+named!(lines(Input) -> Vec<Vec<Direction>>, separated_list!(line_ending, line));
 
 pub fn parse_directions(s: &str) -> super::Result<Vec<Vec<Direction>>> {
     lines(Input(s))
