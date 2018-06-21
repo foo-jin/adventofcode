@@ -10,8 +10,16 @@ named!(direction(Input) -> Direction, alt!(up | down | left | right));
 
 named!(line(Input) -> Vec<Direction>, many1!(direction));
 
-pub fn parse_line(s: &str) -> Result<Vec<Direction>, nom::Err<Input>> {
+fn parse_line(s: &str) -> Result<Vec<Direction>, nom::Err<Input>> {
     line(Input(s)).map(|(_rest, result)| result)
+}
+
+pub fn parse_directions(s: &str) -> super::Result<Vec<Vec<Direction>>> {
+    s.trim()
+        .lines()
+        .map(parse_line)
+        .map(|result| result.map_err(|e| format_err!("failed to parse input: {}", e)))
+        .collect::<Result<Vec<_>, _>>()
 }
 
 #[cfg(test)]
@@ -20,7 +28,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn simple_directions() {
+    fn simple_directions<'a>() {
         assert_eq!(direction(Input("U")), Ok(("".into(), Up)));
         assert_eq!(direction(Input("D")), Ok(("".into(), Down)));
         assert_eq!(direction(Input("L")), Ok(("".into(), Left)));
