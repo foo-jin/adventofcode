@@ -1,7 +1,5 @@
 mod parsing;
 
-use std::cmp::min;
-
 use self::parsing::parse_directions;
 use super::Result;
 
@@ -27,7 +25,7 @@ const KEYPAD2: &[&[char]] = &[
     &['0', '0', '0', '0', '0', '0', '0'],
 ];
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Direction {
     Up,
     Down,

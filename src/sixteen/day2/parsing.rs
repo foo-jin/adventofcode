@@ -1,5 +1,5 @@
 use super::Direction;
-use nom::{self, types::CompleteStr as Input};
+use nom::types::CompleteStr as Input;
 
 named!(up(Input) -> Direction, value!(Direction::Up, char!('U')));
 named!(down(Input) -> Direction, value!(Direction::Down, char!('D')));
@@ -10,16 +10,12 @@ named!(direction(Input) -> Direction, alt!(up | down | left | right));
 
 named!(line(Input) -> Vec<Direction>, many1!(direction));
 
-fn parse_line(s: &str) -> Result<Vec<Direction>, nom::Err<Input>> {
-    line(Input(s)).map(|(_rest, result)| result)
-}
+named!(lines(Input) -> Vec<Vec<Direction>>, separated_list!(tag!("\n"), line));
 
 pub fn parse_directions(s: &str) -> super::Result<Vec<Vec<Direction>>> {
-    s.trim()
-        .lines()
-        .map(parse_line)
-        .map(|result| result.map_err(|e| format_err!("failed to parse input: {}", e)))
-        .collect::<Result<Vec<_>, _>>()
+    lines(Input(s))
+        .map(|(_rest, result)| result)
+        .map_err(|e| format_err!("failed to parse input: {}", e))
 }
 
 #[cfg(test)]
@@ -45,5 +41,14 @@ mod test {
                 vec![Up, Down, Left, Left, Right, Right, Down, Up]
             ))
         );
+    }
+
+    #[test]
+    fn simple_lines() {
+        let input = Input("UDLR\nUDLR\n");
+        assert_eq!(
+            lines(input),
+            Ok(("\n".into(), vec![vec![Up, Down, Left, Right]; 2]))
+        )
     }
 }
