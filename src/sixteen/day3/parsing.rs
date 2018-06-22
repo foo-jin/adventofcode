@@ -5,7 +5,7 @@ use std::str;
 named!(triangle(Input) -> Triangle, count_fixed!(u16, map_res!(preceded!(space, digit), |d: Input| d.parse()), 3));
 named!(lines(Input) -> Vec<Triangle>, separated_list!(line_ending, triangle));
 
-pub fn parse_triangles(s: &str) -> super::Result<Vec<Triangle>> {
+pub fn parse_triangles(s: &str) -> ::Result<Vec<Triangle>> {
     lines(Input(s))
         .map(|(_rest, result)| result)
         .map_err(|e| format_err!("failed to parse input: {}", e))

@@ -20,6 +20,10 @@ extern crate parking_lot;
 extern crate rayon;
 extern crate test;
 
+#[cfg(test)]
+#[macro_use]
+extern crate maplit;
+
 pub mod seventeen;
 pub mod sixteen;
 
