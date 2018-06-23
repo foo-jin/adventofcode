@@ -21,9 +21,15 @@ named!(char_count_and_sector(Input) -> (HashMap<char, u32>, u32),
 
 named!(checksum(Input) -> [char; 5], delimited!(char!('['), count_fixed!(char, anychar, 5), char!(']')));
 
-named!(pub room(Input) -> Room, do_parse!(estring: char_count_and_sector >> check: checksum >> (estring.0, estring.1, check)));
+named!(room(Input) -> Room, do_parse!(code: char_count_and_sector >> check: checksum >> (Room {counts: code.0, sector: code.1, checksum: check})));
 
 named!(lines(Input) -> Vec<Room>, separated_list!(line_ending, room));
+
+pub fn parse_room(s: &str) -> ::Result<Room> {
+    room(Input(s))
+        .map(|(_rest, result)| result)
+        .map_err(|e| format_err!("failed to parse input: {}", e))
+}
 
 pub fn parse_rooms(s: &str) -> ::Result<Vec<Room>> {
     lines(Input(s))
@@ -40,17 +46,17 @@ mod test {
         let input = Input("aaaaa-bbb-z-y-x-123[abxyz]");
         let expected = Ok((
             "".into(),
-            (
-                hashmap!{
+            Room {
+                counts: hashmap!{
                     'a' => 5,
                     'b' => 3,
                     'z' => 1,
                     'y' => 1,
                     'x' => 1,
                 },
-                123,
-                ['a', 'b', 'x', 'y', 'z'],
-            ),
+                sector: 123,
+                checksum: ['a', 'b', 'x', 'y', 'z'],
+            },
         ));
         assert_eq!(room(input), expected);
     }
