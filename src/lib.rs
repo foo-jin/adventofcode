@@ -4,6 +4,7 @@
 #![feature(type_ascription)]
 #![feature(nll)]
 #![feature(exact_chunks)]
+#![feature(try_from)]
 
 extern crate bit_vec;
 extern crate clap;
@@ -15,13 +16,15 @@ extern crate fnv;
 #[macro_use]
 extern crate itertools;
 #[macro_use]
+extern crate lazy_static;
+#[macro_use]
 extern crate nom;
 extern crate parking_lot;
 extern crate rayon;
+extern crate regex;
 extern crate test;
 
 #[cfg(test)]
-#[macro_use]
 extern crate maplit;
 
 pub mod seventeen;
