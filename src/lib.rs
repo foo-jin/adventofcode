@@ -18,14 +18,14 @@ extern crate itertools;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
+extern crate maplit;
+extern crate md5;
+#[macro_use]
 extern crate nom;
 extern crate parking_lot;
 extern crate rayon;
 extern crate regex;
 extern crate test;
-
-#[cfg(test)]
-extern crate maplit;
 
 pub mod seventeen;
 pub mod sixteen;

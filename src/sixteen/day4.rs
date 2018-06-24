@@ -1,7 +1,8 @@
 use failure;
 use itertools::Itertools;
 use std::{
-    collections::HashMap, str::{self, FromStr},
+    collections::HashMap,
+    str::{self, FromStr},
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -56,6 +56,7 @@ fn run(edition: u16, day: u8) -> Result<()> {
                 2 => day2::solve(),
                 3 => day3::solve(),
                 4 => day4::solve(),
+                5 => day5::solve(),
                 _ => unimplemented!(),
             }
         }
