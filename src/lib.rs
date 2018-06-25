@@ -10,6 +10,7 @@ extern crate bit_vec;
 extern crate clap;
 extern crate crossbeam;
 extern crate crossbeam_channel;
+extern crate crypto;
 #[macro_use]
 extern crate failure;
 extern crate fnv;
@@ -18,8 +19,9 @@ extern crate itertools;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
-extern crate maplit;
-extern crate md5;
+extern crate log;
+// #[macro_use]
+// extern crate maplit;
 #[macro_use]
 extern crate nom;
 extern crate parking_lot;
@@ -58,6 +60,7 @@ where
 pub fn get_input() -> Result<String> {
     let mut buffer = String::new();
     io::stdin().read_to_string(&mut buffer)?;
+    info!("input retrieved");
     Ok(buffer)
 }
 
