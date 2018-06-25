@@ -11,12 +11,13 @@ fn parse_messages(s: &str) -> ::Result<Vec<Vec<char>>> {
 }
 
 fn recover_message(msg: &[Vec<char>], use_modified_code: bool) -> String {
-    let sign = if use_modified_code { 1 } else { -1 };
-    let mut counts = vec![HashMap::new(); msg.first().unwrap().len()];
+    let n = msg[0].len();
+    let mut counts = vec![HashMap::new(); n];
     msg.into_iter()
         .flat_map(|msg| msg.iter().enumerate())
         .for_each(|(i, c)| *counts[i].entry(c).or_insert(0) += 1);
 
+    let sign = if use_modified_code { 1 } else { -1 };
     counts
         .into_iter()
         .flat_map(|occurrences| {
@@ -31,7 +32,11 @@ fn recover_message(msg: &[Vec<char>], use_modified_code: bool) -> String {
 pub fn solve() -> ::Result<()> {
     let input = ::get_input()?;
     let messages = parse_messages(&input)?;
+
+    info!("Solving part 1");
     let part1 = recover_message(&messages, true);
+
+    info!("Solving part 2");
     let part2 = recover_message(&messages, false);
 
     ::print_output(6, part1, part2)
