@@ -1,69 +1,43 @@
 extern crate adventofcode;
 extern crate clap;
+#[macro_use]
 extern crate failure;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate quicli;
 
-use adventofcode::{seventeen, sixteen, Result};
-use clap::{App, Arg};
+use adventofcode::{seventeen, sixteen};
+use quicli::prelude::*;
 
-fn main() -> Result<()> {
-    let matches = App::new("Advent of Code in Rust")
-        .author("Frank <frank.049@hotmail.com>")
-        .about("Advent of code solutions in Rust")
-        .arg(
-            Arg::with_name("day")
-                .short("d")
-                .required(true)
-                .help("The day of the calendar to solve")
-                .validator(|s| {
-                    s.parse::<u8>()
-                        .or_else(|_| Err("day must be a positive integer".to_string()))
-                        .and_then(|v| match v {
-                            1...25 => Ok(()),
-                            _ => Err("'day' must be in the range (1...25)".to_string()),
-                        })
-                })
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("edition")
-                .short("e")
-                .required(true)
-                .help("The edition of adventofcode to solve the problem of")
-                .validator(|s| {
-                    s.parse::<u16>()
-                        .or_else(|_| Err("year must be a positive integer".to_string()))
-                        .and_then(|v| match v {
-                            2016...2017 => Ok(()),
-                            _ => Err("'year' must be in the range (2016...2017)".to_string()),
-                        })
-                })
-                .takes_value(true),
-        )
-        .get_matches();
-
-    let edition: u16 = matches.value_of("edition").unwrap().parse().unwrap();
-    let day: u8 = matches.value_of("day").unwrap().parse().unwrap();
-
-    run(edition, day)
+#[derive(Debug, StructOpt)]
+struct Cli {
+    /// The edition of adventofcode the problem belongs to
+    edition: u32,
+    /// The day of the event the problem corresponds to
+    day: u32,
+    #[structopt(flatten)]
+    verbosity: Verbosity,
 }
 
-fn run(edition: u16, day: u8) -> Result<()> {
-    match edition {
+main!(|args: Cli, log_level: verbosity| {
+    debug!("{:?}", args);
+    let _ = match args.edition {
         2016 => {
             use sixteen::*;
-            match day {
+            match args.day {
                 1 => day1::solve(),
                 2 => day2::solve(),
                 3 => day3::solve(),
                 4 => day4::solve(),
                 5 => day5::solve(),
                 6 => day6::solve(),
-                _ => unimplemented!(),
+                _ => bail!("<day> must be an integer in the range (1...25)"),
             }
         }
         2017 => {
             use seventeen::*;
-            match day {
+            match args.day {
                 1 => day1::solve(),
                 2 => day2::solve(),
                 3 => day3::solve(),
@@ -89,9 +63,9 @@ fn run(edition: u16, day: u8) -> Result<()> {
                 23 => day23::solve(),
                 24 => day24::solve(),
                 25 => day25::solve(),
-                _ => unreachable!(),
+                _ => bail!("<day> must be an integer in the range (1...25)"),
             }
         }
-        _ => unreachable!(),
-    }
-}
+        _ => bail!("<year> must be an integer in the range (2016...2017)"),
+    };
+});
