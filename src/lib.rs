@@ -7,7 +7,6 @@
 #![feature(try_from)]
 
 extern crate bit_vec;
-extern crate clap;
 extern crate crossbeam;
 extern crate crossbeam_channel;
 extern crate crypto;

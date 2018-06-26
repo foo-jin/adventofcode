@@ -1,5 +1,4 @@
 extern crate adventofcode;
-extern crate clap;
 #[macro_use]
 extern crate failure;
 #[macro_use]
@@ -32,6 +31,7 @@ main!(|args: Cli, log_level: verbosity| {
                 4 => day4::solve(),
                 5 => day5::solve(),
                 6 => day6::solve(),
+                7 => day7::solve(),
                 _ => bail!("<day> must be an integer in the range (1...25)"),
             }
         }
